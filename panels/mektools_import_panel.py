@@ -31,6 +31,7 @@ class VIEW3D_PT_ImportPanel(Panel):
         layout.label(text="Fixer Buttons")
         layout.operator("object.fix_backface_culling", text="Fix Backface Culling")
         layout.operator("mesh.clear_custom_split_normals", text="Clear Custom Split Normals")
+        layout.operator("mektools.clear_parents", text="Clear Parents (Keep Transforms)")
 
 
 class MEKTOOLS_PT_MaleRigs(Panel):
