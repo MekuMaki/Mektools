@@ -31,7 +31,7 @@ from .meddleTools import (
 bl_info = {
     "name": "Mektools",
     "author": "Meku Maki, Shino Mythmaker",
-    "version": (1,2,5),
+    "version": (1,2,6),
     "blender": (4,2),
     "description": "Mektools Addon Structure",
     "category": "Import-Export",
