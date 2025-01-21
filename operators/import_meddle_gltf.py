@@ -4,6 +4,7 @@ import os
 import importlib.util
 from math import radians
 
+
 # Load the bone names from bone_names.py in the data folder
 DATA_PATH = os.path.join(os.path.dirname(__file__), "../data")
 BONE_NAMES_FILE = os.path.join(DATA_PATH, "bone_names.py")
@@ -43,7 +44,7 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
     bl_label = "Import GLTF from Meddle"
     filepath: bpy.props.StringProperty(subtype="FILE_PATH")  # Use filepath property for file selection
 
-    def execute(self, context):
+    def execute(self, context):        
         # Import the selected GLTF file and capture the imported objects
         bpy.ops.import_scene.gltf(filepath=self.filepath)
         
@@ -139,8 +140,14 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
 
         bpy.ops.object.mode_set(mode='OBJECT')
 
-        # Step 5: Parent all objects to "n_root"
-        bpy.ops.object.select_all(action='SELECT')
+        # We need to deselect everything before parenting the imported meshes to n_root
+        # Just to make sure we dont have an object selected that we dont want to parent
+        bpy.ops.object.select_all(action='DESELECT')
+
+        # Step 5: Parent the items of imported_meshes items objects to "n_root"
+        for mesh in imported_meshes:
+            mesh.select_set(True)   
+
         n_root_armature.select_set(True)
         bpy.context.view_layer.objects.active = n_root_armature
         bpy.ops.object.parent_set(type='OBJECT')
@@ -151,9 +158,52 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
                 if mod.type == 'ARMATURE':  # Check if it is an Armature modifier
                     mod.object = bpy.data.objects["n_root"]  # Set n_root as the target
 
-        # Step 7: Fix Shaders
-        bpy.ops.mektools.append_shaders()
-        bpy.ops.material.material_fixer_auto()
+        # Step 7: Fix/Append Shaders
+        # If the user wants to append meddle shaders we append those, otherwise we just fix the materials
+        if context.scene.import_with_meddle_shader:
+            # Since the code above selects everything after import, we need to deselect everything before appending the shaders
+            # Else Meddle might attempt to add a shader to the Default Cube or any other already existing meshes and will crash
+            for mesh in imported_meshes:
+                mesh.select_set(True)   
+
+            # Get the character directory from the filepath
+            # Since filepath points to the .gltf file, we need to go the directory where the gltf is found, not get the gltf itself
+            character_directory = os.path.dirname(self.filepath)
+
+            # The extra "" is added at the end because without it it would resolve to /character_directory/cache, which makes Meddle complain.
+            # So with the extra "" it turns into /character_directory/cache/
+            meddle_cache_directory = os.path.join(character_directory, "cache","")
+
+            try:
+                # We call the Meddle shader importer which will handle all the material assignments for us
+                bpy.ops.meekle_tools.use_shaders_current('EXEC_DEFAULT', directory=meddle_cache_directory)
+
+            except AttributeError:
+                self.report({'ERROR'}, "Meddle shaders couldn't be imported. Is the MeddleTools addon installed?")
+
+            except Exception as e:
+                self.report({'ERROR'}, f"Failed to append Meddle shaders: {e}")
+
+        else:
+            bpy.ops.mektools.append_shaders()
+            bpy.ops.material.material_fixer_auto()
+
+
+        # Step 8: Cleanup
+        # We merge all meshes whose name contain "skin", as we would usually just do this manually. So why not automate that aswell lmao?
+        skin_meshes = [obj for obj in imported_meshes if "skin" in obj.name]
+        
+        # We select the first found mesh as the active object, so we can join all the other meshes to it
+        bpy.context.view_layer.objects.active = skin_meshes[0]
+
+        for mesh in skin_meshes:
+            mesh.select_set(True)
+
+        # And we merge 'em
+        bpy.ops.object.join()
+
+        # Lastly we deselect everything
+        bpy.ops.object.select_all(action='DESELECT')
 
         self.report({'INFO'}, "GLTF imported and processed successfully.")
         return {'FINISHED'}

@@ -20,6 +20,14 @@ from .operators import (
 )
 
 
+from .properties import (
+    import_panel_properties
+)
+
+from .meddleTools import (
+    panel
+)
+
 bl_info = {
     "name": "Mektools",
     "author": "Meku Maki, Shino Mythmaker",
@@ -48,6 +56,13 @@ def register():
     fixer_operators.register()
     
 
+    #register all properties
+    import_panel_properties.register()
+
+
+    #we register all of meddle's stuff
+    panel.register()
+
 def unregister():
     # Unregister all panels
     mektools_support_community_panel.unregister()
@@ -64,6 +79,15 @@ def unregister():
     append_shaders.unregister()
     lizzer_auto_shaders.unregister()
     fixer_operators.unregister()
+
+    #unregister all properties
+    import_panel_properties.unregister()
+
+    #we unregister all of meddle's stuff
+    panel.unregister()
+    
+
+
 
 if __name__ == "__main__":
     register()

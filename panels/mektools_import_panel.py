@@ -1,5 +1,10 @@
 import bpy
+from ..meddleTools.panel import shader_fix
+from . .meddleTools.panel import blend_import
 from bpy.types import Panel
+
+
+
 
 class VIEW3D_PT_ImportPanel(Panel):
     bl_label = "Import"
@@ -11,13 +16,17 @@ class VIEW3D_PT_ImportPanel(Panel):
     def draw(self, context):
         layout = self.layout
 
+        #checkbox to see if we import the meddle shader aswell
+        layout.prop(context.scene, "import_with_meddle_shader", text="Import Meddle Shader (GLTF Only)")
+
         # Import Options
         row = layout.row(align=True)
         row.operator("mektools.import_meddle_gltf", text="GLTF from Meddle")
         row.operator("mektools.import_textools_fbx", text="FBX from TexTools")
 
         # Shader Append Button
-        layout.operator("mektools.append_shaders", text="Append Shaders", icon="SHADING_TEXTURE")
+        layout.operator(blend_import.ImportShaders.bl_idname,  text="Import Meddle Shaders", icon="SHADING_TEXTURE")
+        layout.operator(shader_fix.ShaderFixSelected.bl_idname, text="Apply Meddle Shaders To Selected Objects", icon="SHADING_TEXTURE")
 
         # Rigs Label and Popovers for Male and Female Rigs
         layout.separator()
