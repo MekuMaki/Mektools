@@ -2,7 +2,7 @@ import bpy
 from bpy.types import Panel
 
 class VIEW3D_PT_SupportCommunity(Panel):
-    bl_label = "MekTools 1.0.2" 
+    bl_label = "MekTools 1.2.6" 
     bl_idname = "VIEW3D_PT_support_community"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
@@ -11,7 +11,7 @@ class VIEW3D_PT_SupportCommunity(Panel):
     def draw(self, context):
         layout = self.layout
         layout.operator("wm.url_open", text="Support me on Patreon!", icon="URL").url = "https://www.patreon.com/MekuuMaki"
-        #my patreon could be also here o.o uwu
+        layout.operator("wm.url_open", text="Support Shino on Patreon!", icon="URL").url = "https://www.patreon.com/ShinoMythmaker"
         layout.operator("wm.url_open", text="Join the Discord! (18+ only)", icon="URL").url = "https://www.discord.gg/98DqcKE"
 
 def register():
