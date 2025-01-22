@@ -176,7 +176,7 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
 
             try:
                 # We call the Meddle shader importer which will handle all the material assignments for us
-                bpy.ops.meekle_tools.use_shaders_current('EXEC_DEFAULT', directory=meddle_cache_directory)
+                bpy.ops.append.use_shaders_current('EXEC_DEFAULT', directory=meddle_cache_directory)
 
             except AttributeError:
                 self.report({'ERROR'}, "Meddle shaders couldn't be imported. Is the MeddleTools addon installed?")

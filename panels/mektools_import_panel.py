@@ -1,7 +1,7 @@
 import bpy
-from ..meddleTools.panel import shader_fix
-from . .meddleTools.panel import blend_import
 from bpy.types import Panel
+import addon_utils
+import webbrowser
 
 
 
@@ -15,18 +15,35 @@ class VIEW3D_PT_ImportPanel(Panel):
 
     def draw(self, context):
         layout = self.layout
+        #First we check if meddle is installed
+        isMeddleInstalled = False
 
-        #checkbox to see if we import the meddle shader aswell
-        layout.prop(context.scene, "import_with_meddle_shader", text="Import Meddle Shader (GLTF Only)")
+        for mod in addon_utils.modules():
+            if mod.bl_info['name'] == "Meddle Tools":  
+                isMeddleInstalled = True
+
+                break
+
+        if isMeddleInstalled:
+            layout.prop(context.scene, "import_with_meddle_shader", text="Import MeddleTools Shader (GLTF Only)")
 
         # Import Options
         row = layout.row(align=True)
         row.operator("mektools.import_meddle_gltf", text="GLTF from Meddle")
         row.operator("mektools.import_textools_fbx", text="FBX from TexTools")
 
-        # Shader Append Button
-        layout.operator(blend_import.ImportShaders.bl_idname,  text="Import Meddle Shaders", icon="SHADING_TEXTURE")
-        layout.operator(shader_fix.ShaderFixSelected.bl_idname, text="Apply Meddle Shaders To Selected Objects", icon="SHADING_TEXTURE")
+
+        if isMeddleInstalled:
+            # Shader Append Button
+            layout.operator('append.import_shaders',  text="Import MeddleTools Shaders", icon="SHADING_TEXTURE")
+            layout.operator('append.use_shaders_current', text="Apply MeddleTools Shaders To Selected Objects", icon="SHADING_TEXTURE")
+        else:
+            layout.label(text="MeddleTools addon not installed.")
+            layout.label(text="Please install it for shader functionality.")
+
+            layout.operator("wm.url_open", text="Get MeddleTools Addon", icon="URL").url = "https://github.com/PassiveModding/MeddleTools/releases"
+        
+
 
         # Rigs Label and Popovers for Male and Female Rigs
         layout.separator()

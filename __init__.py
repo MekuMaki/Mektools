@@ -6,7 +6,9 @@ from .panels import (
     mektools_support_community_panel, 
     mektools_import_panel,
     pose_export_panel,
-    glb_export_panel
+    glb_export_panel,
+    
+    
 )
 from .operators import (
     import_meddle_gltf, 
@@ -16,16 +18,12 @@ from .operators import (
     mekrig_operators, 
     append_shaders,
     lizzer_auto_shaders, 
-    fixer_operators 
+    fixer_operators, 
 )
 
 
 from .properties import (
     import_panel_properties
-)
-
-from .meddleTools import (
-    panel
 )
 
 bl_info = {
@@ -59,10 +57,6 @@ def register():
     #register all properties
     import_panel_properties.register()
 
-
-    #we register all of meddle's stuff
-    panel.register()
-
 def unregister():
     # Unregister all panels
     mektools_support_community_panel.unregister()
@@ -81,13 +75,9 @@ def unregister():
     fixer_operators.unregister()
 
     #unregister all properties
-    import_panel_properties.unregister()
-
-    #we unregister all of meddle's stuff
-    panel.unregister()
+    import_panel_properties.unregister()    
     
-
-
 
 if __name__ == "__main__":
     register()
+    
