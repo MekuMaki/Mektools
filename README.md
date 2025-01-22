@@ -16,6 +16,7 @@ Now you need to have something to import.
 Assuming you already have Dalamud installed along with Mare, Penumbra, Glamourer and other required plugins...
 
 Install [Meddle](https://github.com/PassiveModding/Meddle)
+Install [MeddleTools](https://github.com/PassiveModding/MeddleTools)
 
 On the Meddle UI, go to the Options tab, change Export type to RAW. This will export raw textures that are used in the shaders from Skulblaka. Then go to the Character tab, select your character and hit Export All Models.
 
