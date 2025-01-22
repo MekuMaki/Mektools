@@ -179,7 +179,7 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
                 bpy.ops.meddle.use_shaders_selected_objects('EXEC_DEFAULT', directory=meddle_cache_directory)
 
             except AttributeError:
-                self.report({'ERROR'}, "Meddle shaders couldn't be imported. Is the MeddleTools addon installed?")
+                self.report({'ERROR'}, "Meddle shaders couldn't be imported. Try restarting Blender and try again.")
 
             except Exception as e:
                 self.report({'ERROR'}, f"Failed to append Meddle shaders: {e}")
