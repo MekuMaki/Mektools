@@ -35,8 +35,8 @@ class VIEW3D_PT_ImportPanel(Panel):
 
         if isMeddleInstalled:
             # Shader Append Button
-            layout.operator('append.import_shaders',  text="Import MeddleTools Shaders", icon="SHADING_TEXTURE")
-            layout.operator('append.use_shaders_current', text="Apply MeddleTools Shaders To Selected Objects", icon="SHADING_TEXTURE")
+            layout.operator('meddle.import_shaders',  text="Import MeddleTools Shaders", icon="SHADING_TEXTURE")
+            layout.operator('meddle.use_shaders_selected_objects', text="Apply MeddleTools Shaders To Selected Objects", icon="SHADING_TEXTURE")
         else:
             layout.label(text="MeddleTools addon not installed.")
             layout.label(text="Please install it for shader functionality.")

@@ -1,9 +1,0 @@
-To update  MeddleTools to a newer version (assuming no breaking changes)
-1- find and replace all `append.` in the `bl_idname` field with something else so they don't conflict with users who already have meddle installed. In my case I choose to use `meekle_tools.`
-NOTE: we cant just replace the word `append` case we might take some other variable or something that simply has the word 'append' in it. By adding the dot we make sure we only refer to the bl_idnames. (since only the bl_idnames being with `append.`)
-2- We must remove any dependencies that the user might not have installed and the places they are used. Thankfully in this case it is only the `toml` library so we can remove it without breaking anything.
-Its only found instance is in `panel.py`  in the `register()` function. We comment/delete that part of the code (which we can do because it doesn't break anything) it will work since we wont be calling a missing  dependency.
-
-A few things that might change and will break the shader importing if they do:
-- The main import function to call the shaders `meekle_tools.use_shaders_current`'s name is changed. In this case its an easy fix of simply changing the operator to the new named one.
-- Any more interwoven dependency. If the MeddleTools author decides to use any sort of more advanced dependency for some reason we will either need to find a way around it, or make releases of mektools with the dependency already baked in (using wheels i'd hope)
