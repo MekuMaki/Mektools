@@ -1,6 +1,6 @@
-# Mektools-Version 1.2.6
+# Mektools-Version 1.2.10
 
-## Mektools 1.2 for Dawntrail is finally here!
+## Mektools for Dawntrail is finally here!
 
 ![MekTools Addon Interface](assets/mektools_ui.png)
 
@@ -15,8 +15,8 @@ Now you need to have something to import.
 
 Assuming you already have Dalamud installed along with Mare, Penumbra, Glamourer and other required plugins...
 
-Install [Meddle](https://github.com/PassiveModding/Meddle)
-Install [MeddleTools](https://github.com/PassiveModding/MeddleTools)
+Install [Meddle](https://github.com/PassiveModding/Meddle) This is needed for exporting assets from the game client.
+Install [MeddleTools](https://github.com/PassiveModding/MeddleTools) This is needed for easy setup of shaders in blender of those assets!
 
 On the Meddle UI, go to the Options tab, change Export type to RAW. This will export raw textures that are used in the shaders from Skulblaka. Then go to the Character tab, select your character and hit Export All Models.
 
