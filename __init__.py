@@ -29,7 +29,7 @@ from .properties import (
 bl_info = {
     "name": "Mektools",
     "author": "Meku Maki, Shino Mythmaker",
-    "version": (1,2,11),
+    "version": (1,2,12),
     "blender": (4,2),
     "description": "Mektools Addon Structure",
     "category": "Import-Export",
