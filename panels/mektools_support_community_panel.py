@@ -2,7 +2,7 @@ import bpy
 from bpy.types import Panel
 
 class VIEW3D_PT_SupportCommunity(Panel):
-    bl_label = "MekTools 1.2.8" 
+    bl_label = "MekTools 1.2.10" 
     bl_idname = "VIEW3D_PT_support_community"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
