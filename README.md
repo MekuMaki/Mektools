@@ -1,8 +1,8 @@
-# Mektools-Version 1.0.2
+# Mektools-Version 1.2.10
 
-## Mektools 1.0 for Dawntrail is finally here!
+## Mektools for Dawntrail is finally here!
 
-![MekTools Addon Interface](assets/mektools_1_0_1_ui.png)
+![MekTools Addon Interface](assets/mektools_ui_10.png)
 
 please wait a bit while I organize a proper tutorial and place it here...
 
@@ -15,7 +15,8 @@ Now you need to have something to import.
 
 Assuming you already have Dalamud installed along with Mare, Penumbra, Glamourer and other required plugins...
 
-Install [Meddle](https://github.com/PassiveModding/Meddle)
+Install [Meddle](https://github.com/PassiveModding/Meddle) This is needed for exporting assets from the game client.
+Install [MeddleTools](https://github.com/PassiveModding/MeddleTools) This is needed for easy setup of shaders in blender of those assets!
 
 On the Meddle UI, go to the Options tab, change Export type to RAW. This will export raw textures that are used in the shaders from Skulblaka. Then go to the Character tab, select your character and hit Export All Models.
 
@@ -25,11 +26,9 @@ It will prompt you with a window to select where you will be exporting the model
 **Step 6:** Navigate to your character.gltf that was exported (or whatever you named it)
 **Step 7:** wait for a moment because it will make blender look like that its frozen-- it hasnt lol.
 
-After you've hit this point, the character will be imported and processed according to how I typically set up characters in blender. All except for the shaders.
+After you've hit this point, the character will be imported and processed according to how I typically set up characters in blender.
 
-For the shaders to get fixed, you currently will need to do things a little manually still until a few things have been figured out...
-
-The Append Shaders button will pull in the materials from the shaders.blend file, this is some shaders that all you need to do is replace the image textures with the ones that are for each part of your character. I plan to have this also be automated but that needs to come later when some color set stuff has been figured out.
+The Append Shaders button will pull in the materials from the shaders.blend file, this is some shaders that all you need to do is replace the image textures with the ones that are for each part of your character.
 
 **I will make a detailed video tutorial explaining how to import things and get gear to look proper too! just keep an eye out!**
 

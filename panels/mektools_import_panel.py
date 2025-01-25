@@ -1,5 +1,10 @@
 import bpy
 from bpy.types import Panel
+import addon_utils
+import webbrowser
+
+
+
 
 class VIEW3D_PT_ImportPanel(Panel):
     bl_label = "Import"
@@ -10,14 +15,35 @@ class VIEW3D_PT_ImportPanel(Panel):
 
     def draw(self, context):
         layout = self.layout
+        #First we check if meddle is installed
+        isMeddleInstalled = False
+
+        for mod in addon_utils.modules():
+            if mod.bl_info['name'] == "Meddle Tools":  
+                isMeddleInstalled = True
+
+                break
+
+        if isMeddleInstalled:
+            layout.prop(context.scene, "import_with_meddle_shader", text="Import MeddleTools Shader (GLTF Only)")
 
         # Import Options
         row = layout.row(align=True)
         row.operator("mektools.import_meddle_gltf", text="GLTF from Meddle")
         row.operator("mektools.import_textools_fbx", text="FBX from TexTools")
 
-        # Shader Append Button
-        layout.operator("mektools.append_shaders", text="Append Shaders", icon="SHADING_TEXTURE")
+
+        if isMeddleInstalled:
+            # Shader Append Button
+            layout.operator('meddle.import_shaders',  text="Import MeddleTools Shaders", icon="SHADING_TEXTURE")
+            layout.operator('meddle.use_shaders_selected_objects', text="Apply MeddleTools Shaders To Selected Objects", icon="SHADING_TEXTURE")
+        else:
+            layout.label(text="MeddleTools addon not installed.")
+            layout.label(text="Please install it for shader functionality.")
+
+            layout.operator("wm.url_open", text="Get MeddleTools Addon", icon="URL").url = "https://github.com/PassiveModding/MeddleTools/releases"
+        
+
 
         # Rigs Label and Popovers for Male and Female Rigs
         layout.separator()
@@ -31,7 +57,7 @@ class VIEW3D_PT_ImportPanel(Panel):
         layout.label(text="Fixer Buttons")
         layout.operator("object.fix_backface_culling", text="Fix Backface Culling")
         layout.operator("mesh.clear_custom_split_normals", text="Clear Custom Split Normals")
-
+        layout.operator("mektools.clear_parents", text="Clear Parents (Keep Transforms)")
 
 class MEKTOOLS_PT_MaleRigs(Panel):
     """Male Mekrigs Import"""

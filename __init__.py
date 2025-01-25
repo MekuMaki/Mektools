@@ -1,58 +1,83 @@
 import bpy
+import json
+import os
+
 from .panels import (
     mektools_support_community_panel, 
     mektools_import_panel,
-    mythtools_export_panel
+    pose_export_panel,
+    glb_export_panel,
+    
+    
 )
 from .operators import (
     import_meddle_gltf, 
     import_textools_fbx, 
-    export_pose,       #.pose file export 
-    mekrig_operators,  # Consolidated operators for each Mekrig import
+    export_pose, 
+    export_glb, 
+    mekrig_operators, 
     append_shaders,
-    lizzer_auto_shaders,  # Auto shader fixer operator
-    fixer_operators  # New fixer operators for custom split normals and backface culling
+    lizzer_auto_shaders, 
+    fixer_operators, 
+)
+
+
+from .properties import (
+    import_panel_properties
 )
 
 bl_info = {
-    "name": "MekTools V1.0.2",
+    "name": "Mektools",
     "author": "Meku Maki, Shino Mythmaker",
-    "version": (1, 0, 2),
-    "blender": (4, 2, 0),
-    "location": "View3D > MekTools Tab",
-    "description": "MekTools Addon Structure for character and material import adjustments",
+    "version": (1,2,12),
+    "blender": (4,2),
+    "description": "Mektools Addon Structure",
     "category": "Import-Export",
+    "location": "View3D > Mektools Tab",
 }
 
 def register():
     # Register all panels
     mektools_support_community_panel.register()
     mektools_import_panel.register()
-    mythtools_export_panel.register()
+    pose_export_panel.register()
+    glb_export_panel.register()
     
     # Register all operators
     import_meddle_gltf.register()
     import_textools_fbx.register()
     export_pose.register()
+    export_glb.register()
     mekrig_operators.register()
     append_shaders.register()
     lizzer_auto_shaders.register()
-    fixer_operators.register()  # Register the fixer operators
+    fixer_operators.register()
+    
+
+    #register all properties
+    import_panel_properties.register()
 
 def unregister():
     # Unregister all panels
     mektools_support_community_panel.unregister()
     mektools_import_panel.unregister()
-    mythtools_export_panel.unregister()
+    pose_export_panel.unregister()
+    glb_export_panel.unregister()
     
     # Unregister all operators
     import_meddle_gltf.unregister()
     import_textools_fbx.unregister()
     export_pose.unregister()
+    export_glb.unregister()
     mekrig_operators.unregister()
     append_shaders.unregister()
     lizzer_auto_shaders.unregister()
-    fixer_operators.unregister()  # Unregister the fixer operators
+    fixer_operators.unregister()
+
+    #unregister all properties
+    import_panel_properties.unregister()    
+    
 
 if __name__ == "__main__":
     register()
+    

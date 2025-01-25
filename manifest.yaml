@@ -1,8 +1,0 @@
-name: "Mektools V1.0.2"
-author: "Meku Maki, Shino Mythmaker"
-version: [1, 0, 2]
-blender:
-  min_version: 4.2
-description: "Mektools V1.0.2 Addon Structure"
-category: "Import-Export"
-location: "View3D > Mektools Tab"

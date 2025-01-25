@@ -1,19 +1,17 @@
 import bpy
 import json
 import os
-from os import path
-from mathutils import *
-from bpy_extras.io_utils import ExportHelper
+from bpy.types import Operator
+from bpy.props import BoolProperty
+from bpy_extras.io_utils import ExportHelper  
 
-def bone_filter(bone_name):
-    #Returns True if the bone should be included in the export,
-    #otherwise returns False.
-    # Skip bones that start with "j_ex"
-    return not bone_name.startswith("j_ex")
+BONE_GROUPS = ["Hair", "Face", "HandL", "HandR", "Tail", "Gear", "Body"]
 
-class EXPORT_OT_ExportPose(bpy.types.Operator, ExportHelper):
+class EXPORT_SKELETON_OT_pose(Operator, ExportHelper):
     bl_idname = "export_skeleton.pose"
-    bl_label = "Export Skeleton Pose to POSE"
+    bl_label = "Export Skeleton Pose"
+    arg: bpy.props.StringProperty()
+    
     
     filepath: bpy.props.StringProperty(subtype="FILE_PATH")
     filename_ext='.pose'
@@ -22,70 +20,74 @@ class EXPORT_OT_ExportPose(bpy.types.Operator, ExportHelper):
         options={'HIDDEN'}
     )
 
+    @classmethod
+    def description(cls, context, properties):
+        return properties.arg
+    
     def execute(self, context):
-        armature = bpy.context.object  # Ensure the active object is the armature
-        if armature and armature.type == 'ARMATURE':
-            origin_bone = armature.pose.bones.get("n_throw")  # Assuming "origin_root" is the relative ankor point
+        # Load bone groups from the JSON file
+        json_path = os.path.join(os.path.dirname(__file__), "..", "data", "bone_groups.json")
+        with open(json_path) as f:
+            bone_groups = json.load(f)
 
-            if origin_bone:
-                # Get the origin bone's transformation in world space
-                origin_bone_matrix_world = armature.matrix_world @ origin_bone.matrix
+        # Get selected groups based on the panel selections
+        bone_group_props = context.scene.bone_group_props
+        selected_groups = {name for name in BONE_GROUPS if getattr(bone_group_props, name)}
+        selected_bones = [bone for group in selected_groups for bone in bone_groups.get(group, [])]
+        
+        for group in selected_groups:
+            selected_bones.extend(bone_groups.get(group, []))
 
-                # Decompose origin bone matrix to position, rotation, and scale for top-level attributes
-                origin_pos = origin_bone_matrix_world.to_translation()
-                origin_rot = origin_bone_matrix_world.to_quaternion()
-                origin_scale = origin_bone_matrix_world.to_scale()
+            # If the 'Hair' group is selected, include all bones that start with 'j_ex'
+            if group == "Hair":
+                selected_bones.extend([bone.name for bone in context.object.pose.bones if bone.name.startswith("j_ex")])
+        
+        # Prepare data for export
+        armature = context.object
+        if not armature or armature.type != 'ARMATURE':
+            self.report({'ERROR'}, "No armature selected")
+            return {'CANCELLED'}
+        
+        # Origin bone assumed as "n_throw"
+        root_bone = armature.pose.bones.get("n_throw")
+        if not root_bone:
+            self.report({'ERROR'}, "Origin bone 'n_throw' not found")
+            return {'CANCELLED'}
+        
+        root_matrix_world = armature.matrix_world @ root_bone.matrix
+        skeleton_data = {
+            "FileExtension": ".pose",
+            "TypeName": "Ktisis Pose",
+            "FileVersion": 2,
+            "Position": f"{root_matrix_world.translation.x:.6f}, {root_matrix_world.translation.y:.6f}, {root_matrix_world.translation.z:.6f}",
+            "Rotation": f"{root_matrix_world.to_quaternion().x:.6f}, {root_matrix_world.to_quaternion().y:.6f}, {root_matrix_world.to_quaternion().z:.6f}, {root_matrix_world.to_quaternion().w:.6f}",
+            "Scale": f"{root_matrix_world.to_scale().x:.6f}, {root_matrix_world.to_scale().y:.6f}, {root_matrix_world.to_scale().z:.6f}",
+            "Bones": {}
+        }
 
-                skeleton_data = {
-                    "FileExtension": ".pose",
-                    "TypeName": "Ktisis Pose",
-                    "FileVersion": 2,
-                    "Position": f"{origin_pos.x:.6f}, {origin_pos.y:.6f}, {origin_pos.z:.6f}",
-                    "Rotation": f"{origin_rot.x:.6f}, {origin_rot.y:.6f}, {origin_rot.z:.6f}, {origin_rot.w:.6f}",
-                    "Scale": f"{origin_scale.x:.6f}, {origin_scale.y:.6f}, {origin_scale.z:.6f}",
-                    "Bones": {}
+        # Collect data for selected bones
+        for bone_name in selected_bones:
+            bone = armature.pose.bones.get(bone_name)
+            if bone:
+                bone_matrix_world = armature.matrix_world @ bone.matrix
+                relative_matrix = root_matrix_world.inverted() @ bone_matrix_world
+
+                bone_data = {
+                    "Position": f"{relative_matrix.translation.x:.6f}, {relative_matrix.translation.y:.6f}, {relative_matrix.translation.z:.6f}",
+                    "Rotation": f"{relative_matrix.to_quaternion().x:.6f}, {relative_matrix.to_quaternion().y:.6f}, {relative_matrix.to_quaternion().z:.6f}, {relative_matrix.to_quaternion().w:.6f}",
+                    "Scale": f"{relative_matrix.to_scale().x:.8f}, {relative_matrix.to_scale().y:.8f}, {relative_matrix.to_scale().z:.8f}"
                 }
-
-                for bone in armature.pose.bones:
-                    # Apply the bone filter
-                    if not bone_filter(bone.name):
-                        continue  # Skip bones that don't pass the filter
-                    
-                    # Get the bone's transformation in world space
-                    bone_matrix_world = armature.matrix_world @ bone.matrix
-                    
-                    # Calculate the relative matrix to the origin bone
-                    relative_matrix = origin_bone_matrix_world.inverted() @ bone_matrix_world
-
-                    # Decompose the relative matrix to position, rotation, and scale
-                    pos = relative_matrix.to_translation()
-                    rot = relative_matrix.to_quaternion()
-                    scale = relative_matrix.to_scale()
-
-                    # Format transformations for JSON/POSE
-                    bone_data = {
-                        "Position": f"{pos.x:.6f}, {pos.y:.6f}, {pos.z:.6f}",
-                        "Rotation": f"{rot.x:.6f}, {rot.y:.6f}, {rot.z:.6f}, {rot.w:.6f}",
-                        "Scale": f"{scale.x:.8f}, {scale.y:.8f}, {scale.z:.8f}"  # Higher precision
-                    }
-
-                    # Add bone data to the skeleton
-                    skeleton_data["Bones"][bone.name] = bone_data
-
-            else:
-                self.report({'ERROR'}, "origin bone 'n_throw' not found")
-                return {'CANCELLED'}
-
-        # Save to POSE
+                skeleton_data["Bones"][bone_name] = bone_data
+        
+        # Write to the file
         with open(self.filepath, 'w') as f:
             json.dump(skeleton_data, f, indent=4)
 
         self.report({'INFO'}, "Pose exported successfully!")
         return {'FINISHED'}
 
-# Register and unregister classes
 def register():
-    bpy.utils.register_class(EXPORT_OT_ExportPose)
-    
+    bpy.utils.register_class(EXPORT_SKELETON_OT_pose)
+
 def unregister():
-    bpy.utils.unregister_class(EXPORT_OT_ExportPose)
+    bpy.utils.unregister_class(EXPORT_SKELETON_OT_pose)
