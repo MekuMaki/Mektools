@@ -2,7 +2,7 @@
 
 ## Mektools for Dawntrail is finally here!
 
-fuck you UI png not getting updated
+![MekTools Addon Interface](assets/mektools_ui.png)
 
 please wait a bit while I organize a proper tutorial and place it here...
 
