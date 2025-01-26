@@ -18,28 +18,73 @@ class VIEW3D_PT_ImportPanel(Panel):
         #First we check if meddle is installed
         isMeddleInstalled = False
 
+        # We go through each addon and see if we find a 'Meddle Tools' addon
         for mod in addon_utils.modules():
             if mod.bl_info['name'] == "Meddle Tools":  
                 isMeddleInstalled = True
 
                 break
+        has_operators = False
+ 
+        # Ideally, using a try/catch block for the logic of your code is not the best practice
+        # try/catch blocks are for handling exceptions, not for controlling the flow of your code
+        # but i had no fucking clue how to do it otherwise, so it stays.
+        try:
+            # We check if the operators are available
+            # If someone just installed the addon (without restarting blender)
+            # these will error out, so we need to catch that
+            # once someone restarts blender these go through no problemo
+            bpy.ops.meddle.import_shaders.poll()
+            bpy.ops.meddle.use_shaders_selected_objects.poll()
 
-        if isMeddleInstalled:
+            #we set the operators as true to display all the buttons and shenanigans
+            has_operators = True
+            print(f"Both MeddleTools operators found")
+
+        except (AttributeError, RuntimeError):
+            print(f"MeddleTools operators not found")
+            False
+
+        # Import Buttons Section
+        # We check if meddle is instaslled AND its initialized properly (after a restart)
+        if isMeddleInstalled and has_operators:
+            #If it is, we show all the import buttons.
             layout.prop(context.scene, "import_with_meddle_shader", text="Import MeddleTools Shader (GLTF Only)")
 
-        # Import Options
-        row = layout.row(align=True)
-        row.operator("mektools.import_meddle_gltf", text="GLTF from Meddle")
-        row.operator("mektools.import_textools_fbx", text="FBX from TexTools")
+            row = layout.row(align=True)
+            row.operator("mektools.import_meddle_gltf", text="GLTF from Meddle")
+            row.operator("mektools.import_textools_fbx", text="FBX from TexTools")
 
-
+        # We need to split the logic here since we want different things to happen wether meddle is installed or not
+        # and if the operators are available or not
         if isMeddleInstalled:
-            # Shader Append Button
-            layout.operator('meddle.import_shaders',  text="Import MeddleTools Shaders", icon="SHADING_TEXTURE")
-            layout.operator('meddle.use_shaders_selected_objects', text="Apply MeddleTools Shaders To Selected Objects", icon="SHADING_TEXTURE")
+            # If the operators are available and meddle is installed that means that the initial restart setup is done, and its all g
+            if has_operators:
+                print(f"Displaying MeddleTools operators")
+                layout.operator('meddle.import_shaders', text="Import Shaders", icon="SHADING_TEXTURE")
+                layout.operator('meddle.use_shaders_selected_objects', text="Apply Shaders", icon="SHADING_TEXTURE")
+
+            # If meddle is installed, but the operators are not available, that means that the user just installed the addon
+            # And user needs to restart blender
+            else:
+                print(f"MeddleTools operators not found")
+                column = layout.column(align=True)
+                column.alert = True
+                column.label(text="!!!!!!!!!!!!!!!!!!!!!!!!!")
+                column.label(text="Ooop, not quite finished yet.")
+                column.label(text="Almost there though.")
+                column.label(text="Go give Blender a good ol' restart,")
+                column.label(text="If that doesn't work make sure MeddleTools addon is enabled.")
+                column.label(text="!!!!!!!!!!!!!!!!!!!!!!!!!")
+
+        # If MeddleTools is not installed, we show a message to the user to install it
         else:
-            layout.label(text="MeddleTools addon not installed.")
-            layout.label(text="Please install it for shader functionality.")
+            column = layout.column(align=True)
+            column.alert = True
+            column.label(text="!!!!!!!!!!!!!!!!!!!!!!!!!")
+            column.label(text="MeddleTools addon not installed.")
+            column.label(text="Please install it for import functionality.")
+            column.label(text="!!!!!!!!!!!!!!!!!!!!!!!!!")
 
             layout.operator("wm.url_open", text="Get MeddleTools Addon", icon="URL").url = "https://github.com/PassiveModding/MeddleTools/releases"
         
