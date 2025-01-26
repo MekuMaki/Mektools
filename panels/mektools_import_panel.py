@@ -43,8 +43,7 @@ class VIEW3D_PT_ImportPanel(Panel):
 
         except (AttributeError, RuntimeError):
             print(f"MeddleTools operators not found")
-            False
-
+            has_operators = False
         # Import Buttons Section
         # We check if meddle is instaslled AND its initialized properly (after a restart)
         if isMeddleInstalled and has_operators:
