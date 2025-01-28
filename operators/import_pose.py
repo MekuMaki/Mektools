@@ -279,9 +279,24 @@ class IMPORT_POSE_OT(Operator):
         if not armature or armature.type != 'ARMATURE':
             self.report({'ERROR'}, "No armature selected.")
             return {'CANCELLED'}
+        
+        # Get all bone collections and their visibility states
+        collection_visibility = {}
+        for collection in armature.data.collections_all:
+            collection_visibility[collection.name] = collection.is_visible
+            collection.is_visible = True  # Make all collections visible
+            print(f"Collection '{collection.name}' visibility set to True.")
 
         # Import the pose
         import_pose(self.filepath, armature)
+        
+        # Restore visibility states
+        for collection_name, was_visible in collection_visibility.items():
+            collection = armature.data.collections.get(collection_name)
+            if collection:
+                collection.is_visible = was_visible
+                print(f"Collection '{collection.name}' visibility restored to {was_visible}.")
+        
         return {'FINISHED'}
 
     def invoke(self, context, event):
