@@ -14,9 +14,11 @@ class BoneGroupProperties(PropertyGroup):
     Gear: BoolProperty(name="Gear", default=False)
     Body: BoolProperty(name="Body", default=False)
 
-class VIEW3D_PT_ExportPose(Panel):
-    bl_idname = "VIEW3D_PT_ExportPose"
-    bl_label = "Pose Export"
+   
+    
+class VIEW3D_PT_ImportExportPose(Panel):
+    bl_idname = "VIEW3D_PT_ImportExportPose"
+    bl_label = "Pose Import and Export"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = "Mektools"
@@ -29,8 +31,12 @@ class VIEW3D_PT_ExportPose(Panel):
         layout = self.layout
         bone_group_props = context.scene.bone_group_props
         
+        
+        # Import button
+        layout.operator("import_pose.file", text="Import Pose File", icon="IMPORT").arg = "!Experimental! Imports .pose file NOT ACCURATE"
+        
         # Export button
-        layout.operator("export_skeleton.pose", text="Export Selected Groups",icon = "EXPORT").arg = "Exports selected Bone Groups into a .pose file."
+        layout.operator("export_pose.file", text="Export to Pose File",icon = "EXPORT").arg = "Exports armature pose into a .pose file."
         
         layout.row().separator()
 
@@ -47,13 +53,15 @@ class VIEW3D_PT_ExportPose(Panel):
         layout.prop(bone_group_props, "Body", toggle=True, text="Body")
         
 
+        
+
 def register():
     bpy.utils.register_class(BoneGroupProperties)
-    bpy.utils.register_class(VIEW3D_PT_ExportPose)
+    bpy.utils.register_class(VIEW3D_PT_ImportExportPose)
     bpy.types.Scene.bone_group_props = PointerProperty(type=BoneGroupProperties)
 
 def unregister():
-    bpy.utils.unregister_class(VIEW3D_PT_ExportPose)
+    bpy.utils.unregister_class(VIEW3D_PT_ImportExportPose)
     bpy.utils.unregister_class(BoneGroupProperties)
     del bpy.types.Scene.bone_group_props
     

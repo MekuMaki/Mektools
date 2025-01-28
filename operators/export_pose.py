@@ -7,9 +7,9 @@ from bpy_extras.io_utils import ExportHelper
 
 BONE_GROUPS = ["Hair", "Face", "HandL", "HandR", "Tail", "Gear", "Body"]
 
-class EXPORT_SKELETON_OT_pose(Operator, ExportHelper):
-    bl_idname = "export_skeleton.pose"
-    bl_label = "Export Skeleton Pose"
+class EXPORT_POSE_OT(Operator, ExportHelper):
+    bl_idname = "export_pose.file"
+    bl_label = "Export to Pose File"
     arg: bpy.props.StringProperty()
     
     
@@ -87,7 +87,7 @@ class EXPORT_SKELETON_OT_pose(Operator, ExportHelper):
         return {'FINISHED'}
 
 def register():
-    bpy.utils.register_class(EXPORT_SKELETON_OT_pose)
+    bpy.utils.register_class(EXPORT_POSE_OT)
 
 def unregister():
-    bpy.utils.unregister_class(EXPORT_SKELETON_OT_pose)
+    bpy.utils.unregister_class(EXPORT_POSE_OT)
