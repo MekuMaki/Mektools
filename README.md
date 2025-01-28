@@ -1,6 +1,9 @@
 # Mektools-Version 1.2.10
 
 ## Mektools for Dawntrail is finally here!
+### Tutorial here!
+[![How to Use MekTools](https://img.youtube.com/vi/r6b5W6WNh0Q/0.jpg)](https://youtu.be/r6b5W6WNh0Q)
+
 
 ![MekTools Addon Interface](assets/mektools_ui_10.png)
 
