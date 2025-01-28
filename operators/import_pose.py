@@ -242,11 +242,11 @@ def import_pose(filepath, armature):
     for bone in arm.bones:
         for constraint in bone.constraints:
             constraint.mute = True
-
+            
     # Apply pose data
     for bone in arm.bones:
         bpy.ops.pose.load_bone('EXEC_DEFAULT', bone=bone.name, path=filepath, diff=diff)
-
+        
         
     # Reverse constraints
     reverse_constraints(armature)
@@ -258,12 +258,13 @@ def import_pose(filepath, armature):
     for bone in arm.bones:
         for constraint in bone.constraints:
             constraint.mute = False
-                   
+               
     reset_bones_in_collections(armature, ["Base Bones", "DT Face Bones"])
             
     # Reset root bone rotation
     root_bone.rotation_quaternion = Quaternion([1, 0, 0, 0])
     print("Pose import completed successfully.")
+    
     return {'FINISHED'}
     
 class IMPORT_POSE_OT(Operator):
@@ -280,13 +281,16 @@ class IMPORT_POSE_OT(Operator):
             self.report({'ERROR'}, "No armature selected.")
             return {'CANCELLED'}
         
+         # Set the cursor to "WAIT"
+        bpy.context.window.cursor_set('WAIT')
+        
         # Get all bone collections and their visibility states
         collection_visibility = {}
         for collection in armature.data.collections_all:
             collection_visibility[collection.name] = collection.is_visible
             collection.is_visible = True  # Make all collections visible
             print(f"Collection '{collection.name}' visibility set to True.")
-
+            
         # Import the pose
         import_pose(self.filepath, armature)
         
@@ -296,6 +300,9 @@ class IMPORT_POSE_OT(Operator):
             if collection:
                 collection.is_visible = was_visible
                 print(f"Collection '{collection.name}' visibility restored to {was_visible}.")
+                
+       # Reset the cursor to "DEFAULT"
+        bpy.context.window.cursor_set('DEFAULT')
         
         return {'FINISHED'}
 
