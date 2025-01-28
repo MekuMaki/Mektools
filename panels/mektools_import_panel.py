@@ -59,14 +59,12 @@ class VIEW3D_PT_ImportPanel(Panel):
         if isMeddleInstalled:
             # If the operators are available and meddle is installed that means that the initial restart setup is done, and its all g
             if has_operators:
-                print(f"Displaying MeddleTools operators")
                 layout.operator('meddle.import_shaders', text="Import Shaders", icon="SHADING_TEXTURE")
                 layout.operator('meddle.use_shaders_selected_objects', text="Apply Shaders", icon="SHADING_TEXTURE")
 
             # If meddle is installed, but the operators are not available, that means that the user just installed the addon
             # And user needs to restart blender
             else:
-                print(f"MeddleTools operators not found")
                 column = layout.column(align=True)
                 column.alert = True
                 column.label(text="!!!!!!!!!!!!!!!!!!!!!!!!!")

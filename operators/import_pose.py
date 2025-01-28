@@ -1,6 +1,8 @@
 import bpy
 import json
 import mathutils
+import re
+from bpy.types import Operator
 from mathutils import Matrix, Quaternion
 from mathutils import Vector
 
@@ -161,41 +163,65 @@ def reset_bones_in_collections(armature, collection_names):
     
     print("Rotation reset completed.")
 
-def load_bone(bone, path, diff):
-    #Load a single bone from the current .pose file to the current armature
+class POSE_OT_LoadBone(bpy.types.Operator):
+    """Load a single bone from the current .pose file to the current armature"""
+    bl_idname = "pose.load_bone"
+    bl_label = "Load Bone"
+    bl_options = {'REGISTER', 'UNDO'}
+
     bone: bpy.props.StringProperty()
     path: bpy.props.StringProperty()
     diff: bpy.props.FloatVectorProperty(size=4)
-    
-    context = bpy.context
-    arm = context.object.pose
 
-    with open(path, 'r') as f:
-        pose = json.load(f)['Bones']
-        
-    bone = arm.bones[bone]
-    if not bone:
-        print(f"Bone '{bone}' not found.")
+    def strip_suffix(self, name):
+        """Remove any .xxx suffix from the bone name."""
+        return re.sub(r'\.\d+$', '', name)
+
+    def execute(self, context):
+        arm = context.object.pose
+
+        print("Bone:", self.bone)
+        print("Path:", self.path)
+        print("Diff:", self.diff)
+
+        # Strip suffix from the provided bone name
+        stripped_bone_name = self.strip_suffix(self.bone)
+
+        with open(self.path, 'r') as f:
+            pose = json.load(f)['Bones']
+
+        # Search for the bone in the armature, matching without suffix
+        bone = next((b for b in arm.bones if self.strip_suffix(b.name) == stripped_bone_name), None)
+        if not bone:
+            print(f"Bone '{stripped_bone_name}' not found in the armature.")
+            return {'FINISHED'}
+
+        # Get the transformation data for the bone
+        trans = pose.get(stripped_bone_name)
+        if not trans:
+            print(f"Bone '{stripped_bone_name}' not found in the pose file.")
+            return {'FINISHED'}
+
+        # Apply rotation
+        try:
+            rot = trans["Rotation"].split(", ")
+            rot = [float(x) for x in rot]
+            # Convert XYZW to WXYZ
+            rot.insert(0, rot.pop())
+            diff_quat = Quaternion(self.diff[:3], self.diff[3])
+            rot = Quaternion(rot) @ diff_quat
+            bone.rotation_quaternion = context.object.convert_space(
+                pose_bone=bone,
+                matrix=rot.to_matrix().to_4x4(),
+                from_space='POSE',
+                to_space='LOCAL'
+            ).to_quaternion()
+        except Exception as e:
+            print(f"Failed to apply rotation: {e}")
+            return {'ERROR'}
+
+        print(f"Successfully loaded bone: {self.bone}")
         return {'FINISHED'}
-
-    trans = pose.get(bone)
-    if not trans:
-        print(f"Bone '{bone}' not found in the pose file.")
-        return {'FINISHED'}
-
-    # Apply rotation
-    rot = trans["Rotation"].split(", ")
-    rot = [float(x) for x in rot]
-    # Convert XYZW to WXYZ
-    rot.insert(0, rot.pop())
-    diff_quat = Quaternion(diff[:3], diff[3])
-    rot = Quaternion(rot) @ diff_quat
-    bone.rotation_quaternion = context.object.convert_space(
-        pose_bone=bone,
-        matrix=rot.to_matrix().to_4x4(),
-        from_space='POSE',
-        to_space='LOCAL'
-    ).to_quaternion()
     
 def import_pose(filepath, armature):
     print("Starting pose import process...")
@@ -219,8 +245,8 @@ def import_pose(filepath, armature):
 
     # Apply pose data
     for bone in arm.bones:
-        #bpy.ops.pose.load_bone('EXEC_DEFAULT', bone=bone.name, path=filepath, diff=diff)
-        load_bone(bone.name, filepath, diff)
+        bpy.ops.pose.load_bone('EXEC_DEFAULT', bone=bone.name, path=filepath, diff=diff)
+
         
     # Reverse constraints
     reverse_constraints(armature)
@@ -240,10 +266,10 @@ def import_pose(filepath, armature):
     print("Pose import completed successfully.")
     return {'FINISHED'}
     
-class IMPORT_POSE_OT(bpy.types.Operator):
+class IMPORT_POSE_OT(Operator):
+    """!!!BETA!!! Import Pose File !INACURATE! !MAY CRASH IDK"""
     bl_idname = "import_pose.file"
     bl_label = "Import Pose File"
-    arg: bpy.props.StringProperty()
 
     filepath: bpy.props.StringProperty(subtype="FILE_PATH")
 
@@ -265,6 +291,8 @@ class IMPORT_POSE_OT(bpy.types.Operator):
 
 def register():
     bpy.utils.register_class(IMPORT_POSE_OT)
+    bpy.utils.register_class(POSE_OT_LoadBone)
 
 def unregister():
     bpy.utils.unregister_class(IMPORT_POSE_OT)
+    bpy.utils.unregister_class(POSE_OT_LoadBone)

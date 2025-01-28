@@ -14,6 +14,7 @@ from .operators import (
     import_meddle_gltf, 
     import_textools_fbx, 
     export_pose, 
+    import_pose,
     export_glb, 
     mekrig_operators, 
     append_shaders,
@@ -47,6 +48,7 @@ def register():
     import_meddle_gltf.register()
     import_textools_fbx.register()
     export_pose.register()
+    import_pose.register()
     export_glb.register()
     mekrig_operators.register()
     append_shaders.register()
@@ -68,6 +70,7 @@ def unregister():
     import_meddle_gltf.unregister()
     import_textools_fbx.unregister()
     export_pose.unregister()
+    import_pose.unregister()
     export_glb.unregister()
     mekrig_operators.unregister()
     append_shaders.unregister()

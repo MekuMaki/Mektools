@@ -8,9 +8,9 @@ from bpy_extras.io_utils import ExportHelper
 BONE_GROUPS = ["Hair", "Face", "HandL", "HandR", "Tail", "Gear", "Body"]
 
 class EXPORT_POSE_OT(Operator, ExportHelper):
+    """Exports armature pose into a .pose file."""
     bl_idname = "export_pose.file"
     bl_label = "Export to Pose File"
-    arg: bpy.props.StringProperty()
     
     
     filepath: bpy.props.StringProperty(subtype="FILE_PATH")
@@ -19,10 +19,6 @@ class EXPORT_POSE_OT(Operator, ExportHelper):
         default='*.pose',
         options={'HIDDEN'}
     )
-
-    @classmethod
-    def description(cls, context, properties):
-        return properties.arg
     
     def execute(self, context):
         # Load bone groups from the JSON file

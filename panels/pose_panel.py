@@ -33,10 +33,10 @@ class VIEW3D_PT_ImportExportPose(Panel):
         
         
         # Import button
-        layout.operator("import_pose.file", text="Import Pose File", icon="IMPORT").arg = "!Experimental! Imports .pose file NOT ACCURATE"
+        layout.operator("import_pose.file", text="Import Pose File",icon="IMPORT")
         
         # Export button
-        layout.operator("export_pose.file", text="Export to Pose File",icon = "EXPORT").arg = "Exports armature pose into a .pose file."
+        layout.operator("export_pose.file", text="Export to Pose File",icon = "EXPORT")
         
         layout.row().separator()
 
