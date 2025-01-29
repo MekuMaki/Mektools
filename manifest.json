@@ -3,7 +3,7 @@
   "author": "Meku Maki, Shino Mythmaker",
 "version": [1, 2, 12],
 "feature_name": "feature/poseimport",
-"feature_patch": 9,
+"feature_patch": 10,
   "blender": {
     "min_version": "4.2"
   },

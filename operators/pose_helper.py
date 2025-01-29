@@ -18,6 +18,7 @@ class POSE_RESET_OT(Operator):
             bone.scale = (1, 1, 1)
         
         self.report({'INFO'}, "Pose Reset for all bones.")
+        bpy.ops.ed.undo_push()
         return {'FINISHED'}
     
 class POSE_RESET_OT_Selection(Operator):
@@ -42,6 +43,7 @@ class POSE_RESET_OT_Selection(Operator):
             bone.scale = (1, 1, 1)
         
         self.report({'INFO'}, "Pose Reset for selected bones.")
+        bpy.ops.ed.undo_push()
         return {'FINISHED'}
 
 

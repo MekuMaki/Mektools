@@ -129,6 +129,7 @@ class EXPORT_POSE_OT(Operator, ExportHelper):
             json.dump(skeleton_data, f, indent=4)
         
         self.report({'INFO'}, "Pose exported successfully!")
+        bpy.ops.ed.undo_push()
         return {'FINISHED'}
 
 

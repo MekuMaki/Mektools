@@ -206,6 +206,7 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
         bpy.ops.object.select_all(action='DESELECT')
 
         self.report({'INFO'}, "GLTF imported and processed successfully.")
+        bpy.ops.ed.undo_push()
         return {'FINISHED'}
 
     def invoke(self, context, event):

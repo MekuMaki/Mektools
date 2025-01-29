@@ -300,6 +300,7 @@ class IMPORT_POSE_OT(Operator):
             restore_collection_visibility(collection, armature)
                 
         bpy.context.window.cursor_set('DEFAULT')
+        bpy.ops.ed.undo_push()
         
         return {'FINISHED'}
 
