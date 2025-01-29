@@ -170,6 +170,7 @@ class MEKTOOLS_OT_ImportFBXFromTexTools(Operator):
                 bpy.data.objects.remove(obj)
 
         self.report({'INFO'}, "Imported FBX with cleanup complete.")
+        bpy.ops.ed.undo_push()
         return {'FINISHED'}
 
     def invoke(self, context, event):

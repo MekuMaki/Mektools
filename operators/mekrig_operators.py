@@ -34,6 +34,7 @@ class MEKTOOLS_OT_ImportMekrigBase(Operator):
             bpy.context.scene.collection.children.link(collection)
 
         self.report({'INFO'}, f"Successfully imported {self.collection_name}")
+        bpy.ops.ed.undo_push()
         return {'FINISHED'}
 
 
