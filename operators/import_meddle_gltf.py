@@ -47,6 +47,12 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
     def execute(self, context):        
         # Import the selected GLTF file and capture the imported objects
         bpy.ops.import_scene.gltf(filepath=self.filepath)
+
+        # Make note of the armature object
+        armature = [obj for obj in context.selected_objects if obj.type == 'ARMATURE'][0]
+        if not armature:
+            self.report({'ERROR'}, "No armature found.") 
+            return {'CANCELLED'}
         
         # Capture only the newly imported mesh objects
         imported_meshes = [obj for obj in context.selected_objects if obj.type == 'MESH']
@@ -67,12 +73,6 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
 
         # Load the list of bone names to delete
         bone_names_to_delete = set(load_bone_names())  # Convert to a set for efficient lookups
-
-        # Reference the "Armature" object
-        armature = bpy.data.objects.get("Armature")
-        if not armature:
-            self.report({'ERROR'}, "No armature found with the name 'Armature'.")
-            return {'CANCELLED'}
 
         bpy.context.view_layer.objects.active = armature
         bpy.ops.object.mode_set(mode='EDIT')
