@@ -240,7 +240,7 @@ def import_pose(filepath, armature):
     
 class IMPORT_POSE_OT(Operator):
     """Import Pose File this is experimental. Face bones are not properly calculatyed rn"""
-    bl_idname = "import_pose.file"
+    bl_idname = "pose.import"
     bl_label = "Import Pose File"
 
     filepath: bpy.props.StringProperty(subtype="FILE_PATH")

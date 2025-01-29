@@ -20,6 +20,7 @@ from .operators import (
     append_shaders,
     lizzer_auto_shaders, 
     fixer_operators, 
+    pose_helper, 
 )
 
 
@@ -59,6 +60,7 @@ def register():
     append_shaders.register()
     lizzer_auto_shaders.register()
     fixer_operators.register()
+    pose_helper.register()
     
 
     #register all properties
@@ -84,6 +86,7 @@ def unregister():
     append_shaders.unregister()
     lizzer_auto_shaders.unregister()
     fixer_operators.unregister()
+    pose_helper.unregister()
 
     #unregister all properties
     import_panel_properties.unregister()   

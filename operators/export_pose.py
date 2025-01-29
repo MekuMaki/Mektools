@@ -11,7 +11,7 @@ BONE_GROUPS = ["Hair", "Face", "HandL", "HandR", "Tail", "Gear", "Body"]
 
 class EXPORT_POSE_OT(Operator, ExportHelper):
     """Exports armature pose into a .pose file."""
-    bl_idname = "export_pose.file"
+    bl_idname = "pose.export"
     bl_label = "Export to Pose File"
     
     filepath: bpy.props.StringProperty(subtype="FILE_PATH")
