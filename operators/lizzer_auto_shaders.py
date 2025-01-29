@@ -105,19 +105,27 @@ def materialFixer(mat, group):
 # Function to get property values with support for RGBA and single values
 def getProperty(propertyName, properties):
     prop = []
+    propertyData = properties[nodeProperty.get(propertyName.name)]
     if propertyName.type == "RGBA":
         if propertyName.name == "Limbal Color":
-            for value in properties[nodeProperty.get(propertyName.name)].to_dict().values():
-                prop.append(value)
+            try:
+                for value in propertyData.to_dict().values():
+                    prop.append(value)
+            except AttributeError:
+                # Fallback to .to_list() if .to_dict() is unavailable
+                for value in propertyData.to_list():
+                    prop.append(value)
+            except Exception as e:
+                raise Exception(f"Error processing property '{propertyName.name}': {e}")
         else:
-            for value in properties[nodeProperty.get(propertyName.name)].to_list():
+            for value in propertyData.to_list():
                 prop.append(value)
         # Ensure RGBA values have an alpha channel
         if len(prop) == 3:
             prop.append(1)
 
     if propertyName.type == "VALUE":
-        prop = float(properties[nodeProperty.get(propertyName.name)])
+        prop = float(propertyData)
     return prop
 
 
