@@ -7,9 +7,6 @@ from mathutils import Matrix, Quaternion
 from mathutils import Vector
 
 def set_pole_targets(armature):
-    """
-    Move the pole targets to the position of their respective IK bones.
-    """
     print("Moving pole targets to their respective IK bones...")
 
     for bone in armature.pose.bones:
@@ -17,52 +14,41 @@ def set_pole_targets(armature):
             if constraint.type == 'IK':
                 print(f"Processing IK constraint on bone '{bone.name}'...")
 
-                # Check if the constraint has a valid pole target and subtarget
                 if not constraint.pole_target or not constraint.pole_subtarget:
                     print(f"No valid pole target or subtarget for IK constraint on bone '{bone.name}'. Skipping.")
                     continue
 
-                # Get the pole target pose bone
                 pole_target = armature.pose.bones.get(constraint.pole_subtarget)
                 if not pole_target:
                     print(f"Pole target bone '{constraint.pole_subtarget}' not found. Skipping.")
                     continue
 
-                # Move the pole target to the IK bone's head position
                 pole_target.matrix.translation = bone.matrix.translation
                 print(f"Moved pole target '{pole_target.name}' to position of IK bone '{bone.name}'.")
 
     print("Pole targets moved successfully.")    
 
 def reverse_constraints(armature):
-    """
-    Reverse Copy Location and Copy Rotation constraints from source to target,
-    processing bones in parent-to-child order.
-    """
     print("Reversing constraints...")
 
     arm = armature.pose
-
-    # Create a list of bones sorted in parent-to-child order
+    
     sorted_bones = []
 
     def collect_bones_recursive(bone):
         sorted_bones.append(bone)
         for child in bone.children:
             collect_bones_recursive(child)
-
-    # Start with root bones (bones without a parent)
+            
     for bone in arm.bones:
         if bone.parent is None:
             collect_bones_recursive(bone)
 
-    # Process the bones in the collected order
     for bone in sorted_bones:
         for constraint in bone.constraints:
             if constraint.type in {'COPY_LOCATION', 'COPY_ROTATION', "COPY_TRANSFORMS"}:
                 print(f"Reversing constraint '{constraint.name}' on bone '{bone.name}'")
 
-                # Identify the target bone
                 original_target = constraint.target
                 target_bone_name = constraint.subtarget
 
@@ -70,16 +56,14 @@ def reverse_constraints(armature):
                     print(f"Constraint '{constraint.name}' on bone '{bone.name}' has no valid target. Skipping.")
                     continue
 
-                # Get the target bone
                 target_bone = original_target.pose.bones.get(target_bone_name)
                 if not target_bone:
                     print(f"Target bone '{target_bone_name}' not found. Skipping constraint '{constraint.name}'.")
                     continue
 
-                # Create a new constraint on the target bone
                 new_constraint = target_bone.constraints.new(type=constraint.type)
                 new_constraint.target = armature
-                new_constraint.subtarget = bone.name  # Reverse the target
+                new_constraint.subtarget = bone.name 
                 
                 
                 new_constraint.target_space = constraint.target_space
@@ -121,37 +105,24 @@ def reverse_constraints(armature):
     print("Constraints reversed successfully.")
     
 def reset_bones_in_collections(armature, collection_names):
-    """
-    Resets the rotation of bones in the specified bone collections to (w=1, x=0, y=0, z=0) in local space.
-    Only affects bones with constraints of type COPY_ROTATION, COPY_LOCATION, or COPY_TRANSFORMS.
-    
-    :param armature: The armature object to process.
-    :param collection_names: A single collection name (str) or a list of collection names (list[str]).
-    """
-    # Ensure collection_names is a list, even if a single name is provided
     if isinstance(collection_names, str):
         collection_names = [collection_names]
 
     print(f"Resetting rotations for bones in collections: {collection_names}...")
 
-    # Iterate through the provided collection names
     for collection_name in collection_names:
-        # Access bone collections from armature.data
         bone_collection = armature.data.collections_all.get(collection_name)
         if not bone_collection:
             print(f"Bone collection '{collection_name}' not found. Skipping.")
             continue
         
-        # Check if the collection is visible (optional, you may not need this)
         if not bone_collection.is_visible:
             print(f"Bone collection '{collection_name}' is hidden. Unhiding for processing.")
             bone_collection.is_visible = True
 
-        # Iterate through all bones in the specified collection
         for bone in bone_collection.bones:
             pose_bone = armature.pose.bones.get(bone.name)
             if pose_bone:
-                # Check if the pose bone has any of the specified constraints
                 has_valid_constraint = any(
                     constraint.type in {'COPY_ROTATION', 'COPY_LOCATION', 'COPY_TRANSFORMS'}
                     for constraint in pose_bone.constraints
@@ -268,7 +239,7 @@ def import_pose(filepath, armature):
     return {'FINISHED'}
     
 class IMPORT_POSE_OT(Operator):
-    """!!!BETA!!! Import Pose File !INACURATE! !MAY CRASH IDK"""
+    """Import Pose File this is experimental. Face bones are not properly calculatyed rn"""
     bl_idname = "import_pose.file"
     bl_label = "Import Pose File"
 
@@ -276,20 +247,18 @@ class IMPORT_POSE_OT(Operator):
     filter_glob: bpy.props.StringProperty(default='*.pose', options={'HIDDEN'})
     
     def invoke(self, context, event):
-        prefs = context.preferences.addons["Mektools"].preferences  # Access the preferences
+        prefs = context.preferences.addons["Mektools"].preferences 
         if prefs.default_pose_import_path:
             self.filepath = prefs.default_pose_import_path
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
     def execute(self, context):
-        # Ensure an armature is selected
         armature = context.object
         if not armature or armature.type != 'ARMATURE':
             self.report({'ERROR'}, "No armature selected.")
             return {'CANCELLED'}
         
-         # Set the cursor to "WAIT"
         bpy.context.window.cursor_set('WAIT')
         
         # Get all bone collections and their visibility states
@@ -309,7 +278,6 @@ class IMPORT_POSE_OT(Operator):
                 collection.is_visible = was_visible
                 print(f"Collection '{collection.name}' visibility restored to {was_visible}.")
                 
-       # Reset the cursor to "DEFAULT"
         bpy.context.window.cursor_set('DEFAULT')
         
         return {'FINISHED'}
