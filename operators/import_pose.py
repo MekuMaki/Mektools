@@ -6,6 +6,8 @@ from bpy.types import Operator
 from mathutils import Matrix, Quaternion
 from mathutils import Vector
 
+collection_visibility = {}
+
 def set_pole_targets(armature):
     print("Moving pole targets to their respective IK bones...")
 
@@ -237,6 +239,27 @@ def import_pose(filepath, armature):
     print("Pose import completed successfully.")
     
     return {'FINISHED'}
+
+def store_collection_visibility(collection):
+    """Recursively stores visibility states of collections and their parents"""
+    collection_visibility[collection.name] = {
+        "visible": collection.is_visible,
+        "parent": collection.parent.name if collection.parent else None
+    }
+    for sub_collection in collection.children:
+        store_collection_visibility(sub_collection)
+        
+def restore_collection_visibility(collection, armature):
+    """Recursively restores visibility states of collections"""
+    if collection.name in collection_visibility:
+        stored_state = collection_visibility[collection.name]
+        parent_name = stored_state["parent"]
+        
+        if parent_name and parent_name in [c.name for c in armature.data.collections_all]:
+            parent_collection = next(c for c in armature.data.collections_all if c.name == parent_name)
+            restore_collection_visibility(parent_collection, armature)
+
+        collection.is_visible = stored_state["visible"]   
     
 class IMPORT_POSE_OT(Operator):
     """Import Pose File this is experimental. Face bones are not properly calculatyed rn"""
@@ -261,22 +284,20 @@ class IMPORT_POSE_OT(Operator):
         
         bpy.context.window.cursor_set('WAIT')
         
-        # Get all bone collections and their visibility states
-        collection_visibility = {}
+        # Store visibility states of all collections
         for collection in armature.data.collections_all:
-            collection_visibility[collection.name] = collection.is_visible
-            collection.is_visible = True  # Make all collections visible
-            print(f"Collection '{collection.name}' visibility set to True.")
+            store_collection_visibility(collection)
+
+        # Enable all collections
+        for collection in armature.data.collections_all:
+            collection.is_visible = True
             
         # Import the pose
         import_pose(self.filepath, armature)
         
-        # Restore visibility states
-        for collection_name, was_visible in collection_visibility.items():
-            collection = armature.data.collections.get(collection_name)
-            if collection:
-                collection.is_visible = was_visible
-                print(f"Collection '{collection.name}' visibility restored to {was_visible}.")
+        # Restore all collections properly
+        for collection in armature.data.collections_all:
+            restore_collection_visibility(collection, armature)
                 
         bpy.context.window.cursor_set('DEFAULT')
         
