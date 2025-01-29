@@ -24,8 +24,13 @@ from .operators import (
 
 
 from .properties import (
-    import_panel_properties
+    import_panel_properties,
 )
+
+from .preferences import (
+    pose_preferences,
+)
+
 
 bl_info = {
     "name": "Mektools",
@@ -58,6 +63,9 @@ def register():
 
     #register all properties
     import_panel_properties.register()
+    
+    #register all preferences
+    pose_preferences.register()
 
 def unregister():
     # Unregister all panels
@@ -78,7 +86,11 @@ def unregister():
     fixer_operators.unregister()
 
     #unregister all properties
-    import_panel_properties.unregister()    
+    import_panel_properties.unregister()   
+    
+    #unregister all preferences
+    pose_preferences.unregister() 
+    
     
 
 if __name__ == "__main__":

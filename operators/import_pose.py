@@ -273,6 +273,14 @@ class IMPORT_POSE_OT(Operator):
     bl_label = "Import Pose File"
 
     filepath: bpy.props.StringProperty(subtype="FILE_PATH")
+    filter_glob: bpy.props.StringProperty(default='*.pose', options={'HIDDEN'})
+    
+    def invoke(self, context, event):
+        prefs = context.preferences.addons["Mektools"].preferences  # Access the preferences
+        if prefs.default_pose_import_path:
+            self.filepath = prefs.default_pose_import_path
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
 
     def execute(self, context):
         # Ensure an armature is selected
@@ -305,10 +313,6 @@ class IMPORT_POSE_OT(Operator):
         bpy.context.window.cursor_set('DEFAULT')
         
         return {'FINISHED'}
-
-    def invoke(self, context, event):
-        context.window_manager.fileselect_add(self)
-        return {'RUNNING_MODAL'}
 
 
 def register():
