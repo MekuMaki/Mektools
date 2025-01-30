@@ -5,7 +5,7 @@ import re
 from bpy.types import Operator
 from mathutils import Matrix, Quaternion
 from mathutils import Vector
-import pose_helper
+from . import pose_helper
 
 collection_visibility = {}
 
@@ -200,7 +200,7 @@ class POSE_OT_LoadBone(bpy.types.Operator):
 def import_pose(filepath, armature):
     print("Starting pose import process...")
     
-    pose_helper.pose.reset()
+    bpy.ops.pose.reset()
     
     arm = armature.pose
 
