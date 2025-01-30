@@ -1,7 +1,7 @@
 {
   "name": "Mektools",
   "author": "Meku Maki, Shino Mythmaker, Rune",
-"version": [1, 3, 2],
+"version": [1, 3, 3],
 "feature_name": "dev",
 "feature_patch": 0,
   "blender": {

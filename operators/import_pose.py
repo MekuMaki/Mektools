@@ -5,6 +5,7 @@ import re
 from bpy.types import Operator
 from mathutils import Matrix, Quaternion
 from mathutils import Vector
+import pose_helper
 
 collection_visibility = {}
 
@@ -106,7 +107,7 @@ def reverse_constraints(armature):
 
     print("Constraints reversed successfully.")
     
-def reset_bones_in_collections(armature, collection_names):
+def reset_bones_in_collections(armature, collection_names, force_reset):
     if isinstance(collection_names, str):
         collection_names = [collection_names]
 
@@ -130,7 +131,7 @@ def reset_bones_in_collections(armature, collection_names):
                     for constraint in pose_bone.constraints
                 )
                 
-                if has_valid_constraint:
+                if has_valid_constraint or force_reset:
                     print(f"Resetting rotation for bone '{pose_bone.name}' in collection '{collection_name}'...")
                     pose_bone.rotation_quaternion = Quaternion((1, 0, 0, 0))
     
@@ -199,6 +200,8 @@ class POSE_OT_LoadBone(bpy.types.Operator):
 def import_pose(filepath, armature):
     print("Starting pose import process...")
     
+    pose_helper.pose.reset()
+    
     arm = armature.pose
 
     # Support for proper bone orientations: get diff from original
@@ -232,7 +235,8 @@ def import_pose(filepath, armature):
         for constraint in bone.constraints:
             constraint.mute = False
                
-    reset_bones_in_collections(armature, ["Base Bones", "DT Face Bones"])
+    reset_bones_in_collections(armature, ["Base Bones", "DT Face Bones"], False)
+    reset_bones_in_collections(armature, ["IK MCH Bones"], True)
             
     # Reset root bone rotation
     root_bone.rotation_quaternion = Quaternion([1, 0, 0, 0])
