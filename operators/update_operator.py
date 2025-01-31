@@ -80,13 +80,19 @@ def check_for_updates():
 
 
 def show_update_popup(branch):
-    """Displays a pop-up message with an update link."""
-    def draw(self, context):
-        self.layout.label(text="A new version of MekTools is available!")
-        self.layout.operator("mektools.update_now", text="Download Update", icon='URL')
-        self.layout.operator("mektools.dismiss_update", text="Dismiss", icon='CANCEL')
-    
-    bpy.context.window_manager.popup_menu(draw, title="Update Available", icon='INFO')
+    """Schedules the popup to run in a UI-safe context."""
+    def delayed_popup():
+        def draw(self, context):
+            self.layout.label(text="A new version of MekTools is available!")
+            self.layout.operator("mektools.update_now", text="Download Update", icon='URL')
+            self.layout.operator("mektools.dismiss_update", text="Dismiss", icon='CANCEL')
+        
+        bpy.context.window_manager.popup_menu(draw, title="Update Available", icon='INFO')
+        return None  # Ensures timer doesn't repeat
+
+    # Schedule popup on next UI update cycle
+    bpy.app.timers.register(delayed_popup, first_interval=0.1)
+
 
 
 class MekToolsUpdateNow(bpy.types.Operator):
@@ -123,3 +129,4 @@ def unregister():
     print("Unregistering update check operators...")
     bpy.utils.unregister_class(MekToolsUpdateNow)
     bpy.utils.unregister_class(MekToolsDismissUpdate)
+
