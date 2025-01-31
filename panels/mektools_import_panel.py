@@ -39,7 +39,7 @@ class VIEW3D_PT_ImportPanel(Panel):
 
             #we set the operators as true to display all the buttons and shenanigans
             has_operators = True
-            print(f"Both MeddleTools operators found")
+            #print(f"Both MeddleTools operators found")
 
         except (AttributeError, RuntimeError):
             print(f"MeddleTools operators not found")
