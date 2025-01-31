@@ -236,7 +236,7 @@ def import_pose(filepath, armature):
             constraint.mute = False
                
     reset_bones_in_collections(armature, ["Base Bones", "DT Face Bones"], False)
-    reset_bones_in_collections(armature, ["IK MCH Bones"], True)
+    reset_bones_in_collections(armature, ["IK MCH Bones", "Mouth Controls"], True)
             
     # Reset root bone rotation
     root_bone.rotation_quaternion = Quaternion([1, 0, 0, 0])

@@ -36,7 +36,7 @@ from .preferences import (
 bl_info = {
     "name": "Mektools",
     "author": "Meku Maki, Shino Mythmaker, Rune",
-    "version": (1,3,4),
+    "version": (1,3,5),
     "blender": (4,2),
     "description": "Mektools Addon Structure",
     "category": "Import-Export",
