@@ -11,8 +11,8 @@ GITHUB_REPO = "MekTools"
 GITHUB_RAW_URL = f"https://raw.githubusercontent.com/{GITHUB_USER}/{GITHUB_REPO}/"
 
 # Local manifest path
-ADDONS_PATH = bpy.utils.user_resource("SCRIPTS") + "/addons/"
-MEKTOOLS_FOLDER = os.path.join(ADDONS_PATH, "MekTools")
+EXTENSIONS_PATH = bpy.utils.user_resource('SCRIPTS', path="extensions")
+MEKTOOLS_FOLDER = os.path.join(EXTENSIONS_PATH, "MekTools")
 update_available = False  # Global flag for update status
 
 def get_local_manifest():
@@ -71,20 +71,11 @@ def check_for_updates():
     compare_versions(local_manifest, remote_manifest)
     bpy.context.area.tag_redraw()
 
-def clean_up_duplicate_installations():
-    """Removes duplicate MekTools installations, keeping only the MekTools folder."""
-    for folder in os.listdir(ADDONS_PATH):
-        folder_path = os.path.join(ADDONS_PATH, folder)
-        if folder.startswith("mektools") and folder_path != MEKTOOLS_FOLDER:
-            print(f"Removing duplicate installation: {folder_path}")
-            shutil.rmtree(folder_path, ignore_errors=True)
-
 class MEKTOOLS_OT_InstallUpdate(Operator):
     bl_idname = "mektools.install_update"
     bl_label = "Install Update"
     
     def execute(self, context):
-        clean_up_duplicate_installations()
         branch = get_local_manifest().get("feature_name", "main")
         url = f"https://github.com/{GITHUB_USER}/{GITHUB_REPO}/archive/refs/heads/{branch}.zip"
         bpy.ops.wm.url_open(url=url)
@@ -118,7 +109,6 @@ def register():
     bpy.utils.register_class(MEKTOOLS_OT_InstallUpdate)
     bpy.utils.register_class(VIEW3D_PT_SupportCommunity)
     bpy.app.timers.register(check_for_updates, first_interval=3)  # Auto-check after 3 seconds
-    bpy.app.timers.register(clean_up_duplicate_installations, first_interval=5)  # Cleanup after 5 seconds
     
 
 def unregister():

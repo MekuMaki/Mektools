@@ -3,7 +3,7 @@ import json
 import os
 
 from .panels import (
-    #mektools_support_community_panel, 
+    mektools_support_community_panel, 
     mektools_import_panel,
     pose_panel,
     glb_export_panel,
@@ -46,7 +46,7 @@ bl_info = {
 
 def register():
     # Register all panels
-    #mektools_support_community_panel.register()
+    mektools_support_community_panel.register()
     mektools_import_panel.register()
     pose_panel.register()
     glb_export_panel.register()
@@ -73,7 +73,7 @@ def register():
 
 def unregister():
     # Unregister all panels
-    #mektools_support_community_panel.unregister()
+    mektools_support_community_panel.unregister()
     mektools_import_panel.unregister()
     pose_panel.unregister()
     glb_export_panel.unregister()
