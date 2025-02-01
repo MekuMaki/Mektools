@@ -1,7 +1,7 @@
 #!/bin/bash
 
-MANIFEST_FILE="manifest.json"
-INIT_FILE="__init__.py"
+MANIFEST_FILE="mektools/manifest.json"
+INIT_FILE="mektools/__init__.py"
 
 # Ensure the manifest file exists
 if [ ! -f "$MANIFEST_FILE" ]; then

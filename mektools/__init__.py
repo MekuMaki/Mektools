@@ -3,7 +3,7 @@ import json
 import os
 
 from .panels import (
-    mektools_support_community_panel, 
+    #mektools_support_community_panel, 
     mektools_import_panel,
     pose_panel,
     glb_export_panel,
@@ -20,7 +20,8 @@ from .operators import (
     append_shaders,
     lizzer_auto_shaders, 
     fixer_operators, 
-    pose_helper, 
+    pose_helper,
+    switch_branch, 
 )
 
 
@@ -34,18 +35,18 @@ from .preferences import (
 
 
 bl_info = {
-    "name": "Mektools",
-    "author": "Meku Maki, Shino Mythmaker, Rune",
+    "name": "MekTools",
+    "author": "",
     "version": (1,3,6),
     "blender": (4,2),
-    "description": "Mektools Addon Structure",
-    "category": "Import-Export",
+    "description": "A collection of tools for working with FFXIV models in Blender.",
+    "category": "",
     "location": "View3D > Mektools Tab",
 }
 
 def register():
     # Register all panels
-    mektools_support_community_panel.register()
+    #mektools_support_community_panel.register()
     mektools_import_panel.register()
     pose_panel.register()
     glb_export_panel.register()
@@ -61,6 +62,7 @@ def register():
     lizzer_auto_shaders.register()
     fixer_operators.register()
     pose_helper.register()
+    switch_branch.register()
     
 
     #register all properties
@@ -71,7 +73,7 @@ def register():
 
 def unregister():
     # Unregister all panels
-    mektools_support_community_panel.unregister()
+    #mektools_support_community_panel.unregister()
     mektools_import_panel.unregister()
     pose_panel.unregister()
     glb_export_panel.unregister()
@@ -87,6 +89,7 @@ def unregister():
     lizzer_auto_shaders.unregister()
     fixer_operators.unregister()
     pose_helper.unregister()
+    switch_branch.unregister()
 
     #unregister all properties
     import_panel_properties.unregister()   
