@@ -2,7 +2,9 @@ import bpy
 import requests
 import json
 import os
+import tempfile
 import shutil
+import zipfile
 from bpy.types import Panel, Operator
 
 # GitHub Repository Details
@@ -76,14 +78,70 @@ def check_for_updates():
             if area.type == 'VIEW_3D':  # Only refresh VIEW_3D where the panel is located
                 area.tag_redraw()
 
-class MEKTOOLS_OT_InstallUpdate(Operator):
+class MEKTOOLS_OT_InstallUpdate(bpy.types.Operator):
+    """Download and install the latest version of MekTools"""
     bl_idname = "mektools.install_update"
     bl_label = "Install Update"
     
     def execute(self, context):
-        branch = get_local_manifest().get("feature_name", "main")
-        url = f"https://github.com/{GITHUB_USER}/{GITHUB_REPO}/archive/refs/heads/{branch}.zip"
-        bpy.ops.wm.url_open(url=url)
+        # Step 1: Get the current branch name
+        local_manifest = get_local_manifest()
+        if not local_manifest:
+            self.report({'ERROR'}, "Failed to read local manifest.")
+            return {'CANCELLED'}
+        
+        branch = local_manifest.get("feature_name", "main")
+        download_url = f"https://github.com/{GITHUB_USER}/{GITHUB_REPO}/archive/refs/heads/{branch}.zip"
+
+        # Step 2: Download the update ZIP file
+        self.report({'INFO'}, "Downloading update...")
+        try:
+            response = requests.get(download_url, stream=True)
+            if response.status_code != 200:
+                self.report({'ERROR'}, "Failed to download update.")
+                return {'CANCELLED'}
+            
+            # Save the file to a temporary location
+            temp_dir = tempfile.mkdtemp()
+            zip_path = os.path.join(temp_dir, "update.zip")
+
+            with open(zip_path, "wb") as f:
+                for chunk in response.iter_content(1024):
+                    f.write(chunk)
+        except Exception as e:
+            self.report({'ERROR'}, f"Download failed: {e}")
+            return {'CANCELLED'}
+
+        # Step 3: Extract and replace the existing extension
+        self.report({'INFO'}, "Installing update...")
+
+        try:
+            with zipfile.ZipFile(zip_path, "r") as zip_ref:
+                extracted_folder = os.path.join(temp_dir, "mektools_extracted")
+                zip_ref.extractall(extracted_folder)
+
+                # Get the extracted main directory (it will be named like "MekTools-main" or "MekTools-dev")
+                extracted_main_folder = os.path.join(extracted_folder, os.listdir(extracted_folder)[0])
+
+                # Ensure Blender's extension path exists
+                if not os.path.exists(MEKTOOLS_FOLDER):
+                    os.makedirs(MEKTOOLS_FOLDER)
+
+                # Remove the old version
+                shutil.rmtree(MEKTOOLS_FOLDER, ignore_errors=True)
+
+                # Move new version into place
+                shutil.move(extracted_main_folder, MEKTOOLS_FOLDER)
+
+        except Exception as e:
+            self.report({'ERROR'}, f"Installation failed: {e}")
+            return {'CANCELLED'}
+
+        # Step 4: Restart Blender to complete installation
+        self.report({'INFO'}, "Update installed! Restarting Blender...")
+
+        bpy.ops.wm.quit_blender()  # Automatically restart Blender
+
         return {'FINISHED'}
 
 class VIEW3D_PT_SupportCommunity(Panel):

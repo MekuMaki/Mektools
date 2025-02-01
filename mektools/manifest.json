@@ -1,7 +1,7 @@
 {
   "id": "MekTools",
   "name": "MekTools",
-  "type": "add-on",
+  "type": "extensions",
 "version": [1, 3, 6],
   "blender": [4, 2, 0],
   "developer": "MekuMaki",
@@ -9,7 +9,7 @@
   "tags": ["modeling", "animation", "import", "export"],
   "path": "MekTools",
 "feature_name": "feature/qol",
-"feature_patch": 9,
+"feature_patch": 10,
   "blender": {
     "min_version": "4.2"
   },
