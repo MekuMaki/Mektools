@@ -5,6 +5,8 @@ import os
 import tempfile
 import shutil
 import zipfile
+import sys
+import subprocess
 from bpy.types import Panel, Operator
 
 # GitHub Repository Details
@@ -77,7 +79,32 @@ def check_for_updates():
         for area in window.screen.areas:
             if area.type == 'VIEW_3D':  # Only refresh VIEW_3D where the panel is located
                 area.tag_redraw()
+class MEKTOOLS_OT_RestartBlender(bpy.types.Operator):
+    """Restart Blender"""
+    bl_idname = "mektools.restart_blender"
+    bl_label = "Restart Blender"
 
+    def execute(self, context):
+        self.report({'INFO'}, "Restarting Blender...")
+
+        # Get Blender executable path
+        blender_exe = sys.argv[0]  # This should point to Blender's executable
+
+        # Ensure the executable exists before proceeding
+        if not os.path.exists(blender_exe):
+            self.report({'ERROR'}, "Could not determine Blender executable path.")
+            return {'CANCELLED'}
+
+        # Restart Blender
+        try:
+            subprocess.Popen([blender_exe])  # Launch a new Blender process
+            bpy.ops.wm.quit_blender()  # Close current instance
+        except Exception as e:
+            self.report({'ERROR'}, f"Failed to restart Blender: {e}")
+            return {'CANCELLED'}
+
+        return {'FINISHED'}
+    
 class MEKTOOLS_OT_InstallUpdate(bpy.types.Operator):
     """Download and install the latest version of MekTools"""
     bl_idname = "mektools.install_update"
@@ -139,8 +166,6 @@ class MEKTOOLS_OT_InstallUpdate(bpy.types.Operator):
             return {'CANCELLED'}
 
         # Step 4: Force Blender to recognize the updated extension
-        #self.report({'INFO'}, "Re-enabling MekTools...")
-        #bpy.ops.preferences.extension_install(overwrite=True, filepath=MEKTOOLS_FOLDER)
         
         global update_available
         update_available = False  # Reset the update flag
@@ -172,10 +197,9 @@ class VIEW3D_PT_SupportCommunity(bpy.types.Panel):
         if update_available:
             layout.label(text="Update Available!", icon="ERROR")
             layout.operator("mektools.install_update", text="Install Update")
-        
-        # Show restart button if an update was installed
-        if not update_available:
-            layout.operator("wm.quit_blender", text="Restart Blender", icon="FILE_REFRESH")
+
+        # Add Restart Blender Button
+        layout.operator("mektools.restart_blender", text="Restart Blender", icon="FILE_REFRESH")
 
 def register():
     bpy.utils.register_class(MEKTOOLS_OT_InstallUpdate)
