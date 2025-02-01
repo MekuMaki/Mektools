@@ -139,8 +139,8 @@ class MEKTOOLS_OT_InstallUpdate(bpy.types.Operator):
             return {'CANCELLED'}
 
         # Step 4: Force Blender to recognize the updated extension
-        self.report({'INFO'}, "Re-enabling MekTools...")
-        bpy.ops.preferences.extension_install(overwrite=True, filepath=MEKTOOLS_FOLDER)
+        #self.report({'INFO'}, "Re-enabling MekTools...")
+        #bpy.ops.preferences.extension_install(overwrite=True, filepath=MEKTOOLS_FOLDER)
         
         global update_available
         update_available = False  # Reset the update flag
