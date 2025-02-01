@@ -226,7 +226,7 @@ class VIEW3D_PT_SupportCommunity(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         
-        layout.operator("wm.url_open", text="Socials", icon="HEART").url = "https://www.patreon.com/MekuuMaki"
+        layout.operator("wm.url_open", text="Support & Links", icon="HEART").url = "https://www.patreon.com/MekuuMaki"
         
         row = layout.row()
         row.operator("wm.url_open", text="Wiki", icon="HELP").url = "https://github.com/MekuMaki/MekTools/wiki"
