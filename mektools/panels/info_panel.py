@@ -203,11 +203,13 @@ class VIEW3D_PT_SupportCommunity(bpy.types.Panel):
 
 def register():
     bpy.utils.register_class(MEKTOOLS_OT_InstallUpdate)
+    bpy.utils.register_class(MEKTOOLS_OT_RestartBlender)
     bpy.utils.register_class(VIEW3D_PT_SupportCommunity)
     bpy.app.timers.register(check_for_updates, first_interval=3)  # Auto-check after 3 seconds
     
 
 def unregister():
     bpy.utils.unregister_class(MEKTOOLS_OT_InstallUpdate)
+    bpy.utils.unregister_class(MEKTOOLS_OT_RestartBlender)
     bpy.utils.unregister_class(VIEW3D_PT_SupportCommunity)
 
