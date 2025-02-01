@@ -82,7 +82,7 @@ class MEKTOOLS_OT_InstallUpdate(bpy.types.Operator):
     """Download and install the latest version of MekTools"""
     bl_idname = "mektools.install_update"
     bl_label = "Install Update"
-    
+
     def execute(self, context):
         # Step 1: Get the current branch name
         local_manifest = get_local_manifest()
@@ -137,14 +137,14 @@ class MEKTOOLS_OT_InstallUpdate(bpy.types.Operator):
             self.report({'ERROR'}, f"Installation failed: {e}")
             return {'CANCELLED'}
 
-        # Step 4: Restart Blender to complete installation
-        self.report({'INFO'}, "Update installed! Restarting Blender...")
-
-        bpy.ops.wm.quit_blender()  # Automatically restart Blender
+        # Step 4: Notify the user instead of forcing a restart
+        global update_available
+        update_available = False  # Reset the update flag
+        self.report({'INFO'}, "Update installed! Please restart Blender to apply changes.")
 
         return {'FINISHED'}
 
-class VIEW3D_PT_SupportCommunity(Panel):
+class VIEW3D_PT_SupportCommunity(bpy.types.Panel):
     bl_idname = "VIEW3D_PT_support_community"
     bl_label = ""
     bl_space_type = 'VIEW_3D'
@@ -167,6 +167,10 @@ class VIEW3D_PT_SupportCommunity(Panel):
         if update_available:
             layout.label(text="Update Available!", icon="ERROR")
             layout.operator("mektools.install_update", text="Install Update")
+        
+        # Show restart button if an update was installed
+        if not update_available:
+            layout.operator("wm.quit_blender", text="Restart Blender", icon="FILE_REFRESH")
 
 def register():
     bpy.utils.register_class(MEKTOOLS_OT_InstallUpdate)
