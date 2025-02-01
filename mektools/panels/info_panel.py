@@ -17,7 +17,9 @@ GITHUB_RAW_URL = f"https://raw.githubusercontent.com/{GITHUB_USER}/{GITHUB_REPO}
 # Local manifest path
 EXTENSIONS_PATH = bpy.utils.user_resource('EXTENSIONS', path="user_default")
 MEKTOOLS_FOLDER = os.path.join(EXTENSIONS_PATH, "mektools")
-update_available = False  # Global flag for update status
+
+update_available = False  # Tracks if an update is available
+update_installed = False  # Tracks if an update was successfully installed
 
 def get_local_manifest():
     manifest_path = os.path.join(MEKTOOLS_FOLDER, "manifest.json")
@@ -79,6 +81,7 @@ def check_for_updates():
         for area in window.screen.areas:
             if area.type == 'VIEW_3D':  # Only refresh VIEW_3D where the panel is located
                 area.tag_redraw()
+                
 class MEKTOOLS_OT_RestartBlender(bpy.types.Operator):
     """Restart Blender"""
     bl_idname = "mektools.restart_blender"
@@ -111,6 +114,8 @@ class MEKTOOLS_OT_InstallUpdate(bpy.types.Operator):
     bl_label = "Install Update"
 
     def execute(self, context):
+        global update_available, update_installed
+
         # Step 1: Get the current branch name
         local_manifest = get_local_manifest()
         if not local_manifest:
@@ -139,7 +144,7 @@ class MEKTOOLS_OT_InstallUpdate(bpy.types.Operator):
             self.report({'ERROR'}, f"Download failed: {e}")
             return {'CANCELLED'}
 
-        # Step 3: Extract and correctly move the files
+        # Step 3: Extract and replace the existing extension
         self.report({'INFO'}, "Installing update...")
 
         try:
@@ -165,13 +170,11 @@ class MEKTOOLS_OT_InstallUpdate(bpy.types.Operator):
             self.report({'ERROR'}, f"Installation failed: {e}")
             return {'CANCELLED'}
 
-        # Step 4: Force Blender to recognize the updated extension
-        
-        global update_available
-        update_available = False  # Reset the update flag
+        # Step 4: Mark update as installed and reset update_available
+        update_installed = True
+        update_available = False  # No more updates available
 
         self.report({'INFO'}, "Update installed! Please restart Blender to apply changes.")
-
         return {'FINISHED'}
 
 class VIEW3D_PT_SupportCommunity(bpy.types.Panel):
@@ -198,8 +201,10 @@ class VIEW3D_PT_SupportCommunity(bpy.types.Panel):
             layout.label(text="Update Available!", icon="ERROR")
             layout.operator("mektools.install_update", text="Install Update")
 
-        # Add Restart Blender Button
-        layout.operator("mektools.restart_blender", text="Restart Blender", icon="FILE_REFRESH")
+        # Show "Restart Blender" button only if an update was installed
+        if update_installed:
+            layout.label(text="Update installed, pls restart!", icon="FILE_REFRESH")
+            layout.operator("mektools.restart_blender", text="Restart Blender", icon="FILE_REFRESH")
 
 def register():
     bpy.utils.register_class(MEKTOOLS_OT_InstallUpdate)
