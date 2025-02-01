@@ -92,9 +92,9 @@ def compare_versions(local, remote):
             update_available = True  # Feature patch update available
 
     # Debugging output
-    print(f"Local version: {local_version} ({local_feature}.{local_feature_patch})")
-    print(f"Remote version: {remote_version} ({remote_feature}.{remote_feature_patch})")
-    print(f"Update available: {update_available}")
+    print(f"Mektools Updater -> Local version: {local_version} ({local_feature}.{local_feature_patch})")
+    print(f"Mektools Updater -> Remote version: {remote_version} ({remote_feature}.{remote_feature_patch})")
+    print(f"Mektools Updater -> Update available: {update_available}")
 
 def check_for_updates():
     local_manifest = get_local_manifest()
