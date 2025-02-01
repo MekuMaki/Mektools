@@ -112,7 +112,7 @@ class MEKTOOLS_OT_InstallUpdate(bpy.types.Operator):
             self.report({'ERROR'}, f"Download failed: {e}")
             return {'CANCELLED'}
 
-        # Step 3: Extract and replace the existing extension
+        # Step 3: Extract and correctly move the files
         self.report({'INFO'}, "Installing update...")
 
         try:
@@ -120,26 +120,31 @@ class MEKTOOLS_OT_InstallUpdate(bpy.types.Operator):
                 extracted_folder = os.path.join(temp_dir, "mektools_extracted")
                 zip_ref.extractall(extracted_folder)
 
-                # Get the extracted main directory (it will be named like "MekTools-main" or "MekTools-dev")
-                extracted_main_folder = os.path.join(extracted_folder, os.listdir(extracted_folder)[0])
+                # Locate the actual "mektools" folder inside the extracted directory
+                extracted_main_folder = os.path.join(extracted_folder, os.listdir(extracted_folder)[0])  # This is "MekTools-main"
+                extracted_mektools_folder = os.path.join(extracted_main_folder, "mektools")  # This is the actual extension
 
-                # Ensure Blender's extension path exists
+                # Ensure the target extension folder exists
                 if not os.path.exists(MEKTOOLS_FOLDER):
                     os.makedirs(MEKTOOLS_FOLDER)
 
                 # Remove the old version
                 shutil.rmtree(MEKTOOLS_FOLDER, ignore_errors=True)
 
-                # Move new version into place
-                shutil.move(extracted_main_folder, MEKTOOLS_FOLDER)
+                # Move the inner "mektools" folder to the correct location
+                shutil.move(extracted_mektools_folder, MEKTOOLS_FOLDER)
 
         except Exception as e:
             self.report({'ERROR'}, f"Installation failed: {e}")
             return {'CANCELLED'}
 
-        # Step 4: Notify the user instead of forcing a restart
+        # Step 4: Force Blender to recognize the updated extension
+        self.report({'INFO'}, "Re-enabling MekTools...")
+        bpy.ops.preferences.extension_install(overwrite=True, filepath=MEKTOOLS_FOLDER)
+        
         global update_available
         update_available = False  # Reset the update flag
+
         self.report({'INFO'}, "Update installed! Please restart Blender to apply changes.")
 
         return {'FINISHED'}

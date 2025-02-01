@@ -9,7 +9,7 @@
   "tags": ["modeling", "animation", "import", "export"],
   "path": "MekTools",
 "feature_name": "feature/qol",
-"feature_patch": 12,
+"feature_patch": 13,
   "blender": {
     "min_version": "4.2"
   },
