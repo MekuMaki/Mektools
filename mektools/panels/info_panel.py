@@ -62,7 +62,39 @@ def format_version_string():
 
 def compare_versions(local, remote):
     global update_available
-    update_available = True  # Force update for debugging
+    update_available = False  # Default to no update
+
+    if not local or not remote:
+        return  # If either manifest is missing, don't trigger an update
+
+    # Extract version information
+    local_version = local.get("version", [0, 0, 0])  # Defaults to [0, 0, 0]
+    remote_version = remote.get("version", [0, 0, 0])
+
+    # Convert version lists to tuples for comparison
+    local_version_tuple = tuple(local_version)
+    remote_version_tuple = tuple(remote_version)
+
+    # Extract feature branch info
+    local_feature = local.get("feature_name", "main")
+    remote_feature = remote.get("feature_name", "main")
+
+    local_feature_patch = local.get("feature_patch", 0)
+    remote_feature_patch = remote.get("feature_patch", 0)
+
+    # Compare versions
+    if remote_version_tuple > local_version_tuple:
+        update_available = True  # Major, minor, or patch update available
+
+    # If versions are the same, compare feature patches (only for feature branches)
+    elif remote_version_tuple == local_version_tuple:
+        if local_feature == remote_feature and remote_feature_patch > local_feature_patch:
+            update_available = True  # Feature patch update available
+
+    # Debugging output
+    print(f"Local version: {local_version} ({local_feature}.{local_feature_patch})")
+    print(f"Remote version: {remote_version} ({remote_feature}.{remote_feature_patch})")
+    print(f"Update available: {update_available}")
 
 def check_for_updates():
     local_manifest = get_local_manifest()
