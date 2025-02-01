@@ -29,8 +29,8 @@ from .properties import (
     import_panel_properties,
 )
 
-from .preferences import (
-    pose_preferences,
+from . import (
+    addon_preferences,
 )
 
 
@@ -69,7 +69,7 @@ def register():
     import_panel_properties.register()
     
     #register all preferences
-    pose_preferences.register()
+    addon_preferences.register()
 
 def unregister():
     # Unregister all panels
@@ -95,7 +95,7 @@ def unregister():
     import_panel_properties.unregister()   
     
     #unregister all preferences
-    pose_preferences.unregister() 
+    addon_preferences.unregister() 
     
     
 

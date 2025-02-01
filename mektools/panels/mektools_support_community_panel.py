@@ -11,8 +11,8 @@ GITHUB_REPO = "MekTools"
 GITHUB_RAW_URL = f"https://raw.githubusercontent.com/{GITHUB_USER}/{GITHUB_REPO}/"
 
 # Local manifest path
-EXTENSIONS_PATH = bpy.utils.user_resource('SCRIPTS', path="extensions")
-MEKTOOLS_FOLDER = os.path.join(EXTENSIONS_PATH, "MekTools")
+EXTENSIONS_PATH = bpy.utils.user_resource('EXTENSIONS', path="user_default")
+MEKTOOLS_FOLDER = os.path.join(EXTENSIONS_PATH, "mektools")
 update_available = False  # Global flag for update status
 
 def get_local_manifest():
@@ -25,7 +25,7 @@ def get_local_manifest():
         return None
 
 def get_remote_manifest(branch):
-    url = f"{GITHUB_RAW_URL}{branch}/manifest.json"
+    url = f"{GITHUB_RAW_URL}{branch}/mektools/manifest.json"
     try:
         response = requests.get(url, timeout=5)
         if response.status_code == 200:
@@ -69,7 +69,12 @@ def check_for_updates():
         return
     
     compare_versions(local_manifest, remote_manifest)
-    bpy.context.area.tag_redraw()
+
+    # Ensure the UI updates correctly
+    for window in bpy.context.window_manager.windows:
+        for area in window.screen.areas:
+            if area.type == 'VIEW_3D':  # Only refresh VIEW_3D where the panel is located
+                area.tag_redraw()
 
 class MEKTOOLS_OT_InstallUpdate(Operator):
     bl_idname = "mektools.install_update"
