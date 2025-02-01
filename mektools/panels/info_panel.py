@@ -115,6 +115,8 @@ class MEKTOOLS_OT_InstallUpdate(bpy.types.Operator):
 
     def execute(self, context):
         global update_available, update_installed
+        
+        bpy.context.window.cursor_set('WAIT')
 
         # Step 1: Get the current branch name
         local_manifest = get_local_manifest()
@@ -175,6 +177,8 @@ class MEKTOOLS_OT_InstallUpdate(bpy.types.Operator):
         update_available = False  # No more updates available
 
         self.report({'INFO'}, "Update installed! Please restart Blender to apply changes.")
+        
+        bpy.context.window.cursor_set('DEFAULT')
         return {'FINISHED'}
 
 class VIEW3D_PT_SupportCommunity(bpy.types.Panel):
@@ -190,10 +194,11 @@ class VIEW3D_PT_SupportCommunity(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         
+        layout.operator("wm.url_open", text="Socials", icon="HEART").url = "https://www.patreon.com/MekuuMaki"
+        
         row = layout.row()
-        row.operator("wm.url_open", text="Support", icon="HEART").url = "https://www.patreon.com/MekuuMaki"
-        row.operator("wm.url_open", text="Wiki").url = "https://github.com/MekuMaki/MekTools/wiki"
-        row.operator("wm.url_open", text="Issues").url = "https://github.com/MekuMaki/MekTools/issues"
+        row.operator("wm.url_open", text="Wiki", icon="HELP").url = "https://github.com/MekuMaki/MekTools/wiki"
+        row.operator("wm.url_open", text="Issues", icon="BOOKMARKS").url = "https://github.com/MekuMaki/MekTools/issues"
         
         layout.separator()
         
