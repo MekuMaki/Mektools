@@ -78,6 +78,13 @@ class MektoolsPreferences(AddonPreferences):
         items=[('OFF', "Disable", ""), ('ON', "Enable", "")],
         default='OFF'
     )
+    
+    legacy_import_rigs: EnumProperty(
+        name="Import Rigs",
+        description="Toggle this legacy button on or off",
+        items=[('OFF', "Disable", ""), ('ON', "Enable", "")],
+        default='OFF'
+    )
 
     def draw(self, context):
         layout = self.layout
@@ -113,6 +120,11 @@ class MektoolsPreferences(AddonPreferences):
             draw_toggle("Fix Backface Culling", "legacy_button_fix_backface_culling")
             draw_toggle("Clear Custom Split Normals", "legacy_button_clear_custom_split_normals")
             draw_toggle("Clear Parents (Keep Transform)", "legacy_button_clear_parents_keep_transform")
+            
+            row = box.row()
+            row.label(text="Rigs")
+            draw_toggle("Import Rigs", "legacy_import_rigs")
+            
 
 def register():
     bpy.utils.register_class(MektoolsPreferences)

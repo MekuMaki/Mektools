@@ -85,13 +85,14 @@ class VIEW3D_PT_ImportPanel(Panel):
             layout.operator("wm.url_open", text="Get MeddleTools Addon", icon="URL").url = "https://github.com/PassiveModding/MeddleTools/releases"
         
 
-
-        # Rigs Label and Popovers for Male and Female Rigs
-        layout.separator()
-        layout.label(text="Rigs")
-        split = layout.split(factor=0.5, align=True)
-        split.popover("MEKTOOLS_PT_MaleRigs", text="Male", icon_value=0)
-        split.popover("MEKTOOLS_PT_FemaleRigs", text="Female", icon_value=0)
+        if self.legacy_import_rigs:
+            # Rigs Label and Popovers for Male and Female Rigs
+            layout.separator()
+            layout.label(text="Rigs")
+            split = layout.split(factor=0.5, align=True)
+            split.popover("MEKTOOLS_PT_MaleRigs", text="Male", icon_value=0)
+            split.popover("MEKTOOLS_PT_FemaleRigs", text="Female", icon_value=0)    
+        
 
         # Fixer Buttons Section
         if (
