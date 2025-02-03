@@ -55,6 +55,23 @@ def import_meddle_shader(self, imported_meshes):
 
     except Exception as e:
         self.report({'ERROR'}, f"Failed to append Meddle shaders: {e}")
+        
+def remove_pole_parents(self, armature):
+    if armature and armature.type == 'ARMATURE':
+        bpy.ops.object.mode_set(mode='POSE')
+
+        bones_to_unparent = ["IK_Arm_Pole.R", "IK_Arm_Pole.L", "IK_Leg_Pole.R", "IK_Leg_Pole.L"]
+
+        for bone_name in bones_to_unparent:
+            if bone_name in armature.pose.bones:
+                bone = armature.pose.bones[bone_name]
+                bone.bone.use_connect = False  # Ensure it's not connected
+                bone.bone.parent = None  # Remove parent
+
+        bpy.ops.object.mode_set(mode='OBJECT')  # Return to object mode
+        self.report({'INFO'}, "Removed parent from IK poles.")
+    else:
+        self.report({'ERROR'}, "Select an armature first.")    
 
 class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
     """Import GLTF from Meddle and perform cleanup tasks"""
@@ -63,8 +80,8 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
     filepath: bpy.props.StringProperty(subtype="FILE_PATH")
     filter_glob: bpy.props.StringProperty(default='*.gltf', options={'HIDDEN'})
     
-    import_with_shaders_setting: BoolProperty(name="Import with Meddle Shaders", default=True)
-    remove_parent_on_poles: BoolProperty(name="Remove Parents from Pole-Targets", default=False)
+    import_with_shaders_setting: BoolProperty(name="Import with Meddle Shaders", description="Tries to also import all shaders from meddle shader cache", default=True)
+    remove_parent_on_poles: BoolProperty(name="Remove Parents from Pole-Targets", description="Removes the Parent from Pole-Targets", default=False)
     
     def invoke(self, context, event):
         prefs = get_addon_preferences()
@@ -177,6 +194,9 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
                 pose_bone.color.palette = 'THEME01'  # Theme 1 Red
 
         bpy.ops.object.mode_set(mode='OBJECT')
+        
+        if self.remove_parent_on_poles:
+            remove_pole_parents(self, n_root_armature)
 
         # We need to deselect everything before parenting the imported meshes to n_root
         # Just to make sure we dont have an object selected that we dont want to parent
@@ -217,7 +237,7 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
 
         # And we merge 'em
         bpy.ops.object.join()
-
+        
         # Lastly we deselect everything
         bpy.ops.object.select_all(action='DESELECT')
 
