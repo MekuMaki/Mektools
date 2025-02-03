@@ -43,41 +43,40 @@ class MektoolsPreferences(AddonPreferences):
         description="Select the default directory for importing pose files"
     )
 
-    # Legacy Buttons Section
-    show_legacy_buttons: BoolProperty(
-        name="Enable Legacy Buttons",
-        description="Show options for deprecated or rarely used features",
-        default=False
+    # Legacy Buttons with Toggle Style
+    legacy_button_import_shaders: EnumProperty(
+        name="Import Shaders",
+        description="Toggle this legacy button on or off",
+        items=[('OFF', "Disable", ""), ('ON', "Enable", "")],
+        default='OFF'
     )
 
-    legacy_button_import_shaders: BoolProperty(
-        name="Enable Legacy Import Shaders",
+    legacy_button_apply_shaders: EnumProperty(
+        name="Apply Shaders",
         description="Toggle this legacy button on or off",
-        default=False
+        items=[('OFF', "Disable", ""), ('ON', "Enable", "")],
+        default='OFF'
     )
 
-    legacy_button_apply_shaders: BoolProperty(
-        name="Enable Legacy Apply Shaders",
+    legacy_button_fix_backface_culling: EnumProperty(
+        name="Fix Backface Culling",
         description="Toggle this legacy button on or off",
-        default=False
+        items=[('OFF', "Disable", ""), ('ON', "Enable", "")],
+        default='OFF'
     )
-    
-    legacy_button_fix_backface_culling: BoolProperty(
-        name="Enable Legacy Fix backface Culling",
+
+    legacy_button_clear_custom_split_normals: EnumProperty(
+        name="Clear Custom Split Normals",
         description="Toggle this legacy button on or off",
-        default=False
+        items=[('OFF', "Disable", ""), ('ON', "Enable", "")],
+        default='OFF'
     )
-    
-    legacy_button_clear_custom_split_normals: BoolProperty(
-        name="Enable Legacy Clear Custom Split Normals",
+
+    legacy_button_clear_parents_keep_transform: EnumProperty(
+        name="Clear Parents (Keep Transform)",
         description="Toggle this legacy button on or off",
-        default=False
-    )
-    
-    legacy_button_clear_parents_keep_transform: BoolProperty(
-        name="Enable Legacy Clear parents (Keep Transform)",
-        description="Toggle this legacy button on or off",
-        default=False
+        items=[('OFF', "Disable", ""), ('ON', "Enable", "")],
+        default='OFF'
     )
 
     def draw(self, context):
@@ -98,20 +97,18 @@ class MektoolsPreferences(AddonPreferences):
         elif self.tabs == 'LEGACY':
             box = layout.box()
             box.label(text="Legacy Buttons")
-            box.prop(self, "show_legacy_buttons")
 
-            if self.show_legacy_buttons:
-                legacy_box = box.box()
-                legacy_box.label(text="Enable/Disable Legacy Buttons")
-                legacy_box.prop(self, "legacy_button_import_shaders")
-                legacy_box.prop(self, "legacy_button_apply_shaders")
-                legacy_box.prop(self, "legacy_button_fix_backface_culling")
-                legacy_box.prop(self, "legacy_button_clear_custom_split_normals")
-                legacy_box.prop(self, "legacy_button_clear_parents_keep_transform")
+            col = box.column()
+            col.prop(self, "legacy_button_import_shaders", expand=True)
+            col.prop(self, "legacy_button_apply_shaders", expand=True)
+            col.prop(self, "legacy_button_fix_backface_culling", expand=True)
+            col.prop(self, "legacy_button_clear_custom_split_normals", expand=True)
+            col.prop(self, "legacy_button_clear_parents_keep_transform", expand=True)
 
 def register():
     bpy.utils.register_class(MektoolsPreferences)
 
 def unregister():
     bpy.utils.unregister_class(MektoolsPreferences)
+
 
