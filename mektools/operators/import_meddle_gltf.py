@@ -64,6 +64,7 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
     filter_glob: bpy.props.StringProperty(default='*.gltf', options={'HIDDEN'})
     
     import_with_shaders_setting: BoolProperty(name="Import with Meddle Shaders", default=True)
+    remove_parent_on_poles: BoolProperty(name="Remove Parents from Pole-Targets", default=False)
     
     def invoke(self, context, event):
         prefs = get_addon_preferences()
@@ -77,9 +78,8 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
 
         layout.label(text="Import Settings")
       
-        col = layout.column(align=True)
-        row = col.row(align=True)
-        row.prop(self, "import_with_shaders_setting", toggle=False)
+        layout.prop(self, "import_with_shaders_setting", toggle=False)
+        layout.prop(self, "remove_parent_on_poles", toggle=False)
 
     def execute(self, context):  
         bpy.context.window.cursor_set('WAIT')      
