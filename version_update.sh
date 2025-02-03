@@ -29,10 +29,12 @@ parse_json_field() {
 # Parse manifest.json
 NAME=$(parse_json_field "name")
 AUTHOR=$(parse_json_field "author")
-VERSION=$(grep '"version":' "$MANIFEST_FILE" | sed -E 's/.*: \[(.*)\],?/\1/' | tr -d ' ' | tr ',' '.') 
+VERSION=$(grep '"version":' "$MANIFEST_FILE" | sed -E 's/.*: \[(.*)\],?/\1/' | tr -d ' ')
+VERSION_BUT_WITHDOTS=$(grep '"version":' "$MANIFEST_FILE" | sed -E 's/.*: \[(.*)\],?/\1/' | tr -d ' ' | tr ',' '.')
 FEATURE_NAME=$(parse_json_field "feature_name")
 FEATURE_PATCH=$(parse_json_field "feature_patch") 
-BLENDER_VERSION=$(grep '"min_version":' "$MANIFEST_FILE" | sed -E 's/.*: "(.*)"/\1/')
+BLENDER_VERSION=$(grep '"blender":' "$MANIFEST_FILE" | sed -E 's/.*: "(.*)"/\1/')
+BLENDER_VERSION_BUT_WITHDOTS=$(grep '"blender":' "$MANIFEST_FILE" | sed -E 's/.*: \[(.*)\],?/\1/' | tr -d ' '| tr ',' '.')
 DESCRIPTION=$(parse_json_field "description")
 CATEGORY=$(parse_json_field "category")
 LOCATION=$(parse_json_field "location")
@@ -90,7 +92,7 @@ update_toml_field() {
 
 # Update fields in blender_manifest.toml
 update_toml_field "name" "$NAME" "$TOML_FILE"
-update_toml_field "version" "$VERSION" "$TOML_FILE"
+update_toml_field "version" "$VERSION_BUT_WITHDOTS" "$TOML_FILE"
 update_toml_field "feature_name" "$FEATURE_NAME" "$TOML_FILE"
 update_toml_field "feature_patch" "$FEATURE_PATCH" "$TOML_FILE" 
 update_toml_field "blender_version_min" "$BLENDER_VERSION" "$TOML_FILE"

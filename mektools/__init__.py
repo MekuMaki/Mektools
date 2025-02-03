@@ -31,8 +31,8 @@ from . import (
 bl_info = {
     "name": "MekTools",
     "author": "",
-    "version": (1.3.6),
-    "blender": (),
+    "version": (1,3,6),
+    "blender": (  "blender": [4, 2, 0],),
     "description": "A collection of tools for working with FFXIV models in Blender.",
     "category": "",
     "location": "View3D > Mektools Tab",
