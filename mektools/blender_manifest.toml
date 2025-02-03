@@ -1,7 +1,7 @@
 schema_version = "0.0.1"
 
 id = "mektools"
-version = "1,3,6"
+version = "1.3.6"
 name = "MekTools"
 tagline = "This is another extension"
 maintainer = "MekuMaki, Shino Mythmaker"
@@ -17,5 +17,5 @@ blender_version_min = ""
 [permissions]
 files = "Import files for most mektoosl functions"
 # clipboard = "Copy and paste bone transforms"feature_name = "feature/qol"
-feature_patch = ""feature_patch": 55,"
+feature_patch = "56"
 feature_name = "feature/qol"

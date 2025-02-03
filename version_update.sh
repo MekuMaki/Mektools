@@ -20,30 +20,30 @@ if [ ! -f "$TOML_FILE" ]; then
     exit 1
 fi
 
-# Function to safely parse JSON fields
+# Function to safely parse JSON fields (supports both strings & numbers)
 parse_json_field() {
     local key=$1
-    grep "\"$key\":" "$MANIFEST_FILE" | sed -E 's/.*: "(.*)",?/\1/'
+    grep "\"$key\":" "$MANIFEST_FILE" | sed -E 's/.*: "?([^",]+)"?,?/\1/'
 }
 
-# Parse the manifest.json
+# Parse manifest.json
 NAME=$(parse_json_field "name")
 AUTHOR=$(parse_json_field "author")
-VERSION=$(grep '"version":' "$MANIFEST_FILE" | sed -E 's/.*: \[(.*)\],?/\1/' | tr -d ' ')
+VERSION=$(grep '"version":' "$MANIFEST_FILE" | sed -E 's/.*: \[(.*)\],?/\1/' | tr -d ' ' | tr ',' '.') 
 FEATURE_NAME=$(parse_json_field "feature_name")
-FEATURE_PATCH=$(parse_json_field "feature_patch")
-BLENDER_VERSION=$(grep '"min_version":' "$MANIFEST_FILE" | sed -E 's/.*: "(.*)"/\1/' | tr '.' ',')
+FEATURE_PATCH=$(parse_json_field "feature_patch") 
+BLENDER_VERSION=$(grep '"min_version":' "$MANIFEST_FILE" | sed -E 's/.*: "(.*)"/\1/')
 DESCRIPTION=$(parse_json_field "description")
 CATEGORY=$(parse_json_field "category")
 LOCATION=$(parse_json_field "location")
 
-# Construct the new bl_info dictionary
+# Construct new bl_info dictionary
 NEW_BL_INFO=$(cat <<EOF
 bl_info = {
     "name": "$NAME",
     "author": "$AUTHOR",
-    "version": (${VERSION// /}),
-    "blender": (${BLENDER_VERSION}),
+    "version": (${VERSION// /,}),
+    "blender": (${BLENDER_VERSION//./,}),
     "description": "$DESCRIPTION",
     "category": "$CATEGORY",
     "location": "$LOCATION",
@@ -90,13 +90,14 @@ update_toml_field() {
 
 # Update fields in blender_manifest.toml
 update_toml_field "name" "$NAME" "$TOML_FILE"
-update_toml_field "version" "$VERSION" "$TOML_FILE"  # Ensuring it stays as "X.Y.Z"
+update_toml_field "version" "$VERSION" "$TOML_FILE"
 update_toml_field "feature_name" "$FEATURE_NAME" "$TOML_FILE"
-update_toml_field "feature_patch" "$FEATURE_PATCH" "$TOML_FILE"
+update_toml_field "feature_patch" "$FEATURE_PATCH" "$TOML_FILE" 
 update_toml_field "blender_version_min" "$BLENDER_VERSION" "$TOML_FILE"
 
 echo "Updated version in $TOML_FILE:"
 grep "version" "$TOML_FILE"
+
 
 
 
