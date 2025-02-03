@@ -96,7 +96,7 @@ class VIEW3D_PT_ImportPanel(Panel):
         # Fixer Buttons Section
         layout.separator()
         layout.label(text="Fixer Buttons")
-        if prefs.legacy_button_fix_backface_culling == "ON":
+        if prefs.legacy_button_fix_backface_culling == 'ON':
             layout.operator("object.fix_backface_culling", text="Fix Backface Culling")   
         layout.operator("mesh.clear_custom_split_normals", text="Clear Custom Split Normals")
         layout.operator("mektools.clear_parents", text="Clear Parents (Keep Transforms)")
