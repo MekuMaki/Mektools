@@ -30,11 +30,11 @@ from . import (
 
 bl_info = {
     "name": "MekTools",
-    "author": "",
-    "version": (1,4,3),
+    "author": "MekuMaki Shino Mythmaker",",
+    "version": (1,4,4),
     "blender": (4,2,0),
     "description": "A collection of tools for working with FFXIV models in Blender.",
-    "category": "",
+    "category": "Mektools",
     "location": "View3D > Mektools Tab",
 }
 
