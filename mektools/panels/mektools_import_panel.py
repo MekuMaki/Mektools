@@ -2,9 +2,7 @@ import bpy
 from bpy.types import Panel
 import addon_utils
 import webbrowser
-
-
-
+from ..addon_preferences import get_addon_preferences 
 
 class VIEW3D_PT_ImportPanel(Panel):
     bl_label = "Import"
@@ -14,6 +12,7 @@ class VIEW3D_PT_ImportPanel(Panel):
     bl_category = 'Mektools'
 
     def draw(self, context):
+        prefs = get_addon_preferences()
         layout = self.layout
         #First we check if meddle is installed
         isMeddleInstalled = False
@@ -97,7 +96,8 @@ class VIEW3D_PT_ImportPanel(Panel):
         # Fixer Buttons Section
         layout.separator()
         layout.label(text="Fixer Buttons")
-        layout.operator("object.fix_backface_culling", text="Fix Backface Culling")
+        if prefs.legacy_button_fix_backface_culling == "ON":
+            layout.operator("object.fix_backface_culling", text="Fix Backface Culling")   
         layout.operator("mesh.clear_custom_split_normals", text="Clear Custom Split Normals")
         layout.operator("mektools.clear_parents", text="Clear Parents (Keep Transforms)")
 
