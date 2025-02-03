@@ -30,8 +30,8 @@ from . import (
 
 bl_info = {
     "name": "MekTools",
-    "author": "MekuMaki Shino Mythmaker",",
-    "version": (1,4,5),
+    "author": "MekuMaki & Shino Mythmaker",
+    "version": (1,4,6),
     "blender": (4,2,0),
     "description": "A collection of tools for working with FFXIV models in Blender.",
     "category": "Mektools",
