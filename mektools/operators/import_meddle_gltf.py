@@ -44,7 +44,8 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
     bl_label = "Import GLTF from Meddle"
     filepath: bpy.props.StringProperty(subtype="FILE_PATH")  # Use filepath property for file selection
 
-    def execute(self, context):        
+    def execute(self, context):  
+        bpy.context.window.cursor_set('WAIT')      
         # Import the selected GLTF file and capture the imported objects
         bpy.ops.import_scene.gltf(filepath=self.filepath)
         
@@ -206,6 +207,7 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
         bpy.ops.object.select_all(action='DESELECT')
 
         self.report({'INFO'}, "GLTF imported and processed successfully.")
+        bpy.context.window.cursor_set('DEFAULT')
         bpy.ops.ed.undo_push()
         return {'FINISHED'}
 

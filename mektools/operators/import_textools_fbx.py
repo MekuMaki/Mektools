@@ -43,6 +43,7 @@ class MEKTOOLS_OT_ImportFBXFromTexTools(Operator):
     filepath: bpy.props.StringProperty(subtype="FILE_PATH")  # Use filepath property for file selection
 
     def execute(self, context):
+        bpy.context.window.cursor_set('WAIT')
         # Import the selected FBX file and capture the imported objects
         bpy.ops.import_scene.fbx(filepath=self.filepath)
         
@@ -170,6 +171,7 @@ class MEKTOOLS_OT_ImportFBXFromTexTools(Operator):
                 bpy.data.objects.remove(obj)
 
         self.report({'INFO'}, "Imported FBX with cleanup complete.")
+        bpy.context.window.cursor_set('DEFAULT')
         bpy.ops.ed.undo_push()
         return {'FINISHED'}
 
