@@ -17,5 +17,5 @@ blender_version_min = "4.2.0"
 [permissions]
 files = "Import files for most mektoosl functions"
 # clipboard = "Copy and paste bone transforms"feature_name = "feature/qol"
-feature_patch = "58"
+feature_patch = "59"
 feature_name = "feature/qol"
