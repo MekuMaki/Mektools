@@ -96,7 +96,11 @@ class VIEW3D_PT_ImportPanel(Panel):
         split.popover("MEKTOOLS_PT_FemaleRigs", text="Female", icon_value=0)
 
         # Fixer Buttons Section
-        if prefs.legacy_button_fix_backface_culling == 'ON' | prefs.legacy_button_clear_custom_split_normals == 'ON' | prefs.legacy_button_clear_parents_keep_transform == 'ON':
+        if (
+            prefs.legacy_button_fix_backface_culling == 'ON' or 
+            prefs.legacy_button_clear_custom_split_normals == 'ON' or 
+            prefs.legacy_button_clear_parents_keep_transform == 'ON'
+        ):
             layout.separator()
             layout.label(text="Fixer Buttons")
         
