@@ -46,8 +46,6 @@ class VIEW3D_PT_ImportPanel(Panel):
         # Import Buttons Section
         # We check if meddle is instaslled AND its initialized properly (after a restart)
         if isMeddleInstalled and has_operators:
-            #If it is, we show all the import buttons.
-            layout.prop(context.scene, "import_with_meddle_shader", text="Import MeddleTools Shader (GLTF Only)")
 
             row = layout.row(align=True)
             row.operator("mektools.import_meddle_gltf", text="GLTF from Meddle")

@@ -63,7 +63,7 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
     filepath: bpy.props.StringProperty(subtype="FILE_PATH")
     filter_glob: bpy.props.StringProperty(default='*.gltf', options={'HIDDEN'})
     
-    import_with_shaders_setting: BoolProperty(name="Import with Shaders", default=True)
+    import_with_shaders_setting: BoolProperty(name="Import with Meddle Shaders", default=True)
     
     def invoke(self, context, event):
         prefs = get_addon_preferences()

@@ -23,11 +23,6 @@ from .operators import (
     pose_helper,
 )
 
-
-from .properties import (
-    import_panel_properties,
-)
-
 from . import (
     addon_preferences,
 )
@@ -62,10 +57,6 @@ def register():
     fixer_operators.register()
     pose_helper.register()
     
-
-    #register all properties
-    import_panel_properties.register()
-    
     #register all preferences
     addon_preferences.register()
 
@@ -87,10 +78,7 @@ def unregister():
     lizzer_auto_shaders.unregister()
     fixer_operators.unregister()
     pose_helper.unregister()
-
-    #unregister all properties
-    import_panel_properties.unregister()   
-    
+   
     #unregister all preferences
     addon_preferences.unregister() 
     
