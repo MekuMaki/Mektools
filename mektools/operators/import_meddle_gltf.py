@@ -3,6 +3,7 @@ from bpy.types import Operator
 import os
 import importlib.util
 from math import radians
+from bpy.props import BoolProperty
 from ..addon_preferences import get_addon_preferences 
 
 
