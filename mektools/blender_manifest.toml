@@ -1,7 +1,7 @@
 schema_version = "0.0.1"
 
 id = "mektools"
-version = "1.4.4"
+version = "1.4.5"
 name = "MekTools"
 feature_patch = "0"
 feature_name = "dev"
