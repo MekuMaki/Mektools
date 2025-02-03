@@ -39,12 +39,46 @@ def load_bone_names():
     spec.loader.exec_module(bone_names)
     return bone_names.bone_names  # This assumes bone_names.py defines a list named `bone_names`
 
+def import_meddle_shader(self, imported_meshes):
+    for mesh in imported_meshes:
+        mesh.select_set(True)   
+        
+    character_directory = os.path.dirname(self.filepath)
+    meddle_cache_directory = os.path.join(character_directory, "cache","")
+
+    try:
+        bpy.ops.meddle.use_shaders_selected_objects('EXEC_DEFAULT', directory=meddle_cache_directory)
+
+    except AttributeError:
+        self.report({'ERROR'}, "Meddle shaders couldn't be imported. Try restarting Blender and try again.")
+
+    except Exception as e:
+        self.report({'ERROR'}, f"Failed to append Meddle shaders: {e}")
+
 class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
     """Import GLTF from Meddle and perform cleanup tasks"""
     bl_idname = "mektools.import_meddle_gltf"
     bl_label = "Import GLTF from Meddle"
     filepath: bpy.props.StringProperty(subtype="FILE_PATH")
     filter_glob: bpy.props.StringProperty(default='*.gltf', options={'HIDDEN'})
+    
+    import_with_shaders_setting: BoolProperty(name="Import with Shaders", default=True)
+    
+    def invoke(self, context, event):
+        prefs = get_addon_preferences()
+        if prefs.default_meddle_import_path:
+            self.filepath = prefs.default_meddle_import_path
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+    
+    def draw(self, context):
+        layout = self.layout
+
+        layout.label(text="Import Settings")
+      
+        col = layout.column(align=True)
+        row = col.row(align=True)
+        row.prop(self, "import_with_shaders_setting", toggle=False)
 
     def execute(self, context):  
         bpy.context.window.cursor_set('WAIT')      
@@ -163,30 +197,8 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
 
         # Step 7: Fix/Append Shaders
         # If the user wants to append meddle shaders we append those, otherwise we just fix the materials
-        if context.scene.import_with_meddle_shader:
-            # Since the code above selects everything after import, we need to deselect everything before appending the shaders
-            # Else Meddle might attempt to add a shader to the Default Cube or any other already existing meshes and will crash
-            for mesh in imported_meshes:
-                mesh.select_set(True)   
-
-            # Get the character directory from the filepath
-            # Since filepath points to the .gltf file, we need to go the directory where the gltf is found, not get the gltf itself
-            character_directory = os.path.dirname(self.filepath)
-
-            # The extra "" is added at the end because without it it would resolve to /character_directory/cache, which makes Meddle complain.
-            # So with the extra "" it turns into /character_directory/cache/
-            meddle_cache_directory = os.path.join(character_directory, "cache","")
-
-            try:
-                # We call the Meddle shader importer which will handle all the material assignments for us
-                bpy.ops.meddle.use_shaders_selected_objects('EXEC_DEFAULT', directory=meddle_cache_directory)
-
-            except AttributeError:
-                self.report({'ERROR'}, "Meddle shaders couldn't be imported. Try restarting Blender and try again.")
-
-            except Exception as e:
-                self.report({'ERROR'}, f"Failed to append Meddle shaders: {e}")
-
+        if self.import_with_shaders_setting:
+            import_meddle_shader(self, imported_meshes)
         else:
             bpy.ops.mektools.append_shaders()
             bpy.ops.material.material_fixer_auto()
@@ -212,13 +224,6 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
         bpy.context.window.cursor_set('DEFAULT')
         bpy.ops.ed.undo_push()
         return {'FINISHED'}
-
-    def invoke(self, context, event):
-        prefs = get_addon_preferences()
-        if prefs.default_meddle_import_path:
-            self.filepath = prefs.default_meddle_import_path
-        context.window_manager.fileselect_add(self)
-        return {'RUNNING_MODAL'}
 
 def register():
     bpy.utils.register_class(MEKTOOLS_OT_ImportGLTFFromMeddle)
