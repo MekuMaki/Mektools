@@ -48,8 +48,8 @@ class VIEW3D_PT_ImportPanel(Panel):
         if isMeddleInstalled and has_operators:
 
             row = layout.row(align=True)
-            row.operator("mektools.import_meddle_gltf", text="GLTF from Meddle")
-            row.operator("mektools.import_textools_fbx", text="FBX from TexTools")
+            row.operator("mektools.import_meddle_gltf", text="Meddle")
+            row.operator("mektools.import_textools_fbx", text="TexTools")
 
         # We need to split the logic here since we want different things to happen wether meddle is installed or not
         # and if the operators are available or not
