@@ -1,0 +1,23 @@
+#!/bin/bash
+
+MANIFEST_FILE="mektools/manifest.json"
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+
+# Only operate on the dev branch
+if [ "$CURRENT_BRANCH" != "dev" ]; then
+    echo "Post-commit hook: Not on the dev branch. Skipping tag creation."
+    exit 0
+fi
+
+# Parse the JSON file to retrieve version information
+VERSION=$(grep '"version":' "$MANIFEST_FILE" | sed 's/.*: \[\(.*\)\],/\1/' | tr -d ' ')
+IFS=',' read -r MAJOR MINOR PATCH <<< "$VERSION"
+
+# Only create a tag if patch is 0
+if [ "$PATCH" -eq 0 ]; then
+    TAG="v${MAJOR}.${MINOR}.${PATCH}"
+    git tag -a "$TAG" -m "Version $TAG"
+    echo "Post-commit hook: Created Git tag $TAG."
+else
+    echo "Post-commit hook: Patch is not 0. Skipping tag creation."
+fi

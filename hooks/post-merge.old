@@ -1,0 +1,47 @@
+#!/bin/bash
+
+MANIFEST_FILE="mektools/manifest.yaml"
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+
+# Ensure this runs only on the dev branch
+if [ "$CURRENT_BRANCH" != "dev" ]; then
+    echo "Post-merge hook: Not on the dev branch. Exiting."
+    exit 0
+fi
+
+# Check if this was a merge commit
+if [ ! -f .git/MERGE_HEAD ]; then
+    echo "Post-merge hook: Not a merge commit. Exiting."
+    exit 0
+fi
+
+# Read the current version from the manifest file
+VERSION=$(grep "version:" $MANIFEST_FILE | sed 's/version: \[//; s/\]//; s/,//g')
+IFS=' ' read -r MAJOR MINOR PATCH <<< "$VERSION"
+FEATURE_NAME=$(grep "feature_name:" $MANIFEST_FILE | sed 's/feature_name: //')
+FEATURE_PATCH=$(grep "feature_patch:" $MANIFEST_FILE | sed 's/feature_patch: //')
+
+# Increment the minor version and reset the patch
+MINOR=$((MINOR + 1))
+PATCH=0
+FEATURE_NAME="$CURRENT_BRANCH"
+FEATURE_PATCH=0
+
+# Update the manifest file
+sed -i "s/version: \[.*\]/version: [$MAJOR, $MINOR, $PATCH]/" $MANIFEST_FILE
+sed -i "s/feature_name: .*/feature_name: $FEATURE_NAME/" $MANIFEST_FILE
+sed -i "s/feature_patch: .*/feature_patch: $FEATURE_PATCH/" $MANIFEST_FILE
+
+# Commit the updated manifest file
+git add $MANIFEST_FILE
+git commit -m "Update manifest.yaml to version [$MAJOR, $MINOR, $PATCH] after merge"
+
+# Create a Git tag with the new version
+NEW_VERSION="v$MAJOR.$MINOR.$PATCH"
+git tag -a "$NEW_VERSION" -m "Version $NEW_VERSION"
+
+echo "Post-merge hook: Updated manifest.yaml to [$MAJOR, $MINOR, $PATCH], committed the change, and tagged as $NEW_VERSION."
+
+
+
+
