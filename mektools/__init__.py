@@ -46,7 +46,6 @@ bl_info = {
 
 def register():
     # Register all panels
-    #test
     info_panel.register()
     mektools_import_panel.register()
     pose_panel.register()
