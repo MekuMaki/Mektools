@@ -95,7 +95,7 @@ update_toml_field "name" "$NAME" "$TOML_FILE"
 update_toml_field "version" "$VERSION_BUT_WITHDOTS" "$TOML_FILE"
 update_toml_field "feature_name" "$FEATURE_NAME" "$TOML_FILE"
 update_toml_field "feature_patch" "$FEATURE_PATCH" "$TOML_FILE" 
-update_toml_field "blender_version_min" "$BLENDER_VERSION" "$TOML_FILE"
+update_toml_field "blender_version_min" "$BLENDER_VERSION_BUT_WITHDOTS" "$TOML_FILE"
 
 echo "Updated version in $TOML_FILE:"
 grep "version" "$TOML_FILE"
