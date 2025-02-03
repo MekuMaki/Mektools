@@ -31,7 +31,7 @@ from . import (
 bl_info = {
     "name": "MekTools",
     "author": "",
-    "version": (1,3,7),
+    "version": (1,4,1),
     "blender": (4,2,0),
     "description": "A collection of tools for working with FFXIV models in Blender.",
     "category": "",
