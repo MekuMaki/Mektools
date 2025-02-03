@@ -32,7 +32,7 @@ bl_info = {
     "name": "MekTools",
     "author": "",
     "version": (1,3,6),
-    "blender": (4,2),
+    "blender": (),
     "description": "A collection of tools for working with FFXIV models in Blender.",
     "category": "",
     "location": "View3D > Mektools Tab",
