@@ -40,7 +40,8 @@ class MEKTOOLS_OT_ImportFBXFromTexTools(Operator):
     """Import FBX from TexTools and perform cleanup tasks"""
     bl_idname = "mektools.import_textools_fbx"
     bl_label = "Import FBX from TexTools"
-    filepath: bpy.props.StringProperty(subtype="FILE_PATH")  # Use filepath property for file selection
+    filepath: bpy.props.StringProperty(subtype="FILE_PATH")
+    filter_glob: bpy.props.StringProperty(default='*.fbx', options={'HIDDEN'})
 
     def execute(self, context):
         bpy.context.window.cursor_set('WAIT')

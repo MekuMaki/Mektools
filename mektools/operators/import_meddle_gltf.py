@@ -42,7 +42,8 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
     """Import GLTF from Meddle and perform cleanup tasks"""
     bl_idname = "mektools.import_meddle_gltf"
     bl_label = "Import GLTF from Meddle"
-    filepath: bpy.props.StringProperty(subtype="FILE_PATH")  # Use filepath property for file selection
+    filepath: bpy.props.StringProperty(subtype="FILE_PATH")
+    filter_glob: bpy.props.StringProperty(default='*.gltf', options={'HIDDEN'})
 
     def execute(self, context):  
         bpy.context.window.cursor_set('WAIT')      
