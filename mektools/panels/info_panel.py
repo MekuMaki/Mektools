@@ -212,6 +212,18 @@ class MEKTOOLS_OT_InstallUpdate(bpy.types.Operator):
         
         bpy.context.window.cursor_set('DEFAULT')
         return {'FINISHED'}
+    
+class MEKTOOLS_OT_CheckForUpdate(bpy.types.Operator):
+    """Manually check for update"""
+    bl_idname = "mektools.update_check"
+    bl_label = "Check for Update"
+
+    def execute(self, context):
+        bpy.context.window.cursor_set('WAIT')
+        check_for_updates()
+        bpy.context.window.cursor_set('DEFAULT')
+        return {'FINISHED'}
+
 
 class VIEW3D_PT_SupportCommunity(bpy.types.Panel):
     bl_idname = "VIEW3D_PT_support_community"
@@ -231,6 +243,7 @@ class VIEW3D_PT_SupportCommunity(bpy.types.Panel):
         row = layout.row()
         row.operator("wm.url_open", text="Wiki", icon="HELP").url = "https://github.com/MekuMaki/MekTools/wiki"
         row.operator("wm.url_open", text="Issues", icon="BOOKMARKS").url = "https://github.com/MekuMaki/MekTools/issues"
+        row.operator("mektools.update_check", text="", icon="FILE_REFRESH")
         
         layout.separator()
         
@@ -247,6 +260,7 @@ def register():
     bpy.utils.register_class(MEKTOOLS_OT_InstallUpdate)
     bpy.utils.register_class(MEKTOOLS_OT_RestartBlender)
     bpy.utils.register_class(VIEW3D_PT_SupportCommunity)
+    bpy.utils.register_class(MEKTOOLS_OT_CheckForUpdate)
     bpy.app.timers.register(check_for_updates, first_interval=2)  # Auto-check after 3 seconds
     
 
@@ -254,4 +268,5 @@ def unregister():
     bpy.utils.unregister_class(MEKTOOLS_OT_InstallUpdate)
     bpy.utils.unregister_class(MEKTOOLS_OT_RestartBlender)
     bpy.utils.unregister_class(VIEW3D_PT_SupportCommunity)
+    bpy.utils.unregister_class(MEKTOOLS_OT_CheckForUpdate)
 
