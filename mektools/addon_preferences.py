@@ -79,7 +79,7 @@ class MektoolsPreferences(AddonPreferences):
         default='OFF'
     )
     
-    legacy_import_rigs: EnumProperty(
+    legacy_button_import_rigs: EnumProperty(
         name="Import Rigs",
         description="Toggle this legacy button on or off",
         items=[('OFF', "Disable", ""), ('ON', "Enable", "")],
@@ -123,7 +123,7 @@ class MektoolsPreferences(AddonPreferences):
             
             row = box.row()
             row.label(text="Rigs")
-            draw_toggle("Import Rigs", "legacy_import_rigs")
+            draw_toggle("Import Rigs", "legacy_button_import_rigs")
             
 
 def register():
