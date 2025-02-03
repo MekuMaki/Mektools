@@ -56,22 +56,24 @@ def import_meddle_shader(self, imported_meshes):
     except Exception as e:
         self.report({'ERROR'}, f"Failed to append Meddle shaders: {e}")
         
-def remove_pole_parents(self, armature):
+def remove_pole_parents(armature):
+    """Removes the parent from IK pole bones in the given armature."""
     if armature and armature.type == 'ARMATURE':
-        bpy.ops.object.mode_set(mode='POSE')
+        # Switch to Edit Mode (Needed to modify parent relationships)
+        bpy.ops.object.mode_set(mode='EDIT')
 
         bones_to_unparent = ["IK_Arm_Pole.R", "IK_Arm_Pole.L", "IK_Leg_Pole.R", "IK_Leg_Pole.L"]
 
         for bone_name in bones_to_unparent:
-            if bone_name in armature.pose.bones:
-                bone = armature.pose.bones[bone_name]
-                bone.bone.use_connect = False  # Ensure it's not connected
-                bone.bone.parent = None  # Remove parent
+            if bone_name in armature.data.edit_bones:
+                bone = armature.data.edit_bones[bone_name]
+                bone.parent = None  # Unparent the bone
 
-        bpy.ops.object.mode_set(mode='OBJECT')  # Return to object mode
-        self.report({'INFO'}, "Removed parent from IK poles.")
+        # Return to Object Mode
+        bpy.ops.object.mode_set(mode='OBJECT')
+        print("Removed parent from IK pole bones.")
     else:
-        self.report({'ERROR'}, "Select an armature first.")    
+        print("No armature selected or incorrect object type.")   
 
 class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
     """Import GLTF from Meddle and perform cleanup tasks"""
@@ -196,7 +198,7 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
         bpy.ops.object.mode_set(mode='OBJECT')
         
         if self.remove_parent_on_poles:
-            remove_pole_parents(self, n_root_armature)
+            remove_pole_parents(n_root_armature)
 
         # We need to deselect everything before parenting the imported meshes to n_root
         # Just to make sure we dont have an object selected that we dont want to parent
