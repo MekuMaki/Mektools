@@ -2,6 +2,7 @@ import bpy
 from bpy.types import Operator
 import os
 import importlib.util
+from ..addon_preferences import get_addon_preferences 
 
 # Load the bone names from bone_names.py in the data folder
 DATA_PATH = os.path.join(os.path.dirname(__file__), "../data")
@@ -177,7 +178,9 @@ class MEKTOOLS_OT_ImportFBXFromTexTools(Operator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        # Open the file browser for FBX import
+        prefs = get_addon_preferences()
+        if prefs.default_pose_import_path:
+            self.filepath = prefs.default_pose_import_path
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 

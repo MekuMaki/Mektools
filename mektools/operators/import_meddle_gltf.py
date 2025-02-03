@@ -3,6 +3,7 @@ from bpy.types import Operator
 import os
 import importlib.util
 from math import radians
+from ..addon_preferences import get_addon_preferences 
 
 
 # Load the bone names from bone_names.py in the data folder
@@ -213,7 +214,9 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        # Open the file browser for GLTF import
+        prefs = get_addon_preferences()
+        if prefs.default_pose_import_path:
+            self.filepath = prefs.default_pose_import_path
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
