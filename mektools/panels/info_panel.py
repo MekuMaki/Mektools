@@ -220,7 +220,12 @@ class MEKTOOLS_OT_CheckForUpdate(bpy.types.Operator):
 
     def execute(self, context):
         bpy.context.window.cursor_set('WAIT')
+        self.report({'INFO'}, "Checking for Mektools Update ...")
         check_for_updates()
+        if update_available:
+            self.report({'INFO'}, "Found new Mektools version!")
+        else: 
+            self.report({'INFO'}, "No new Mektools updates available")             
         bpy.context.window.cursor_set('DEFAULT')
         return {'FINISHED'}
 
