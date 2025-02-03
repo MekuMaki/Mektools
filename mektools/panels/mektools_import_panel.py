@@ -85,7 +85,7 @@ class VIEW3D_PT_ImportPanel(Panel):
             layout.operator("wm.url_open", text="Get MeddleTools Addon", icon="URL").url = "https://github.com/PassiveModding/MeddleTools/releases"
         
 
-        if self.legacy_import_rigs:
+        if prefs.legacy_import_rigs:
             # Rigs Label and Popovers for Male and Female Rigs
             layout.separator()
             layout.label(text="Rigs")
