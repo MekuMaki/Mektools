@@ -13,7 +13,8 @@ license = [
   "SPDX:AGPL-3.0-or-later",
 ]
 
-blender_version_min = "4.2"
+blender_version_min = ""
 [permissions]
 files = "Import files for most mektoosl functions"
-# clipboard = "Copy and paste bone transforms"
+# clipboard = "Copy and paste bone transforms"feature_name = "feature/qol"
+feature_patch = ""feature_patch": 53,"
