@@ -2,9 +2,7 @@ import bpy
 from bpy.types import Panel
 import addon_utils
 import webbrowser
-
-
-
+from ..addon_preferences import get_addon_preferences 
 
 class VIEW3D_PT_ImportPanel(Panel):
     bl_label = "Import"
@@ -14,6 +12,7 @@ class VIEW3D_PT_ImportPanel(Panel):
     bl_category = 'Mektools'
 
     def draw(self, context):
+        prefs = get_addon_preferences()
         layout = self.layout
         #First we check if meddle is installed
         isMeddleInstalled = False
@@ -47,20 +46,20 @@ class VIEW3D_PT_ImportPanel(Panel):
         # Import Buttons Section
         # We check if meddle is instaslled AND its initialized properly (after a restart)
         if isMeddleInstalled and has_operators:
-            #If it is, we show all the import buttons.
-            layout.prop(context.scene, "import_with_meddle_shader", text="Import MeddleTools Shader (GLTF Only)")
 
             row = layout.row(align=True)
-            row.operator("mektools.import_meddle_gltf", text="GLTF from Meddle")
-            row.operator("mektools.import_textools_fbx", text="FBX from TexTools")
+            row.operator("mektools.import_meddle_gltf", text="Meddle", icon = "IMPORT")
+            row.operator("mektools.import_textools_fbx", text="TexTools", icon = "IMPORT")
 
         # We need to split the logic here since we want different things to happen wether meddle is installed or not
         # and if the operators are available or not
         if isMeddleInstalled:
             # If the operators are available and meddle is installed that means that the initial restart setup is done, and its all g
             if has_operators:
-                layout.operator('meddle.import_shaders', text="Import Shaders", icon="SHADING_TEXTURE")
-                layout.operator('meddle.use_shaders_selected_objects', text="Apply Shaders", icon="SHADING_TEXTURE")
+                if prefs.legacy_button_import_shaders == 'ON':
+                    layout.operator('meddle.import_shaders', text="Import Shaders", icon="SHADING_TEXTURE")
+                if prefs.legacy_button_apply_shaders == 'ON':
+                    layout.operator('meddle.use_shaders_selected_objects', text="Apply Shaders", icon="SHADING_TEXTURE")
 
             # If meddle is installed, but the operators are not available, that means that the user just installed the addon
             # And user needs to restart blender
@@ -86,20 +85,29 @@ class VIEW3D_PT_ImportPanel(Panel):
             layout.operator("wm.url_open", text="Get MeddleTools Addon", icon="URL").url = "https://github.com/PassiveModding/MeddleTools/releases"
         
 
-
-        # Rigs Label and Popovers for Male and Female Rigs
-        layout.separator()
-        layout.label(text="Rigs")
-        split = layout.split(factor=0.5, align=True)
-        split.popover("MEKTOOLS_PT_MaleRigs", text="Male", icon_value=0)
-        split.popover("MEKTOOLS_PT_FemaleRigs", text="Female", icon_value=0)
+        if prefs.legacy_button_import_rigs == 'ON':
+            # Rigs Label and Popovers for Male and Female Rigs
+            layout.separator()
+            layout.label(text="Rigs")
+            split = layout.split(factor=0.5, align=True)
+            split.popover("MEKTOOLS_PT_MaleRigs", text="Male", icon_value=0)
+            split.popover("MEKTOOLS_PT_FemaleRigs", text="Female", icon_value=0)    
 
         # Fixer Buttons Section
-        layout.separator()
-        layout.label(text="Fixer Buttons")
-        layout.operator("object.fix_backface_culling", text="Fix Backface Culling")
-        layout.operator("mesh.clear_custom_split_normals", text="Clear Custom Split Normals")
-        layout.operator("mektools.clear_parents", text="Clear Parents (Keep Transforms)")
+        if (
+            prefs.legacy_button_fix_backface_culling == 'ON' or 
+            prefs.legacy_button_clear_custom_split_normals == 'ON' or 
+            prefs.legacy_button_clear_parents_keep_transform == 'ON'
+        ):
+            layout.separator()
+            layout.label(text="Fixer Buttons")
+        
+        if prefs.legacy_button_fix_backface_culling == 'ON':
+            layout.operator("object.fix_backface_culling", text="Fix Backface Culling")   
+        if prefs.legacy_button_clear_custom_split_normals == 'ON':
+            layout.operator("mesh.clear_custom_split_normals", text="Clear Custom Split Normals")
+        if prefs.legacy_button_clear_parents_keep_transform == 'ON':
+            layout.operator("mektools.clear_parents", text="Clear Parents (Keep Transforms)")
 
 class MEKTOOLS_PT_MaleRigs(Panel):
     """Male Mekrigs Import"""

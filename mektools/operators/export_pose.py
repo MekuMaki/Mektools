@@ -5,7 +5,7 @@ import re
 from bpy.types import Operator
 from bpy.props import BoolProperty
 from bpy_extras.io_utils import ExportHelper  
-from ..preferences.pose_preferences import PosePreferences 
+from ..addon_preferences import get_addon_preferences 
 
 BONE_GROUPS = ["Hair", "Face", "HandL", "HandR", "Tail", "Gear", "Body"]
 
@@ -29,7 +29,7 @@ class EXPORT_POSE_OT(Operator, ExportHelper):
     
     
     def invoke(self, context, event):
-        prefs = context.preferences.addons["Mektools"].preferences  # Access the preferences
+        prefs = get_addon_preferences()  # Access the preferences
         blend_filename = bpy.path.basename(bpy.data.filepath)  # Get the Blender file name
         if blend_filename:
             blend_filename = os.path.splitext(blend_filename)[0] + ".pose"  # Change extension to .pose

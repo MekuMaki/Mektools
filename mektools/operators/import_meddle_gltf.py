@@ -3,6 +3,8 @@ from bpy.types import Operator
 import os
 import importlib.util
 from math import radians
+from bpy.props import BoolProperty
+from ..addon_preferences import get_addon_preferences 
 
 
 # Load the bone names from bone_names.py in the data folder
@@ -38,13 +40,68 @@ def load_bone_names():
     spec.loader.exec_module(bone_names)
     return bone_names.bone_names  # This assumes bone_names.py defines a list named `bone_names`
 
+def import_meddle_shader(self, imported_meshes):
+    for mesh in imported_meshes:
+        mesh.select_set(True)   
+        
+    character_directory = os.path.dirname(self.filepath)
+    meddle_cache_directory = os.path.join(character_directory, "cache","")
+
+    try:
+        bpy.ops.meddle.use_shaders_selected_objects('EXEC_DEFAULT', directory=meddle_cache_directory)
+
+    except AttributeError:
+        self.report({'ERROR'}, "Meddle shaders couldn't be imported. Try restarting Blender and try again.")
+
+    except Exception as e:
+        self.report({'ERROR'}, f"Failed to append Meddle shaders: {e}")
+        
+def remove_pole_parents(armature):
+    """Removes the parent from IK pole bones in the given armature."""
+    if armature and armature.type == 'ARMATURE':
+        # Switch to Edit Mode (Needed to modify parent relationships)
+        bpy.ops.object.mode_set(mode='EDIT')
+
+        bones_to_unparent = ["IK_Arm_Pole.R", "IK_Arm_Pole.L", "IK_Leg_Pole.R", "IK_Leg_Pole.L"]
+
+        for bone_name in bones_to_unparent:
+            if bone_name in armature.data.edit_bones:
+                bone = armature.data.edit_bones[bone_name]
+                bone.parent = None  # Unparent the bone
+
+        # Return to Object Mode
+        bpy.ops.object.mode_set(mode='OBJECT')
+        print("Removed parent from IK pole bones.")
+    else:
+        print("No armature selected or incorrect object type.")   
+
 class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
     """Import GLTF from Meddle and perform cleanup tasks"""
     bl_idname = "mektools.import_meddle_gltf"
     bl_label = "Import GLTF from Meddle"
-    filepath: bpy.props.StringProperty(subtype="FILE_PATH")  # Use filepath property for file selection
+    filepath: bpy.props.StringProperty(subtype="FILE_PATH")
+    filter_glob: bpy.props.StringProperty(default='*.gltf', options={'HIDDEN'})
+    
+    import_with_shaders_setting: BoolProperty(name="Import with Meddle Shaders", description="Tries to also import all shaders from meddle shader cache", default=True)
+    remove_parent_on_poles: BoolProperty(name="Remove Parents from Pole-Targets", description="Removes the Parent from Pole-Targets", default=False)
+    
+    def invoke(self, context, event):
+        prefs = get_addon_preferences()
+        if prefs.default_meddle_import_path:
+            self.filepath = prefs.default_meddle_import_path
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+    
+    def draw(self, context):
+        layout = self.layout
 
-    def execute(self, context):        
+        layout.label(text="Import Settings")
+      
+        layout.prop(self, "import_with_shaders_setting", toggle=False)
+        layout.prop(self, "remove_parent_on_poles", toggle=False)
+
+    def execute(self, context):  
+        bpy.context.window.cursor_set('WAIT')      
         # Import the selected GLTF file and capture the imported objects
         bpy.ops.import_scene.gltf(filepath=self.filepath)
         
@@ -139,6 +196,9 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
                 pose_bone.color.palette = 'THEME01'  # Theme 1 Red
 
         bpy.ops.object.mode_set(mode='OBJECT')
+        
+        if self.remove_parent_on_poles:
+            remove_pole_parents(n_root_armature)
 
         # We need to deselect everything before parenting the imported meshes to n_root
         # Just to make sure we dont have an object selected that we dont want to parent
@@ -160,30 +220,8 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
 
         # Step 7: Fix/Append Shaders
         # If the user wants to append meddle shaders we append those, otherwise we just fix the materials
-        if context.scene.import_with_meddle_shader:
-            # Since the code above selects everything after import, we need to deselect everything before appending the shaders
-            # Else Meddle might attempt to add a shader to the Default Cube or any other already existing meshes and will crash
-            for mesh in imported_meshes:
-                mesh.select_set(True)   
-
-            # Get the character directory from the filepath
-            # Since filepath points to the .gltf file, we need to go the directory where the gltf is found, not get the gltf itself
-            character_directory = os.path.dirname(self.filepath)
-
-            # The extra "" is added at the end because without it it would resolve to /character_directory/cache, which makes Meddle complain.
-            # So with the extra "" it turns into /character_directory/cache/
-            meddle_cache_directory = os.path.join(character_directory, "cache","")
-
-            try:
-                # We call the Meddle shader importer which will handle all the material assignments for us
-                bpy.ops.meddle.use_shaders_selected_objects('EXEC_DEFAULT', directory=meddle_cache_directory)
-
-            except AttributeError:
-                self.report({'ERROR'}, "Meddle shaders couldn't be imported. Try restarting Blender and try again.")
-
-            except Exception as e:
-                self.report({'ERROR'}, f"Failed to append Meddle shaders: {e}")
-
+        if self.import_with_shaders_setting:
+            import_meddle_shader(self, imported_meshes)
         else:
             bpy.ops.mektools.append_shaders()
             bpy.ops.material.material_fixer_auto()
@@ -201,18 +239,14 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
 
         # And we merge 'em
         bpy.ops.object.join()
-
+        
         # Lastly we deselect everything
         bpy.ops.object.select_all(action='DESELECT')
 
         self.report({'INFO'}, "GLTF imported and processed successfully.")
+        bpy.context.window.cursor_set('DEFAULT')
         bpy.ops.ed.undo_push()
         return {'FINISHED'}
-
-    def invoke(self, context, event):
-        # Open the file browser for GLTF import
-        context.window_manager.fileselect_add(self)
-        return {'RUNNING_MODAL'}
 
 def register():
     bpy.utils.register_class(MEKTOOLS_OT_ImportGLTFFromMeddle)

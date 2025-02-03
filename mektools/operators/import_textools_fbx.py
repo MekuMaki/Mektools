@@ -2,6 +2,7 @@ import bpy
 from bpy.types import Operator
 import os
 import importlib.util
+from ..addon_preferences import get_addon_preferences 
 
 # Load the bone names from bone_names.py in the data folder
 DATA_PATH = os.path.join(os.path.dirname(__file__), "../data")
@@ -40,9 +41,11 @@ class MEKTOOLS_OT_ImportFBXFromTexTools(Operator):
     """Import FBX from TexTools and perform cleanup tasks"""
     bl_idname = "mektools.import_textools_fbx"
     bl_label = "Import FBX from TexTools"
-    filepath: bpy.props.StringProperty(subtype="FILE_PATH")  # Use filepath property for file selection
+    filepath: bpy.props.StringProperty(subtype="FILE_PATH")
+    filter_glob: bpy.props.StringProperty(default='*.fbx', options={'HIDDEN'})
 
     def execute(self, context):
+        bpy.context.window.cursor_set('WAIT')
         # Import the selected FBX file and capture the imported objects
         bpy.ops.import_scene.fbx(filepath=self.filepath)
         
@@ -170,11 +173,14 @@ class MEKTOOLS_OT_ImportFBXFromTexTools(Operator):
                 bpy.data.objects.remove(obj)
 
         self.report({'INFO'}, "Imported FBX with cleanup complete.")
+        bpy.context.window.cursor_set('DEFAULT')
         bpy.ops.ed.undo_push()
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        # Open the file browser for FBX import
+        prefs = get_addon_preferences()
+        if prefs.default_textools_import_path:
+            self.filepath = prefs.default_textools_import_path
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 

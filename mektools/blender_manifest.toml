@@ -1,0 +1,21 @@
+schema_version = "0.0.1"
+
+id = "mektools"
+version = "1.3.6"
+name = "MekTools"
+feature_patch = "64"
+feature_name = "feature/qol"
+tagline = "This is another extension"
+maintainer = "MekuMaki, Shino Mythmaker"
+type = "add-on"
+
+website = "https://github.com/MekuMaki/Mektools"
+
+license = [
+  "SPDX:AGPL-3.0-or-later",
+]
+
+blender_version_min = "4.2.0"
+[permissions]
+files = "Import files for most mektoosl functions"
+# clipboard = "Copy and paste bone transforms"

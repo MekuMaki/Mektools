@@ -6,6 +6,7 @@ from bpy.types import Operator
 from mathutils import Matrix, Quaternion
 from mathutils import Vector
 from . import pose_helper
+from ..addon_preferences import get_addon_preferences 
 
 collection_visibility = {}
 
@@ -274,7 +275,7 @@ class IMPORT_POSE_OT(Operator):
     filter_glob: bpy.props.StringProperty(default='*.pose', options={'HIDDEN'})
     
     def invoke(self, context, event):
-        prefs = context.preferences.addons["Mektools"].preferences 
+        prefs = get_addon_preferences()
         if prefs.default_pose_import_path:
             self.filepath = prefs.default_pose_import_path
         context.window_manager.fileselect_add(self)

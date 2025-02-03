@@ -3,7 +3,7 @@ import json
 import os
 
 from .panels import (
-    mektools_support_community_panel, 
+    info_panel, 
     mektools_import_panel,
     pose_panel,
     glb_export_panel,
@@ -20,33 +20,27 @@ from .operators import (
     append_shaders,
     lizzer_auto_shaders, 
     fixer_operators, 
-    pose_helper, 
-    #update_operator,
+    pose_helper,
 )
 
-
-from .properties import (
-    import_panel_properties,
-)
-
-from .preferences import (
-    pose_preferences,
+from . import (
+    addon_preferences,
 )
 
 
 bl_info = {
-    "name": "Mektools",
-    "author": "Meku Maki, Shino Mythmaker, Rune",
-    "version": (1,3,7),
-    "blender": (4,2),
-    "description": "Mektools Addon Structure",
-    "category": "Import-Export",
+    "name": "MekTools",
+    "author": "",
+    "version": (1,3,6),
+    "blender": (4,2,0),
+    "description": "A collection of tools for working with FFXIV models in Blender.",
+    "category": "",
     "location": "View3D > Mektools Tab",
 }
 
 def register():
     # Register all panels
-    mektools_support_community_panel.register()
+    info_panel.register()
     mektools_import_panel.register()
     pose_panel.register()
     glb_export_panel.register()
@@ -62,18 +56,13 @@ def register():
     lizzer_auto_shaders.register()
     fixer_operators.register()
     pose_helper.register()
-    #update_operator.register()
-    
-
-    #register all properties
-    import_panel_properties.register()
     
     #register all preferences
-    pose_preferences.register()
+    addon_preferences.register()
 
 def unregister():
     # Unregister all panels
-    mektools_support_community_panel.unregister()
+    info_panel.unregister()
     mektools_import_panel.unregister()
     pose_panel.unregister()
     glb_export_panel.unregister()
@@ -89,13 +78,9 @@ def unregister():
     lizzer_auto_shaders.unregister()
     fixer_operators.unregister()
     pose_helper.unregister()
-    #update_operator.unregister()
-
-    #unregister all properties
-    import_panel_properties.unregister()   
-    
+   
     #unregister all preferences
-    pose_preferences.unregister() 
+    addon_preferences.unregister() 
     
     
 
