@@ -58,8 +58,10 @@ class VIEW3D_PT_ImportPanel(Panel):
         if isMeddleInstalled:
             # If the operators are available and meddle is installed that means that the initial restart setup is done, and its all g
             if has_operators:
-                layout.operator('meddle.import_shaders', text="Import Shaders", icon="SHADING_TEXTURE")
-                layout.operator('meddle.use_shaders_selected_objects', text="Apply Shaders", icon="SHADING_TEXTURE")
+                if prefs.legacy_button_import_shaders == 'ON':
+                    layout.operator('meddle.import_shaders', text="Import Shaders", icon="SHADING_TEXTURE")
+                if prefs.legacy_button_apply_shaders == 'ON':
+                    layout.operator('meddle.use_shaders_selected_objects', text="Apply Shaders", icon="SHADING_TEXTURE")
 
             # If meddle is installed, but the operators are not available, that means that the user just installed the addon
             # And user needs to restart blender
@@ -94,12 +96,16 @@ class VIEW3D_PT_ImportPanel(Panel):
         split.popover("MEKTOOLS_PT_FemaleRigs", text="Female", icon_value=0)
 
         # Fixer Buttons Section
-        layout.separator()
-        layout.label(text="Fixer Buttons")
+        if prefs.legacy_button_fix_backface_culling == 'ON' | prefs.legacy_button_clear_custom_split_normals == 'ON' | prefs.legacy_button_clear_parents_keep_transform == 'ON':
+            layout.separator()
+            layout.label(text="Fixer Buttons")
+        
         if prefs.legacy_button_fix_backface_culling == 'ON':
             layout.operator("object.fix_backface_culling", text="Fix Backface Culling")   
-        layout.operator("mesh.clear_custom_split_normals", text="Clear Custom Split Normals")
-        layout.operator("mektools.clear_parents", text="Clear Parents (Keep Transforms)")
+        if prefs.legacy_button_clear_custom_split_normals == 'ON':
+            layout.operator("mesh.clear_custom_split_normals", text="Clear Custom Split Normals")
+        if prefs.legacy_button_clear_parents_keep_transform == 'ON':
+            layout.operator("mektools.clear_parents", text="Clear Parents (Keep Transforms)")
 
 class MEKTOOLS_PT_MaleRigs(Panel):
     """Male Mekrigs Import"""
