@@ -179,8 +179,8 @@ class MEKTOOLS_OT_ImportFBXFromTexTools(Operator):
 
     def invoke(self, context, event):
         prefs = get_addon_preferences()
-        if prefs.default_pose_import_path:
-            self.filepath = prefs.default_pose_import_path
+        if prefs.default_textools_import_path:
+            self.filepath = prefs.default_textools_import_path
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
