@@ -1,0 +1,130 @@
+#!/bin/bash
+
+MANIFEST_FILE="mektools/manifest.json"
+INIT_FILE="mektools/__init__.py"
+UPDATE_SCRIPT="./version_update.sh"
+
+# Check if this is a conflict resolution commit
+if [ -f .git/MERGE_HEAD ]; then
+    echo "Pre-commit hook: Detected a conflict resolution commit. Skipping version updates."
+    exit 0
+fi
+
+# Get the current branch name
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+echo "DEBUG: Current branch name: $CURRENT_BRANCH"
+
+# Initialize default values
+MAJOR=0
+MINOR=0
+PATCH=0
+FEATURE_NAME=""
+FEATURE_PATCH=0
+
+# Parse the JSON file
+while IFS=": " read -r KEY VALUE; do
+    case "$KEY" in
+        \"version\")
+            # Extract version numbers
+            VALUE=$(echo "$VALUE" | tr -d '[],"')
+            IFS=', ' read -r MAJOR MINOR PATCH <<< "$VALUE"
+            MAJOR=${MAJOR:-0}
+            MINOR=${MINOR:-0}
+            PATCH=${PATCH:-0}
+            ;;
+        \"feature_name\")
+            FEATURE_NAME=$(echo "$VALUE" | tr -d '",')
+            ;;
+        \"feature_patch\")
+            FEATURE_PATCH=$(echo "$VALUE" | tr -d ',')
+            ;;
+    esac
+done < <(grep -E '"version"|"feature_name"|"feature_patch"' "$MANIFEST_FILE")
+
+
+# Initialize change tracking
+CHANGED=false
+
+# Always update the feature name to the current branch name
+if [ "$FEATURE_NAME" != "$CURRENT_BRANCH" ]; then
+    FEATURE_NAME="$CURRENT_BRANCH"
+    CHANGED=true
+fi
+
+# Determine behavior based on branch
+if [[ "$CURRENT_BRANCH" == feature/* ]]; then
+    # Feature branch behavior: Increment feature patch
+    FEATURE_PATCH=$((FEATURE_PATCH + 1))
+    CHANGED=true
+else
+     # Regular branch behavior: Increment patch only if feature_patch is 0
+    if [ "$FEATURE_PATCH" -eq 0 ]; then
+        PATCH=$((PATCH + 1))
+        CHANGED=true
+    fi
+    FEATURE_PATCH=0
+    CHANGED=true
+fi
+
+# If changes were made, update the JSON file
+if [ "$CHANGED" = true ]; then
+    awk -v major="$MAJOR" -v minor="$MINOR" -v patch="$PATCH" \
+        -v feature_name="$FEATURE_NAME" -v feature_patch="$FEATURE_PATCH" '
+        BEGIN {
+            updated_version = "\"version\": [" major ", " minor ", " patch "],"
+            updated_feature_name = "\"feature_name\": \"" feature_name "\","
+            updated_feature_patch = "\"feature_patch\": " feature_patch ","
+        }
+        /"version":/ {
+            print updated_version
+            next
+        }
+        /"feature_name":/ {
+            print updated_feature_name
+            next
+        }
+        /"feature_patch":/ {
+            print updated_feature_patch
+            next
+        }
+        {print}
+    ' "$MANIFEST_FILE" > "$MANIFEST_FILE.tmp" && mv "$MANIFEST_FILE.tmp" "$MANIFEST_FILE"
+
+    
+
+    # Ensure required files exist
+    if [ ! -f "$MANIFEST_FILE" ]; then
+        echo "Error: $MANIFEST_FILE not found!"
+        exit 1
+    fi
+
+    if [ ! -f "$INIT_FILE" ]; then
+        echo "Error: $INIT_FILE not found!"
+        exit 1
+    fi
+
+    if [ ! -x "$UPDATE_SCRIPT" ]; then
+        echo "Error: Update script $UPDATE_SCRIPT is not executable or missing!"
+        exit 1
+    fi
+
+    # Run the update script
+    echo "Running update script for bl_info..."
+    $UPDATE_SCRIPT
+
+
+    # Stage the updated manifest file and init file
+    git add "$MANIFEST_FILE"
+    git add "$INIT_FILE"
+
+    echo "Pre-commit hook: Updated and staged $INIT_FILE."
+    echo "DEBUG: Updated manifest.json with version [$MAJOR, $MINOR, $PATCH] and feature patch [$FEATURE_PATCH]."
+fi
+
+
+
+
+
+
+
+
