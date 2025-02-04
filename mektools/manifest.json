@@ -2,7 +2,7 @@
   "id": "MekTools",
   "name": "MekTools",
   "type": "extensions",
-"version": [1, 4, 11],
+"version": [1, 4, 12],
   "blender": [4, 2, 0],
   "author": "MekuMaki & Shino Mythmaker",
   "category": "Mektools",
@@ -10,6 +10,6 @@
   "tags": ["modeling", "animation", "import-export"],
   "path": "MekTools",
 "feature_name": "feature/gltf_bugs_and_readme_fix",
-"feature_patch": 13,
+"feature_patch": 14,
   "location": "View3D > Mektools Tab"
 }

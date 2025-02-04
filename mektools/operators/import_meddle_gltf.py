@@ -194,10 +194,14 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
             self.report({'ERROR'}, "No n_root armature found in the imported objects.")
             return {'CANCELLED'}
 
+        #deselect all to ensure only the armature is selected
+        bpy.ops.object.select_all(action='DESELECT')
+
         bpy.context.view_layer.objects.active = n_root_armature
         armature.select_set(True)
         n_root_armature.select_set(True)
         bpy.ops.object.join()
+
 
 
 
