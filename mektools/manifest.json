@@ -10,6 +10,6 @@
   "tags": ["modeling", "animation", "import-export"],
   "path": "MekTools",
 "feature_name": "feature/gltf_bugs_and_readme_fix",
-"feature_patch": 3,
+"feature_patch": 4,
   "location": "View3D > Mektools Tab"
 }

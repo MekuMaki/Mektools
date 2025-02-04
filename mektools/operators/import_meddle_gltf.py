@@ -184,12 +184,21 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
                 eval(f"bpy.ops.{operator_id}()")
                 break
 
+        #we rebuild the list of objects imported
+        objects_imported = set(bpy.data.objects) - objects_before_import
+
         # Step 4: Join Armature with Mekrig and parent hair bones to "mek kao"
         n_root_armature = next((obj for obj in objects_imported if obj.type == 'ARMATURE' and "n_root" in obj.name), None)
+        if not n_root_armature:
+
+            self.report({'ERROR'}, "No n_root armature found in the imported objects.")
+            return {'CANCELLED'}
+
         bpy.context.view_layer.objects.active = n_root_armature
         armature.select_set(True)
         n_root_armature.select_set(True)
         bpy.ops.object.join()
+
 
 
         bpy.ops.object.mode_set(mode='EDIT')
