@@ -118,9 +118,13 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
         if icosphere:
             bpy.data.objects.remove(icosphere)
 
-        # Clear parent for all objects and keep transform
-        bpy.ops.object.select_all(action='SELECT')
-        bpy.ops.object.parent_clear(type='CLEAR_KEEP_TRANSFORM')
+        objects_imported = set(bpy.data.objects) - objects_before_import
+
+        # Clear parent for all imported objects and keep transform
+        for obj in objects_imported:
+            obj.select_set(True)
+            bpy.ops.object.parent_clear(type='CLEAR_KEEP_TRANSFORM')
+            obj.select_set(False)
 
         # Delete the "glTF_not_exported" collection if it exists
         collection_to_delete = bpy.data.collections.get("glTF_not_exported")
@@ -211,6 +215,9 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
             if bone.name in influential_bones:
                 bone.parent = mek_kao_bone
                 bone.roll = radians(90)
+
+        #we rebuild the list of objects imported
+        objects_imported = set(bpy.data.objects) - objects_before_import
 
         # Switch to Pose Mode for hair bone adjustments
         bpy.ops.object.mode_set(mode='POSE')
