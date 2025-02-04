@@ -250,6 +250,7 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
             bpy.ops.material.material_fixer_auto()
 
 
+
         # Step 8: Cleanup
         # We merge all meshes whose name contain "skin", as we would usually just do this manually. So why not automate that aswell lmao?
         skin_meshes = [obj for obj in imported_meshes if "skin" in obj.name]
