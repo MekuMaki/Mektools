@@ -110,7 +110,6 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
         # Import the selected GLTF file and capture the imported objects
         bpy.ops.import_scene.gltf(filepath=self.filepath)
 
-
         # Step 1: Perform all cleanup tasks
         icosphere = bpy.data.objects.get("Icosphere")
         if icosphere:
