@@ -263,6 +263,11 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
         # And we merge 'em
         bpy.ops.object.join()
         
+        #we rename the armature since the next character will be expecting the armature to be "n_root" and if we dont change it rn
+        # then the next imported one will be "n_root.001" and the code will fail
+        n_root_armature.name = "Armature"
+        
+
         # Lastly we deselect everything
         bpy.ops.object.select_all(action='DESELECT')
 
