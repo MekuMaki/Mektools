@@ -75,6 +75,37 @@ def remove_pole_parents(armature):
     else:
         print("No armature selected or incorrect object type.")   
 
+def filter_bones(mesh_filter_string, objects_to_filter, bone_names_to_skip = []):
+    """Returns a set of bone names that influence meshes whose name contains the mesh_filter_string.    
+
+    :param mesh_filter_string: substring to look for in mesh object names. Only meshes 
+        containing this string in their name will be processed. Matching is case-sensitive.
+    :type mesh_filter_string: str
+    :param objects_to_filter: list of objects to check for bone influences
+    :type objects_to_filter: list
+    :param bone_names_to_skip: optional list of bone names to exclude from results. 
+        Defaults to empty list if not provided.
+    :type bone_names_to_skip: list, optional
+    :return: set of influential bone names after filtering
+    :rtype: set
+    """
+
+    previous_object_mode_state = bpy.context.object.mode
+    bpy.ops.object.mode_set(mode='OBJECT')
+
+    filtered_objects = [obj for obj in objects_to_filter if mesh_filter_string in obj.name]
+    influential_bones = set()
+    for obj in filtered_objects:
+
+        for vgroup in obj.vertex_groups:
+            if vgroup.name in bone_names_to_skip:  
+                continue
+            if any(vgroup.index in [g.group for g in v.groups if g.weight > 0] for v in obj.data.vertices):
+                influential_bones.add(vgroup.name)
+
+    bpy.ops.object.mode_set(mode=previous_object_mode_state)
+    return influential_bones
+
 class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
     """Import GLTF from Meddle and perform cleanup tasks"""
     bl_idname = "mektools.import_meddle_gltf"
@@ -153,19 +184,12 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
             if bone_name in armature.data.edit_bones:
                 armature.data.edit_bones.remove(armature.data.edit_bones[bone_name])
 
-        # Return to Object Mode temporarily
-        bpy.ops.object.mode_set(mode='OBJECT')
 
-        # Step 2: Filter influential bones for "hir" imported objects
-        hir_objects = [obj for obj in objects_imported if "hir" in obj.name]
-        influential_bones = set()
-        for obj in hir_objects:
 
-            for vgroup in obj.vertex_groups:
-                if vgroup.name in bone_names_to_delete:  # Skip bones listed in bone_names.py
-                    continue
-                if any(vgroup.index in [g.group for g in v.groups if g.weight > 0] for v in obj.data.vertices):
-                    influential_bones.add(vgroup.name)
+        # we get the influential bones for the hir meshes
+        # since those are the bones that influence the hair mesh, and we want to keep those and delete the rest
+        # the mekrig doesn't contain hair bones (thank god it doesnt) so we use the gltf-imported armature's and append those to the mekrig
+        influential_bones = filter_bones("hir", objects_imported, bone_names_to_delete)
 
         bpy.ops.object.mode_set(mode='EDIT')
         for bone in armature.data.edit_bones:
@@ -181,11 +205,30 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
             None
         )
 
+        all_collections_before_mekrig = set(bpy.data.collections)
 
         for code in racial_code_to_operator:
             if code in iri_object.name:
                 operator_id = racial_code_to_operator[code]
                 eval(f"bpy.ops.{operator_id}()")
+                break
+
+        all_collections_after_mekrig = set(bpy.data.collections)
+
+        #we can get the mekrig collection by substracting the collections before the mekrig from the collections after the mekrig
+        mekrig_collection = next((collection for collection in all_collections_after_mekrig - all_collections_before_mekrig if "male" in collection.name or "female" in collection.name), None)
+        if not mekrig_collection:
+            self.report({'ERROR'}, "No armature collection found in the imported objects.")
+            return {'CANCELLED'}
+        
+        #we rebuild objects_imported since we added the mekrig
+        objects_imported = set(bpy.data.objects) - objects_before_import
+
+        #to get the mektools imported character collection its usually a combination of {race}_{gender}, 
+        # so we can iterate through objects_imported and find the collection that has said pattern
+        for obj in objects_imported:
+            if "male" in obj.name:
+                mektools_collection = obj
                 break
 
         #we rebuild the list of objects imported
@@ -260,7 +303,13 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
             bpy.ops.mektools.append_shaders()
             bpy.ops.material.material_fixer_auto()
 
-
+        for obj in imported_meshes:
+            # Remove from all existing collections first if you want EXCLUSIVE membership
+            for collection in obj.users_collection:
+                collection.objects.unlink(obj)
+            
+            # Add to the target collection
+            mekrig_collection.objects.link(obj)
 
         # Step 8: Cleanup
         # We merge all meshes whose name contain "skin", as we would usually just do this manually. So why not automate that aswell lmao?
@@ -279,6 +328,7 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
         # then the next imported one will be "n_root.001" and the code will fail
         n_root_armature.name = "Armature"
         
+
 
         # Lastly we deselect everything
         bpy.ops.object.select_all(action='DESELECT')

@@ -9,7 +9,7 @@
   "description": "A collection of tools for working with FFXIV models in Blender.",
   "tags": ["modeling", "animation", "import-export"],
   "path": "MekTools",
-"feature_name": "feature/gltf_bugs_and_readme_fix",
-"feature_patch": 15,
+"feature_name": "feature/gtlf_refactor",
+"feature_patch": 16,
   "location": "View3D > Mektools Tab"
 }
