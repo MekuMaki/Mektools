@@ -102,6 +102,11 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
 
     def execute(self, context):  
         bpy.context.window.cursor_set('WAIT')      
+
+        #we keep a list (Set) of all objects before the import 
+        objects_before_import = set(bpy.data.objects)
+
+
         # Import the selected GLTF file and capture the imported objects
         bpy.ops.import_scene.gltf(filepath=self.filepath)
         
@@ -113,9 +118,13 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
         if icosphere:
             bpy.data.objects.remove(icosphere)
 
-        # Clear parent for all objects and keep transform
-        bpy.ops.object.select_all(action='SELECT')
-        bpy.ops.object.parent_clear(type='CLEAR_KEEP_TRANSFORM')
+        objects_imported = set(bpy.data.objects) - objects_before_import
+
+        # Clear parent for all imported objects and keep transform
+        for obj in objects_imported:
+            obj.select_set(True)
+            bpy.ops.object.parent_clear(type='CLEAR_KEEP_TRANSFORM')
+            obj.select_set(False)
 
         # Delete the "glTF_not_exported" collection if it exists
         collection_to_delete = bpy.data.collections.get("glTF_not_exported")
@@ -125,10 +134,15 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
         # Load the list of bone names to delete
         bone_names_to_delete = set(load_bone_names())  # Convert to a set for efficient lookups
 
-        # Reference the "Armature" object
-        armature = bpy.data.objects.get("Armature")
+        #we create a list of objects that were i mported by substracting the objects before the import from the objects after the import
+        objects_imported = set(bpy.data.objects) - objects_before_import
+
+
+        # Reference the armature of the imported objects
+        armature = next((obj for obj in objects_imported if obj.type == 'ARMATURE'), None)
         if not armature:
-            self.report({'ERROR'}, "No armature found with the name 'Armature'.")
+            self.report({'ERROR'}, "No armature found in the imported objects.")
+
             return {'CANCELLED'}
 
         bpy.context.view_layer.objects.active = armature
@@ -142,10 +156,11 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
         # Return to Object Mode temporarily
         bpy.ops.object.mode_set(mode='OBJECT')
 
-        # Step 2: Filter influential bones for "hir" objects
-        hir_objects = [obj for obj in bpy.data.objects if "hir" in obj.name]
+        # Step 2: Filter influential bones for "hir" imported objects
+        hir_objects = [obj for obj in objects_imported if "hir" in obj.name]
         influential_bones = set()
         for obj in hir_objects:
+
             for vgroup in obj.vertex_groups:
                 if vgroup.name in bone_names_to_delete:  # Skip bones listed in bone_names.py
                     continue
@@ -160,11 +175,12 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
         # Return to Object Mode after all bone operations
         bpy.ops.object.mode_set(mode='OBJECT')
 
-        # Step 3: Append the correct Mekrig based on "iri" object
+        # Step 3: Append the correct Mekrig based on "iri" imported objects
         iri_object = next(
-            (obj for obj in bpy.data.objects if "iri" in obj.name or any("iri" in mat.name for mat in obj.material_slots)),
+            (obj for obj in objects_imported if "iri" in obj.name or any("iri" in mat.name for mat in obj.material_slots)),
             None
         )
+
 
         for code in racial_code_to_operator:
             if code in iri_object.name:
@@ -172,12 +188,26 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
                 eval(f"bpy.ops.{operator_id}()")
                 break
 
+        #we rebuild the list of objects imported
+        objects_imported = set(bpy.data.objects) - objects_before_import
+
         # Step 4: Join Armature with Mekrig and parent hair bones to "mek kao"
-        n_root_armature = bpy.data.objects.get("n_root")
+        n_root_armature = next((obj for obj in objects_imported if obj.type == 'ARMATURE' and "n_root" in obj.name), None)
+        if not n_root_armature:
+
+            self.report({'ERROR'}, "No n_root armature found in the imported objects.")
+            return {'CANCELLED'}
+
+        #deselect all to ensure only the armature is selected
+        bpy.ops.object.select_all(action='DESELECT')
+
         bpy.context.view_layer.objects.active = n_root_armature
         armature.select_set(True)
         n_root_armature.select_set(True)
         bpy.ops.object.join()
+
+
+
 
         bpy.ops.object.mode_set(mode='EDIT')
         mek_kao_bone = n_root_armature.data.edit_bones.get("mek kao")
@@ -186,13 +216,17 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
                 bone.parent = mek_kao_bone
                 bone.roll = radians(90)
 
+        #we rebuild the list of objects imported
+        objects_imported = set(bpy.data.objects) - objects_before_import
+
         # Switch to Pose Mode for hair bone adjustments
         bpy.ops.object.mode_set(mode='POSE')
-        cs_hair = bpy.data.objects.get("cs.hair")
+        cs_hair = next((obj for obj in objects_imported if  "cs.hair" in obj.name), None)
         for bone_name in influential_bones:
             pose_bone = n_root_armature.pose.bones.get(bone_name)
             if pose_bone:
                 pose_bone.custom_shape = cs_hair
+
                 pose_bone.color.palette = 'THEME01'  # Theme 1 Red
 
         bpy.ops.object.mode_set(mode='OBJECT')
@@ -216,7 +250,7 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
         for obj in imported_meshes:
             for mod in obj.modifiers:
                 if mod.type == 'ARMATURE':  # Check if it is an Armature modifier
-                    mod.object = bpy.data.objects["n_root"]  # Set n_root as the target
+                    mod.object = n_root_armature  # Set n_root as the target
 
         # Step 7: Fix/Append Shaders
         # If the user wants to append meddle shaders we append those, otherwise we just fix the materials
@@ -225,6 +259,7 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
         else:
             bpy.ops.mektools.append_shaders()
             bpy.ops.material.material_fixer_auto()
+
 
 
         # Step 8: Cleanup
@@ -240,6 +275,11 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
         # And we merge 'em
         bpy.ops.object.join()
         
+        #we rename the armature since the next character will be expecting the armature to be "n_root" and if we dont change it rn
+        # then the next imported one will be "n_root.001" and the code will fail
+        n_root_armature.name = "Armature"
+        
+
         # Lastly we deselect everything
         bpy.ops.object.select_all(action='DESELECT')
 

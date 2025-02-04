@@ -1,10 +1,10 @@
 schema_version = "0.0.1"
 
 id = "mektools"
-version = "1.4.7"
+version = "1.4.12"
 name = "MekTools"
-feature_patch = "0"
-feature_name = "dev"
+feature_patch = "15"
+feature_name = "feature/gltf_bugs_and_readme_fix"
 tagline = "This is another extension"
 maintainer = "MekuMaki, Shino Mythmaker"
 type = "add-on"
