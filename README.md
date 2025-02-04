@@ -49,3 +49,4 @@ when I go to append my characters to another scene, I go to File > Append > Navi
 
 This will pull in characters from other files and keep their collections intact! ♥ ps you are cute ♥
 
+
