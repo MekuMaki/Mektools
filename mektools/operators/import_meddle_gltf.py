@@ -69,6 +69,7 @@ def remove_pole_parents(armature):
                 bone = armature.data.edit_bones[bone_name]
                 bone.parent = None  # Unparent the bone
 
+
         # Return to Object Mode
         bpy.ops.object.mode_set(mode='OBJECT')
         print("Removed parent from IK pole bones.")
