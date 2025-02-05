@@ -150,6 +150,18 @@ def append_mekrig(self,objects_imported, string_to_grab_racial_code="iri"):
     return mekrig_collection
 
 def apply_mekrig_armature(self, original_gltf_armature, mekrig_armature, objects_imported):
+    """Merges the mekrig armature with the original gltf armature and returns the combined armature.
+
+    :param original_gltf_armature: Original gltf armature
+    :type original_gltf_armature: bpy.types.Object
+    :param mekrig_armature: Mekrig armature
+    :type mekrig_armature: bpy.types.Object
+    :param objects_imported: List of imported objects
+    :type objects_imported: list
+    :return: Combined armature
+    :rtype: bpy.types.Object
+    """
+
     #base mekrig is called "n_root"
     mekrig_armature = next(
         (obj for obj in objects_imported 
@@ -174,6 +186,23 @@ def apply_mekrig_armature(self, original_gltf_armature, mekrig_armature, objects
     bpy.ops.object.join()
 
     return mekrig_armature
+
+def mergeMeshes(self, candidate_meshes, common_mesh_string):
+    skin_meshes = [obj for obj in candidate_meshes if common_mesh_string in obj.name]
+    
+    # We select the first found mesh as the active object, so we can join all the other meshes to it
+    bpy.context.view_layer.objects.active = skin_meshes[0]
+
+    for mesh in skin_meshes:
+        mesh.select_set(True)
+
+    # And we merge 'em
+    bpy.ops.object.join()   
+
+
+    # Lastly we deselect everything
+    bpy.ops.object.select_all(action='DESELECT')
+
 
 class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
     """Import GLTF from Meddle and perform cleanup tasks"""
@@ -345,21 +374,7 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
             # Add to the target collection
             mekrig_collection.objects.link(obj)
 
-        # Step 8: Cleanup
-        # We merge all meshes whose name contain "skin", as we would usually just do this manually. So why not automate that aswell lmao?
-        skin_meshes = [obj for obj in imported_meshes if "skin" in obj.name]
-        
-        # We select the first found mesh as the active object, so we can join all the other meshes to it
-        bpy.context.view_layer.objects.active = skin_meshes[0]
-
-        for mesh in skin_meshes:
-            mesh.select_set(True)
-
-        # And we merge 'em
-        bpy.ops.object.join()
-  
-        
-
+        mergeMeshes(self, imported_meshes, "skin")
 
         # Lastly we deselect everything
         bpy.ops.object.select_all(action='DESELECT')
