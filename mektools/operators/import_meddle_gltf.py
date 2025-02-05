@@ -106,6 +106,75 @@ def filter_bones(mesh_filter_string, objects_to_filter, bone_names_to_skip = [])
     bpy.ops.object.mode_set(mode=previous_object_mode_state)
     return influential_bones
 
+
+def append_mekrig(self,objects_imported, string_to_grab_racial_code="iri"):
+    """Appends the mekrig to the current scene and cleans it up.
+
+    :param objects_imported: list of objects to check for racial code
+    :type objects_imported: list
+    :param string_to_grab_racial_code: string to grab the racial code from
+    :type string_to_grab_racial_code: str, optional
+    :return: mekrig collection, mekrig armature
+    :rtype: collection, armature
+    """
+
+    all_collections_before_mekrig = set(bpy.data.collections)
+
+    racial_code_object = next(
+        (obj for obj in objects_imported if string_to_grab_racial_code in obj.name or any(string_to_grab_racial_code in mat.name for mat in obj.material_slots)),
+        None
+    )
+
+    for code in racial_code_to_operator:
+        if code in racial_code_object.name:
+            operator_id = racial_code_to_operator[code]
+            eval(f"bpy.ops.{operator_id}()")
+            break
+
+    all_collections_after_mekrig = set(bpy.data.collections)
+    substracted_collections = all_collections_after_mekrig - all_collections_before_mekrig
+    if not substracted_collections:
+        self.report({'ERROR'}, "No collection found in the imported objects.")
+        return ({'CANCELLED'})
+
+    mekrig_collection = None
+    for collection in substracted_collections:
+        #mekrig's top level collection is usually named {racial_code}_male or {racial_code}_female
+        if "male" in collection.name or "female" in collection.name:
+            mekrig_collection = collection
+            break
+    if not mekrig_collection:
+        self.report({'ERROR'}, "No collection found in the imported objects.")
+        return ({'CANCELLED'})
+
+    return mekrig_collection
+
+def apply_mekrig_armature(self, original_gltf_armature, mekrig_armature, objects_imported):
+    #base mekrig is called "n_root"
+    mekrig_armature = next(
+        (obj for obj in objects_imported 
+         if obj.type == 'ARMATURE' 
+         and "n_root" in obj.name),
+        None
+    )
+    if not mekrig_armature:
+        self.report({'ERROR'}, "No n_root armature found in the imported objects.")
+        return ({'CANCELLED'})
+
+    #we need to change the name rather than leaving it because the next character will be expecting the armature to be "n_root"
+    #but it will be "n_root.001" and the above code will fail
+    mekrig_armature.name = "Armature"
+
+    #deselect all to ensure only the armature is selected
+    bpy.ops.object.select_all(action='DESELECT')
+
+    bpy.context.view_layer.objects.active = mekrig_armature
+    original_gltf_armature.select_set(True)
+    mekrig_armature.select_set(True)
+    bpy.ops.object.join()
+
+    return mekrig_armature
+
 class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
     """Import GLTF from Meddle and perform cleanup tasks"""
     bl_idname = "mektools.import_meddle_gltf"
@@ -170,19 +239,24 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
 
 
         # Reference the armature of the imported objects
-        armature = next((obj for obj in objects_imported if obj.type == 'ARMATURE'), None)
-        if not armature:
+        original_gltf_armature = None
+        for obj in objects_imported:
+            print(obj.name)
+            if obj.type == 'ARMATURE':
+                print("found armature")
+                original_gltf_armature = obj
+                break
+        if not original_gltf_armature:
             self.report({'ERROR'}, "No armature found in the imported objects.")
-
             return {'CANCELLED'}
 
-        bpy.context.view_layer.objects.active = armature
+        bpy.context.view_layer.objects.active = original_gltf_armature
         bpy.ops.object.mode_set(mode='EDIT')
 
         # Remove bones from bone_names.py
         for bone_name in bone_names_to_delete:
-            if bone_name in armature.data.edit_bones:
-                armature.data.edit_bones.remove(armature.data.edit_bones[bone_name])
+            if bone_name in original_gltf_armature.data.edit_bones:
+                original_gltf_armature.data.edit_bones.remove(original_gltf_armature.data.edit_bones[bone_name])
 
 
 
@@ -192,69 +266,29 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
         influential_bones = filter_bones("hir", objects_imported, bone_names_to_delete)
 
         bpy.ops.object.mode_set(mode='EDIT')
-        for bone in armature.data.edit_bones:
+        for bone in original_gltf_armature.data.edit_bones:
             if bone.name not in influential_bones:
-                armature.data.edit_bones.remove(bone)
+                original_gltf_armature.data.edit_bones.remove(bone)
 
         # Return to Object Mode after all bone operations
         bpy.ops.object.mode_set(mode='OBJECT')
 
-        # Step 3: Append the correct Mekrig based on "iri" imported objects
-        iri_object = next(
-            (obj for obj in objects_imported if "iri" in obj.name or any("iri" in mat.name for mat in obj.material_slots)),
-            None
-        )
-
-        all_collections_before_mekrig = set(bpy.data.collections)
-
-        for code in racial_code_to_operator:
-            if code in iri_object.name:
-                operator_id = racial_code_to_operator[code]
-                eval(f"bpy.ops.{operator_id}()")
-                break
-
-        all_collections_after_mekrig = set(bpy.data.collections)
-
         #we can get the mekrig collection by substracting the collections before the mekrig from the collections after the mekrig
-        mekrig_collection = next((collection for collection in all_collections_after_mekrig - all_collections_before_mekrig if "male" in collection.name or "female" in collection.name), None)
+        mekrig_collection = append_mekrig(self, objects_imported)
         if not mekrig_collection:
             self.report({'ERROR'}, "No armature collection found in the imported objects.")
-            return {'CANCELLED'}
-        
-        #we rebuild objects_imported since we added the mekrig
+            return {'CANCELLED'}        
+      
+        #we rebuild objects_imported since we added the mekrig 
+        #if we dont rebuild and we iterate over objects_imported we will get a rna_error cause the objects wont exist anymore
         objects_imported = set(bpy.data.objects) - objects_before_import
 
-        #to get the mektools imported character collection its usually a combination of {race}_{gender}, 
-        # so we can iterate through objects_imported and find the collection that has said pattern
-        for obj in objects_imported:
-            if "male" in obj.name:
-                mektools_collection = obj
-                break
 
-        #we rebuild the list of objects imported
-        objects_imported = set(bpy.data.objects) - objects_before_import
-
-        # Step 4: Join Armature with Mekrig and parent hair bones to "mek kao"
-        n_root_armature = next((obj for obj in objects_imported if obj.type == 'ARMATURE' and "n_root" in obj.name), None)
-        if not n_root_armature:
-
-            self.report({'ERROR'}, "No n_root armature found in the imported objects.")
-            return {'CANCELLED'}
-
-        #deselect all to ensure only the armature is selected
-        bpy.ops.object.select_all(action='DESELECT')
-
-        bpy.context.view_layer.objects.active = n_root_armature
-        armature.select_set(True)
-        n_root_armature.select_set(True)
-        bpy.ops.object.join()
-
-
-
+        mekrig_armature = apply_mekrig_armature(self, original_gltf_armature, mekrig_collection, objects_imported)
 
         bpy.ops.object.mode_set(mode='EDIT')
-        mek_kao_bone = n_root_armature.data.edit_bones.get("mek kao")
-        for bone in n_root_armature.data.edit_bones:
+        mek_kao_bone = mekrig_armature.data.edit_bones.get("mek kao")
+        for bone in mekrig_armature.data.edit_bones:
             if bone.name in influential_bones:
                 bone.parent = mek_kao_bone
                 bone.roll = radians(90)
@@ -266,7 +300,7 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
         bpy.ops.object.mode_set(mode='POSE')
         cs_hair = next((obj for obj in objects_imported if  "cs.hair" in obj.name), None)
         for bone_name in influential_bones:
-            pose_bone = n_root_armature.pose.bones.get(bone_name)
+            pose_bone = mekrig_armature.pose.bones.get(bone_name)
             if pose_bone:
                 pose_bone.custom_shape = cs_hair
 
@@ -275,7 +309,7 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
         bpy.ops.object.mode_set(mode='OBJECT')
         
         if self.remove_parent_on_poles:
-            remove_pole_parents(n_root_armature)
+            remove_pole_parents(mekrig_armature)
 
         # We need to deselect everything before parenting the imported meshes to n_root
         # Just to make sure we dont have an object selected that we dont want to parent
@@ -285,15 +319,15 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
         for mesh in imported_meshes:
             mesh.select_set(True)   
 
-        n_root_armature.select_set(True)
-        bpy.context.view_layer.objects.active = n_root_armature
+        mekrig_armature.select_set(True)
+        bpy.context.view_layer.objects.active = mekrig_armature
         bpy.ops.object.parent_set(type='OBJECT')
 
         # Step 6: Update Armature Modifiers for imported meshes
         for obj in imported_meshes:
             for mod in obj.modifiers:
                 if mod.type == 'ARMATURE':  # Check if it is an Armature modifier
-                    mod.object = n_root_armature  # Set n_root as the target
+                    mod.object = mekrig_armature  # Set n_root as the target
 
         # Step 7: Fix/Append Shaders
         # If the user wants to append meddle shaders we append those, otherwise we just fix the materials
@@ -323,10 +357,7 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
 
         # And we merge 'em
         bpy.ops.object.join()
-        
-        #we rename the armature since the next character will be expecting the armature to be "n_root" and if we dont change it rn
-        # then the next imported one will be "n_root.001" and the code will fail
-        n_root_armature.name = "Armature"
+  
         
 
 
