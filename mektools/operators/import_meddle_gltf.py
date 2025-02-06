@@ -13,7 +13,7 @@ from ..addon_preferences import get_addon_preferences
 DATA_PATH = os.path.join(os.path.dirname(__file__), "../data")
 BONE_NAMES_FILE = os.path.join(DATA_PATH, "bone_names.py")
 
-MekrigData = namedtuple("MekrigData", ["armature", "collection"])
+Stripped_Armature_Data = namedtuple("Stripped_Armature_Data", ["armature", "original_parents"])
 
 racial_code_to_operator = {
     'c0101': 'mektools.import_mekrig_midlander_male',
@@ -108,29 +108,28 @@ def append_mekrig(racial_code):
 
     new_collections = scene_collections_after - scene_collections_before
     
-    imported_collection = None
     imported_armature = None
 
     for collection in new_collections:
         for obj in collection.objects:
             if obj.type == "ARMATURE":  
-                imported_collection = collection
                 imported_armature = obj
-                break  
-        
+                break     
         if imported_armature:
             break
 
-    if not imported_collection:
-        return MekrigData(None, None) 
-
-    return MekrigData(imported_armature, imported_collection)
+    return imported_armature
 
 def merge_armatures(armature_a, armature_b):
     """Merges armature B into armature A and updates only relevant objects that were using armature B.Returns the final merged armature (A)."""
     bpy.ops.object.mode_set(mode="OBJECT")
     bpy.ops.object.select_all(action='DESELECT')
-
+    
+    
+    stripped_armature_data = remove_duplicate_bones(armature_a, armature_b)
+    
+    armature_b = stripped_armature_data.armature
+    
     objects_with_b = []
     for obj in bpy.context.scene.objects: 
         if obj.type == "MESH": 
@@ -148,8 +147,20 @@ def merge_armatures(armature_a, armature_b):
         mod.object = armature_a  
 
     bpy.ops.object.mode_set(mode="OBJECT")
+    
+    restore_bone_parents(armature_a, stripped_armature_data.original_parents)
 
-    return armature_a  #
+    return armature_a  
+
+def restore_bone_parents(armature, original_parents):
+    """Restores lost parent relationships in an armature after modifications."""
+    bpy.ops.object.mode_set(mode="EDIT") 
+
+    for bone_name, parent_name in original_parents.items():
+        if bone_name in armature.data.edit_bones and parent_name in armature.data.edit_bones:
+            armature.data.edit_bones[bone_name].parent = armature.data.edit_bones[parent_name]
+
+    bpy.ops.object.mode_set(mode="OBJECT") 
 
 def set_armature_modifier_target(objects_to_set_target, armature_target):
     for mesh in objects_to_set_target:
@@ -209,22 +220,6 @@ def find_armature_in_objects(objects):
        
     return None
 
-def rebuild_objects_imported(objects_before_import):
-    """Rebuilds the list of objects imported.
-
-    :param objects_before_import: objects before the import
-    :type objects_before_import: list
-    :return: objects imported
-    :rtype: list
-    """
-
-    #we create a list of objects that were i mported by substracting the
-    #objects before the import from the objects after the import
-    #and the difference (substraction) between the two is the objects that were imported
-    #substracting sets is basic boolean math, btw
-    objects_imported = set(bpy.data.objects) - objects_before_import
-    return objects_imported
-
 def get_bones_by_name(armature, name):
     """Returns a list of bone names that contain the nameStr in their name."""
     if armature and armature.type == "ARMATURE":
@@ -232,37 +227,28 @@ def get_bones_by_name(armature, name):
     return []
 
 def remove_duplicate_bones(armature_a, armature_b):
-    """Remove bones present in armature B from armature A. Returns edited Armature A"""
+    """Removes bones from Armature A if they also exist in Armature B.Stores all parent relationships before making changes."""
     
-    bpy.context.view_layer.objects.active = armature_a
-    bpy.ops.object.mode_set(mode='EDIT')
-    
-    reference_bones = {bone.name for bone in armature_b.data.bones}
-    
-    for bone in armature_a.data.edit_bones[:]:
+    bpy.ops.object.mode_set(mode="OBJECT")
+    bpy.context.view_layer.objects.active = armature_b
+    bpy.ops.object.mode_set(mode="EDIT")
+
+    reference_bones = {bone.name for bone in armature_a.data.bones}
+
+    original_parents = {}
+    for bone in armature_b.data.edit_bones:
+        if bone.parent:
+            original_parents[bone.name] = bone.parent.name  
+
+    for bone in armature_b.data.edit_bones[:]:  
         if bone.name in reference_bones:
-            armature_a.data.edit_bones.remove(bone)
- 
-    #mekrig_coverage = set(load_bone_names()) 
-    #for bone_name in mekrig_coverage:
-    #    if bone_name in armature.data.edit_bones:
-    #        armature.data.edit_bones.remove(armature.data.edit_bones[bone_name])
+            if bone.name in original_parents:
+                del original_parents[bone.name]  
+            armature_b.data.edit_bones.remove(bone)
 
-    #i dont know why this even exists. This basicly removes all bones except the hair bones ? so why ? why then even do the ode above ? i would want that anyway since keeping bones that we dont cover isnt a bad thing 
-    #hair_bones = filter_bones(objects, "hir")
-    #bpy.ops.object.mode_set(mode='EDIT')
-    #for bone in armature.data.edit_bones:
-    #    if bone.name not in hair_bones:
-    #        armature.data.edit_bones.remove(bone)
-
-    #This certainly imo shoulkdnt be here, ill have to look later where to put it.
-    #cs_hair = next((obj for obj in objects if  "cs.hair" in obj.name), None)
-    #cs_hair_bones = get_bones_by_name(armature, "j_ex")
-    #set_custom_bone_display(cs_hair_bones, cs_hair, 'THEME01')
-
-    bpy.ops.object.mode_set(mode='OBJECT')
-
-    return armature_a
+    bpy.ops.object.mode_set(mode="OBJECT")
+    
+    return Stripped_Armature_Data(armature_b, original_parents)  
 
 def set_custom_bone_display(bones, custom_shape, theme):
     # Switch to Pose Mode for hair bone adjustments
@@ -331,13 +317,10 @@ def attache_mekrig(armature, racial_code):
     """Imports Mekrig, removes duplicate bones and merges it with any armature present in objects list. Returns Mekrig Armature"""
     if armature:
         mekrig = append_mekrig(racial_code)
-        
-        stripped_gltf_armature = remove_duplicate_bones(armature, mekrig.armature)
-        
-        merged_armature = merge_armatures(mekrig.armature, stripped_gltf_armature)
+         
+        merged_armature = merge_armatures(mekrig, armature)
         
         return merged_armature
-    
     return None
     
 def create_collection(name="Collection"):
