@@ -183,7 +183,8 @@ def apply_mekrig_armature(self, original_gltf_armature, mekrig_armature, objects
     bpy.context.view_layer.objects.active = mekrig_armature
     original_gltf_armature.select_set(True)
     mekrig_armature.select_set(True)
-    bpy.ops.object.join()
+    bpy.ops.object.join()    
+
 
     return mekrig_armature
 
@@ -203,6 +204,52 @@ def mergeMeshes(self, candidate_meshes, common_mesh_string):
     # Lastly we deselect everything
     bpy.ops.object.select_all(action='DESELECT')
 
+def find_armature_in_objects(objects_imported):
+    for obj in objects_imported:
+        if obj.type == 'ARMATURE':
+            return obj
+
+    #im either crazy or return cancelled doesn't fucking work it just skips the error lmao
+    return None
+
+def rebuild_objects_imported(objects_before_import):
+    #we create a list of objects that were i mported by substracting the
+    #objects before the import from the objects after the import
+    #and the difference (substraction) between the two is the objects that were imported
+    #substracting sets is basic boolean math, btw
+    objects_imported = set(bpy.data.objects) - objects_before_import
+    return objects_imported
+
+def cleanup_imported_gltf_armature(original_gltf_armature, bone_names_to_delete, objects_imported):
+    state_before_cleanup = bpy.context.object.mode
+    bpy.context.view_layer.objects.active = original_gltf_armature
+    bpy.ops.object.mode_set(mode='EDIT')
+
+    # Remove bones from bone_names.py
+    for bone_name in bone_names_to_delete:
+        if bone_name in original_gltf_armature.data.edit_bones:
+            original_gltf_armature.data.edit_bones.remove(original_gltf_armature.data.edit_bones[bone_name])
+
+    # we get the influential bones for the hir meshes
+    # since those are the bones that influence the hair mesh, and we want to keep those and delete the rest
+    # the mekrig doesn't contain hair bones (thank god it doesnt) so we use the gltf-imported armature's and append those to the mekrig
+    influential_bones = filter_bones("hir", objects_imported, bone_names_to_delete)
+
+    bpy.ops.object.mode_set(mode='EDIT')
+    for bone in original_gltf_armature.data.edit_bones:
+        if bone.name not in influential_bones:
+            original_gltf_armature.data.edit_bones.remove(bone)
+
+
+    bpy.ops.object.mode_set(mode=state_before_cleanup)
+
+    return original_gltf_armature
+
+def clear_parents_keep_transform(objects_to_clear):
+    for obj in objects_to_clear:
+        obj.select_set(True)
+        bpy.ops.object.parent_clear(type='CLEAR_KEEP_TRANSFORM')
+        obj.select_set(False)
 
 class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
     """Import GLTF from Meddle and perform cleanup tasks"""
@@ -235,25 +282,22 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
         #we keep a list (Set) of all objects before the import 
         objects_before_import = set(bpy.data.objects)
 
-
         # Import the selected GLTF file and capture the imported objects
         bpy.ops.import_scene.gltf(filepath=self.filepath)
         
-        # Capture only the newly imported mesh objects
+        #we set aside the imported meshes to use later (bottom of class) to avoid having to rebuild the list of imported objects
+        #though realistically we could just change it to objects_imported for consistency
         imported_meshes = [obj for obj in context.selected_objects if obj.type == 'MESH']
 
-        # Step 1: Perform all cleanup tasks
+        # the gltf imports icospheres to use rather than bones, but those are ugly so we dont need them.
+        # if we  dont delete them they just stay in the scene (even after importing mekrig) so we delete them
         icosphere = bpy.data.objects.get("Icosphere")
         if icosphere:
             bpy.data.objects.remove(icosphere)
 
-        objects_imported = set(bpy.data.objects) - objects_before_import
+        objects_imported = rebuild_objects_imported(objects_before_import)
 
-        # Clear parent for all imported objects and keep transform
-        for obj in objects_imported:
-            obj.select_set(True)
-            bpy.ops.object.parent_clear(type='CLEAR_KEEP_TRANSFORM')
-            obj.select_set(False)
+        clear_parents_keep_transform(objects_imported)
 
         # Delete the "glTF_not_exported" collection if it exists
         collection_to_delete = bpy.data.collections.get("glTF_not_exported")
@@ -263,57 +307,52 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
         # Load the list of bone names to delete
         bone_names_to_delete = set(load_bone_names())  # Convert to a set for efficient lookups
 
-        #we create a list of objects that were i mported by substracting the objects before the import from the objects after the import
-        objects_imported = set(bpy.data.objects) - objects_before_import
-
+        #we re
+        objects_imported = rebuild_objects_imported(objects_before_import)
 
         # Reference the armature of the imported objects
-        original_gltf_armature = None
-        for obj in objects_imported:
-            print(obj.name)
-            if obj.type == 'ARMATURE':
-                print("found armature")
-                original_gltf_armature = obj
-                break
+        original_gltf_armature = find_armature_in_objects(objects_imported)
         if not original_gltf_armature:
             self.report({'ERROR'}, "No armature found in the imported objects.")
             return {'CANCELLED'}
-
-        bpy.context.view_layer.objects.active = original_gltf_armature
-        bpy.ops.object.mode_set(mode='EDIT')
-
-        # Remove bones from bone_names.py
-        for bone_name in bone_names_to_delete:
-            if bone_name in original_gltf_armature.data.edit_bones:
-                original_gltf_armature.data.edit_bones.remove(original_gltf_armature.data.edit_bones[bone_name])
-
-
-
-        # we get the influential bones for the hir meshes
-        # since those are the bones that influence the hair mesh, and we want to keep those and delete the rest
-        # the mekrig doesn't contain hair bones (thank god it doesnt) so we use the gltf-imported armature's and append those to the mekrig
-        influential_bones = filter_bones("hir", objects_imported, bone_names_to_delete)
-
-        bpy.ops.object.mode_set(mode='EDIT')
-        for bone in original_gltf_armature.data.edit_bones:
-            if bone.name not in influential_bones:
-                original_gltf_armature.data.edit_bones.remove(bone)
-
-        # Return to Object Mode after all bone operations
-        bpy.ops.object.mode_set(mode='OBJECT')
-
-        #we can get the mekrig collection by substracting the collections before the mekrig from the collections after the mekrig
+        #we append the mekrig first (even though we might not use it yet) because we need the import shapes for the gltf armature 
+        #before merging it together and shit
         mekrig_collection = append_mekrig(self, objects_imported)
         if not mekrig_collection:
             self.report({'ERROR'}, "No armature collection found in the imported objects.")
-            return {'CANCELLED'}        
-      
+            return {'CANCELLED'}     
+        
         #we rebuild objects_imported since we added the mekrig 
         #if we dont rebuild and we iterate over objects_imported we will get a rna_error cause the objects wont exist anymore
-        objects_imported = set(bpy.data.objects) - objects_before_import
+        objects_imported = rebuild_objects_imported(objects_before_import)
+
+        original_gltf_armature = cleanup_imported_gltf_armature(original_gltf_armature, bone_names_to_delete, objects_imported)
+
+        influential_bones = filter_bones("hir", objects_imported, bone_names_to_delete)
+
+        # Switch to Pose Mode for hair bone adjustments
+        bpy.ops.object.mode_set(mode='POSE')
+        print("objects_imported: ", objects_imported)
+        cs_hair = next((obj for obj in objects_imported if  "cs.hair" in obj.name), None)
+        for bone_name in influential_bones:
+            pose_bone = original_gltf_armature.pose.bones.get(bone_name)
+            print("Searching for bone: ", bone_name)
+            if pose_bone:
+                print("Found bone: ", pose_bone.name)
+                pose_bone.custom_shape = cs_hair
+                print("Setting custom shape to: ", cs_hair.name)
+                pose_bone.color.palette = 'THEME01'  # Theme 1 Red
+
+        bpy.ops.object.mode_set(mode='OBJECT')
+      
+
 
 
         mekrig_armature = apply_mekrig_armature(self, original_gltf_armature, mekrig_collection, objects_imported)
+
+        #rebuild the list of objects imported since the mekrig joined the original gltf armature
+        objects_imported = rebuild_objects_imported(objects_before_import)
+
 
         bpy.ops.object.mode_set(mode='EDIT')
         mek_kao_bone = mekrig_armature.data.edit_bones.get("mek kao")
@@ -322,41 +361,36 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
                 bone.parent = mek_kao_bone
                 bone.roll = radians(90)
 
-        #we rebuild the list of objects imported
-        objects_imported = set(bpy.data.objects) - objects_before_import
-
-        # Switch to Pose Mode for hair bone adjustments
-        bpy.ops.object.mode_set(mode='POSE')
-        cs_hair = next((obj for obj in objects_imported if  "cs.hair" in obj.name), None)
-        for bone_name in influential_bones:
-            pose_bone = mekrig_armature.pose.bones.get(bone_name)
-            if pose_bone:
-                pose_bone.custom_shape = cs_hair
-
-                pose_bone.color.palette = 'THEME01'  # Theme 1 Red
-
         bpy.ops.object.mode_set(mode='OBJECT')
-        
-        if self.remove_parent_on_poles:
-            remove_pole_parents(mekrig_armature)
 
         # We need to deselect everything before parenting the imported meshes to n_root
         # Just to make sure we dont have an object selected that we dont want to parent
         bpy.ops.object.select_all(action='DESELECT')
 
-        # Step 5: Parent the items of imported_meshes items objects to "n_root"
-        for mesh in imported_meshes:
-            mesh.select_set(True)   
+        for mesh in objects_imported:
+            if mesh.type == 'MESH':
+                mesh.select_set(True)   
 
         mekrig_armature.select_set(True)
         bpy.context.view_layer.objects.active = mekrig_armature
         bpy.ops.object.parent_set(type='OBJECT')
 
         # Step 6: Update Armature Modifiers for imported meshes
-        for obj in imported_meshes:
-            for mod in obj.modifiers:
-                if mod.type == 'ARMATURE':  # Check if it is an Armature modifier
-                    mod.object = mekrig_armature  # Set n_root as the target
+        for mesh in objects_imported:
+            if mesh.type == 'MESH':
+                for mod in mesh.modifiers:
+                    if mod.type == 'ARMATURE':  # Check if it is an Armature modifier
+                        mod.object = mekrig_armature  # Set n_root as the target
+
+        #we rebuild the list of objects imported
+        objects_imported = set(bpy.data.objects) - objects_before_import
+
+
+        
+        if self.remove_parent_on_poles:
+            remove_pole_parents(mekrig_armature)
+
+
 
         # Step 7: Fix/Append Shaders
         # If the user wants to append meddle shaders we append those, otherwise we just fix the materials
