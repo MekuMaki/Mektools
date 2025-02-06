@@ -325,7 +325,7 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
     
-    def draw(self):
+    def draw(self, context):
         layout = self.layout
 
         layout.label(text="Import Settings")
