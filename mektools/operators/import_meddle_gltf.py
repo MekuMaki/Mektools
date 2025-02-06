@@ -318,7 +318,7 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
     append_mekrig: BoolProperty(name="Append Mekrig", description="Appends Mekrig, disable for Object import", default=True)
     remove_parent_on_poles: BoolProperty(name="Remove Parents from Pole-Targets", description="Removes the Parent from Pole-Targets", default=False)
     
-    def invoke(self, context):
+    def invoke(self, context, event):
         prefs = get_addon_preferences()
         if prefs.default_meddle_import_path:
             self.filepath = prefs.default_meddle_import_path
