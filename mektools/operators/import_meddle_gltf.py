@@ -65,7 +65,6 @@ def import_meddle_shader(self, imported_objects):
 def remove_pole_parents(armature):
     """Removes the parent from IK pole bones in the given armature."""
     if armature and armature.type == 'ARMATURE':
-        # Switch to Edit Mode (Needed to modify parent relationships)
         bpy.ops.object.mode_set(mode='EDIT')
 
         bones_to_unparent = ["IK_Arm_Pole.R", "IK_Arm_Pole.L", "IK_Leg_Pole.R", "IK_Leg_Pole.L"]
@@ -73,13 +72,9 @@ def remove_pole_parents(armature):
         for bone_name in bones_to_unparent:
             if bone_name in armature.data.edit_bones:
                 bone = armature.data.edit_bones[bone_name]
-                bone.parent = None  # Unparent the bone
+                bone.parent = None  
 
-        # Return to Object Mode
         bpy.ops.object.mode_set(mode='OBJECT')
-        print("Removed parent from IK pole bones.")
-    else:
-        print("No armature selected or incorrect object type.")   
 
 def append_mekrig(racial_code):
     """Appends the correct Mekrig depending on Racial Code and returns the armature and its collection."""
@@ -162,7 +157,7 @@ def merge_by_material(objects):
                 material_name = obj.data.materials[0].name
                 material_mesh_groups[material_name].append(obj)
         except ReferenceError:
-            print(f"Skipping deleted object: {obj}")
+            print(f"[Mektools] Skipping deleted object: {obj}")
 
     new_objects = set()  
 
@@ -170,7 +165,6 @@ def merge_by_material(objects):
         if len(meshes) < 2:
             new_objects.update(meshes)  
             continue
-        print(f"[Mektools] Merging {len(meshes)} meshes with material: {material}")
         bpy.ops.object.select_all(action='DESELECT')
         for mesh in meshes:
             mesh.select_set(True)
@@ -190,8 +184,7 @@ def find_armature_in_objects(objects):
             if obj.type == 'ARMATURE':
                 return obj 
         except ReferenceError:
-            print(f"Skipping deleted object: {obj}")
-       
+            print(f"[Mektools] Skipping deleted object: {obj}")  
     return None
 
 def get_bones_by_name(armature, name):
@@ -202,7 +195,6 @@ def get_bones_by_name(armature, name):
 
 def remove_duplicate_bones(armature_a, armature_b):
     """Removes bones from Armature A if they also exist in Armature B.Stores all parent relationships before making changes."""
-    
     bpy.ops.object.mode_set(mode="OBJECT")
     bpy.context.view_layer.objects.active = armature_b
     bpy.ops.object.mode_set(mode="EDIT")
@@ -232,7 +224,7 @@ def clear_parents_keep_transform(objects_to_clear):
             bpy.ops.object.parent_clear(type='CLEAR_KEEP_TRANSFORM')
             obj.select_set(False)
         except ReferenceError:
-            print(f"Skipping deleted object: {obj}")
+            print(f"[Mektools] Skipping deleted object: {obj}")
 
 def link_objects_to_collection(objects, collection):
     """Links objects to a collection."""
@@ -242,7 +234,7 @@ def link_objects_to_collection(objects, collection):
                 user_collection.objects.unlink(obj)
             collection.objects.link(obj)
         except ReferenceError:
-            print(f"Skipping deleted object: {obj}")
+            print(f"[Mektools] Skipping deleted object: {obj}")
            
 def import_gltf(filepath: str, collection = None):
     """Imports GLTF. Returns List of imported objects"""
@@ -262,16 +254,11 @@ def import_gltf(filepath: str, collection = None):
 
 def remove_custom_shapes(armature):
     """Removes custom shapes from all bones in the given armature."""
-    if armature.type != "ARMATURE":
-        print(f"Object '{armature.name}' is not an armature.")
-        return
-    
     bpy.context.view_layer.objects.active = armature
     bpy.ops.object.mode_set(mode="POSE")
 
     for bone in armature.pose.bones:
         if bone.custom_shape:
-            print(f"Removing custom shape from bone: {bone.name}")
             bone.custom_shape = None  
             
     bpy.ops.object.mode_set(mode="OBJECT")
@@ -309,12 +296,10 @@ def get_racial_code(objects, id):
             match = re.search(r"c\d{4}", obj.name)
             if match and match.group() in racial_code_to_operator:
                 return match.group() 
-
     return None 
 
 def parent_objects(objects, parent_obj, keep_transform=True):
     """Parents a list of objects to a given parent object."""
-    
     bpy.ops.object.mode_set(mode="OBJECT")  
 
     for obj in objects:
@@ -330,17 +315,17 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
     filter_glob: bpy.props.StringProperty(default='*.gltf', options={'HIDDEN'})
     
     import_with_shaders_setting: BoolProperty(name="Import with Meddle Shaders", description="Tries to also import all shaders from meddle shader cache", default=True)
-    append_mekrig: BoolProperty(name="Appends Mekrig", description="Appends Mekrig, disable for Object import", default=True)
+    append_mekrig: BoolProperty(name="Append Mekrig", description="Appends Mekrig, disable for Object import", default=True)
     remove_parent_on_poles: BoolProperty(name="Remove Parents from Pole-Targets", description="Removes the Parent from Pole-Targets", default=False)
     
-    def invoke(self, context, event):
+    def invoke(self, context):
         prefs = get_addon_preferences()
         if prefs.default_meddle_import_path:
             self.filepath = prefs.default_meddle_import_path
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
     
-    def draw(self, context):
+    def draw(self):
         layout = self.layout
 
         layout.label(text="Import Settings")
