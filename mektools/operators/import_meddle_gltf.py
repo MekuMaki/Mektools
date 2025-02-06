@@ -149,7 +149,7 @@ def append_mekrig(self,objects_imported, string_to_grab_racial_code="iri"):
 
     return mekrig_collection
 
-def apply_mekrig_armature(self, original_gltf_armature, mekrig_armature, objects_imported):
+def apply_mekrig_armature(self, original_gltf_armature, mekrig_armature, objects_imported, influential_bones):
     """Merges the mekrig armature with the original gltf armature and returns the combined armature.
 
     :param original_gltf_armature: Original gltf armature
@@ -186,6 +186,13 @@ def apply_mekrig_armature(self, original_gltf_armature, mekrig_armature, objects
     bpy.ops.object.join()    
 
 
+    bpy.ops.object.mode_set(mode='EDIT')
+    mek_kao_bone = mekrig_armature.data.edit_bones.get("mek kao")
+    for bone in mekrig_armature.data.edit_bones:
+        if bone.name in influential_bones:
+            bone.parent = mek_kao_bone
+            bone.roll = radians(90)
+
     return mekrig_armature
 
 def mergeMeshes(self, candidate_meshes, common_mesh_string):
@@ -220,7 +227,7 @@ def rebuild_objects_imported(objects_before_import):
     objects_imported = set(bpy.data.objects) - objects_before_import
     return objects_imported
 
-def cleanup_imported_gltf_armature(original_gltf_armature, bone_names_to_delete, objects_imported):
+def cleanup_imported_gltf_armature(original_gltf_armature, bone_names_to_delete, objects_imported, influential_bones):
     state_before_cleanup = bpy.context.object.mode
     bpy.context.view_layer.objects.active = original_gltf_armature
     bpy.ops.object.mode_set(mode='EDIT')
@@ -230,10 +237,7 @@ def cleanup_imported_gltf_armature(original_gltf_armature, bone_names_to_delete,
         if bone_name in original_gltf_armature.data.edit_bones:
             original_gltf_armature.data.edit_bones.remove(original_gltf_armature.data.edit_bones[bone_name])
 
-    # we get the influential bones for the hir meshes
-    # since those are the bones that influence the hair mesh, and we want to keep those and delete the rest
-    # the mekrig doesn't contain hair bones (thank god it doesnt) so we use the gltf-imported armature's and append those to the mekrig
-    influential_bones = filter_bones("hir", objects_imported, bone_names_to_delete)
+
 
     bpy.ops.object.mode_set(mode='EDIT')
     for bone in original_gltf_armature.data.edit_bones:
@@ -242,6 +246,21 @@ def cleanup_imported_gltf_armature(original_gltf_armature, bone_names_to_delete,
 
 
     bpy.ops.object.mode_set(mode=state_before_cleanup)
+
+    # Switch to Pose Mode for hair bone adjustments
+    bpy.ops.object.mode_set(mode='POSE')
+    print("objects_imported: ", objects_imported)
+    cs_hair = next((obj for obj in objects_imported if  "cs.hair" in obj.name), None)
+    for bone_name in influential_bones:
+        pose_bone = original_gltf_armature.pose.bones.get(bone_name)
+        print("Searching for bone: ", bone_name)
+        if pose_bone:
+            print("Found bone: ", pose_bone.name)
+            pose_bone.custom_shape = cs_hair
+            print("Setting custom shape to: ", cs_hair.name)
+            pose_bone.color.palette = 'THEME01'  # Theme 1 Red
+
+    bpy.ops.object.mode_set(mode='OBJECT')
 
     return original_gltf_armature
 
@@ -326,40 +345,18 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
         #if we dont rebuild and we iterate over objects_imported we will get a rna_error cause the objects wont exist anymore
         objects_imported = rebuild_objects_imported(objects_before_import)
 
-        original_gltf_armature = cleanup_imported_gltf_armature(original_gltf_armature, bone_names_to_delete, objects_imported)
-
+        # we get the influential bones for the hir meshes
+        # since those are the bones that influence the hair mesh, and we want to keep those and delete the rest
+        # the mekrig doesn't contain hair bones (thank god it doesnt) so we use the gltf-imported armature's and append those to the mekrig
         influential_bones = filter_bones("hir", objects_imported, bone_names_to_delete)
 
-        # Switch to Pose Mode for hair bone adjustments
-        bpy.ops.object.mode_set(mode='POSE')
-        print("objects_imported: ", objects_imported)
-        cs_hair = next((obj for obj in objects_imported if  "cs.hair" in obj.name), None)
-        for bone_name in influential_bones:
-            pose_bone = original_gltf_armature.pose.bones.get(bone_name)
-            print("Searching for bone: ", bone_name)
-            if pose_bone:
-                print("Found bone: ", pose_bone.name)
-                pose_bone.custom_shape = cs_hair
-                print("Setting custom shape to: ", cs_hair.name)
-                pose_bone.color.palette = 'THEME01'  # Theme 1 Red
-
-        bpy.ops.object.mode_set(mode='OBJECT')
-      
-
-
-
-        mekrig_armature = apply_mekrig_armature(self, original_gltf_armature, mekrig_collection, objects_imported)
+        original_gltf_armature = cleanup_imported_gltf_armature(original_gltf_armature, bone_names_to_delete, objects_imported, influential_bones)
+    
+        mekrig_armature = apply_mekrig_armature(self, original_gltf_armature, mekrig_collection, objects_imported, influential_bones)
 
         #rebuild the list of objects imported since the mekrig joined the original gltf armature
         objects_imported = rebuild_objects_imported(objects_before_import)
 
-
-        bpy.ops.object.mode_set(mode='EDIT')
-        mek_kao_bone = mekrig_armature.data.edit_bones.get("mek kao")
-        for bone in mekrig_armature.data.edit_bones:
-            if bone.name in influential_bones:
-                bone.parent = mek_kao_bone
-                bone.roll = radians(90)
 
         bpy.ops.object.mode_set(mode='OBJECT')
 
@@ -389,8 +386,6 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
         
         if self.remove_parent_on_poles:
             remove_pole_parents(mekrig_armature)
-
-
 
         # Step 7: Fix/Append Shaders
         # If the user wants to append meddle shaders we append those, otherwise we just fix the materials
