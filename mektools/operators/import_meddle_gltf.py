@@ -180,24 +180,9 @@ def apply_mekrig_armature(self, original_gltf_armature, mekrig_armature, objects
     
     bpy.ops.object.mode_set(mode='OBJECT')
 
-    # We need to deselect everything before parenting the imported meshes to n_root
-    # Just to make sure we dont have an object selected that we dont want to parent
     bpy.ops.object.select_all(action='DESELECT')
 
-    for mesh in objects_imported:
-        if mesh.type == 'MESH':
-            mesh.select_set(True)   
-
-    mekrig_armature.select_set(True)
-    bpy.context.view_layer.objects.active = mekrig_armature
-    bpy.ops.object.parent_set(type='OBJECT')
-
-    # set armature modifier to mekrig_armature
-    for mesh in objects_imported:
-        if mesh.type == 'MESH':
-            for mod in mesh.modifiers:
-                if mod.type == 'ARMATURE': 
-                    mod.object = mekrig_armature  
+    set_armature_modifier_target(objects_imported, mekrig_armature)
 
     #deselect all to ensure only the armatures are selected
     bpy.ops.object.select_all(action='DESELECT')
@@ -219,8 +204,22 @@ def apply_mekrig_armature(self, original_gltf_armature, mekrig_armature, objects
 
     return mekrig_armature
 
+def set_armature_modifier_target(objects_to_set_target, armature_target):
+    for mesh in objects_to_set_target:
+        if mesh.type == 'MESH':
+            mesh.select_set(True)   
 
+    armature_target.select_set(True)
+    bpy.context.view_layer.objects.active = armature_target
+    bpy.ops.object.parent_set(type='OBJECT')
 
+    # set armature modifier to mekrig_armature
+    for mesh in objects_to_set_target:
+        if mesh.type == 'MESH':
+            for mod in mesh.modifiers:
+                if mod.type == 'ARMATURE': 
+                    mod.object = armature_target
+                      
 def mergeMeshes(self, candidate_meshes, common_mesh_string):
     """Merges the meshes with the common mesh string.
 
@@ -308,22 +307,26 @@ def cleanup_imported_gltf_armature(original_gltf_armature, bone_names_to_delete,
 
     bpy.ops.object.mode_set(mode=state_before_cleanup)
 
-    # Switch to Pose Mode for hair bone adjustments
-    bpy.ops.object.mode_set(mode='POSE')
-    print("objects_imported: ", objects_imported)
+
     cs_hair = next((obj for obj in objects_imported if  "cs.hair" in obj.name), None)
-    for bone_name in influential_bones:
-        pose_bone = original_gltf_armature.pose.bones.get(bone_name)
-        print("Searching for bone: ", bone_name)
-        if pose_bone:
-            print("Found bone: ", pose_bone.name)
-            pose_bone.custom_shape = cs_hair
-            print("Setting custom shape to: ", cs_hair.name)
-            pose_bone.color.palette = 'THEME01'  # Theme 1 Red
+    change_armature_shape(original_gltf_armature, cs_hair)
 
     bpy.ops.object.mode_set(mode='OBJECT')
 
     return original_gltf_armature
+
+
+def change_armature_shape(armature_to_change, shape_to_change_to):
+    # Switch to Pose Mode for hair bone adjustments
+    bpy.ops.object.mode_set(mode='POSE')
+    for bone in armature_to_change.pose.bones:
+        print("Searching for bone: ", bone.name)
+        if bone:
+            print("Found bone: ", bone.name)
+            bone.custom_shape = shape_to_change_to
+            print("Setting custom shape to: ", shape_to_change_to.name)
+            bone.color.palette = 'THEME01'  # Theme 1 Red
+
 
 def clear_parents_keep_transform(objects_to_clear):
     """Clears the parent of the objects and keeps the transform.
