@@ -5,6 +5,7 @@ import importlib.util
 from math import radians
 from bpy.props import BoolProperty
 from collections import defaultdict, namedtuple
+import re
 from ..addon_preferences import get_addon_preferences 
 
 
@@ -95,62 +96,60 @@ def filter_bones(objects_to_filter, mesh_filter_string, bone_names_to_skip = [])
 
     return influential_bones
 
-def append_mekrig(objects, racial_code_identifier="iri"):
-    """Appends the correct Mekrig depending on Racial Code"""
+def append_mekrig(racial_code):
+    """Appends the correct Mekrig depending on Racial Code and returns the armature and its collection."""
 
     scene_collections_before = set(bpy.data.collections)
 
-    racial_code_object = next(
-        (obj for obj in objects if racial_code_identifier in obj.name or any(racial_code_identifier in mat.name for mat in obj.material_slots)),
-        None
-    )
-
-    for code in racial_code_to_operator:
-        if code in racial_code_object.name:
-            operator_id = racial_code_to_operator[code]
-            eval(f"bpy.ops.{operator_id}()")
-            break
+    operator_id = racial_code_to_operator[racial_code]
+    eval(f"bpy.ops.{operator_id}()")
 
     scene_collections_after = set(bpy.data.collections)
-    imported_collection = scene_collections_after - scene_collections_before
+
+    new_collections = scene_collections_after - scene_collections_before
     
+    imported_collection = None
+    imported_armature = None
+
+    for collection in new_collections:
+        for obj in collection.objects:
+            if obj.type == "ARMATURE":  
+                imported_collection = collection
+                imported_armature = obj
+                break  
+        
+        if imported_armature:
+            break
+
     if not imported_collection:
-        return MekrigData(None, None)
-    
-    for obj in imported_collection.objects:
-        if obj.type == "ARMATURE":
-            return MekrigData(obj, imported_collection)
-    
-    return MekrigData(None, imported_collection)
+        return MekrigData(None, None) 
 
-def merge_armatures(armature_a, armature_b ):
-    """Merges armature A with armature B. Returns B"""
-    
-    bpy.ops.object.mode_set(mode='OBJECT')
+    return MekrigData(imported_armature, imported_collection)
 
+def merge_armatures(armature_a, armature_b):
+    """Merges armature B into armature A and updates only relevant objects that were using armature B.Returns the final merged armature (A)."""
+    bpy.ops.object.mode_set(mode="OBJECT")
     bpy.ops.object.select_all(action='DESELECT')
 
-    #set_armature_modifier_target(objects_imported, mekrig_armature)
+    objects_with_b = []
+    for obj in bpy.context.scene.objects: 
+        if obj.type == "MESH": 
+            for mod in obj.modifiers:
+                if mod.type == "ARMATURE" and mod.object == armature_b:
+                    objects_with_b.append((obj, mod))
 
-    #deselect all to ensure only the armatures are selected
     bpy.ops.object.select_all(action='DESELECT')
-
     bpy.context.view_layer.objects.active = armature_a
     armature_a.select_set(True)
     armature_b.select_set(True)
-    bpy.ops.object.join()    
+    bpy.ops.object.join() 
 
-    #ima be real idk why we rotate the bones here but we do
-    #bpy.ops.object.mode_set(mode='EDIT')
-    #mek_kao_bone = mekrig_armature.data.edit_bones.get("mek kao")
-    #for bone in mekrig_armature.data.edit_bones:
-    #    if bone.name in influential_bones:
-    #        bone.parent = mek_kao_bone
-    #        bone.roll = radians(90)
+    for obj, mod in objects_with_b:
+        mod.object = armature_a  
 
-    bpy.ops.object.mode_set(mode='OBJECT')
+    bpy.ops.object.mode_set(mode="OBJECT")
 
-    return armature_b
+    return armature_a  #
 
 def set_armature_modifier_target(objects_to_set_target, armature_target):
     for mesh in objects_to_set_target:
@@ -169,30 +168,35 @@ def set_armature_modifier_target(objects_to_set_target, armature_target):
                     mod.object = armature_target
                       
 def merge_by_material(objects):
-    """Merges objects with same material"""
+    """Merges objects that share the same material and returns the updated list of objects."""
     material_mesh_groups = defaultdict(list)
 
     for obj in objects:
         try:
             if obj.type == "MESH" and obj.data.materials:
-                material_name = obj.data.materials[0].name 
+                material_name = obj.data.materials[0].name
                 material_mesh_groups[material_name].append(obj)
         except ReferenceError:
-            print(f"Skipping deleted object: {obj}")  
+            print(f"Skipping deleted object: {obj}")
+
+    new_objects = set()  
 
     for material, meshes in material_mesh_groups.items():
-        if len(meshes) < 2: 
+        if len(meshes) < 2:
+            new_objects.update(meshes)  
             continue
-
         print(f"[Mektools] Merging {len(meshes)} meshes with material: {material}")
-
         bpy.ops.object.select_all(action='DESELECT')
         for mesh in meshes:
             mesh.select_set(True)
-            
         bpy.context.view_layer.objects.active = meshes[0]
         bpy.ops.object.join()
+        merged_object = bpy.context.view_layer.objects.active
+        new_objects.add(merged_object)
+
         bpy.ops.object.select_all(action='DESELECT')
+        
+    return list(new_objects)
 
 def find_armature_in_objects(objects):
     """Finds the first armature in the objects imported."""
@@ -238,7 +242,6 @@ def remove_duplicate_bones(armature_a, armature_b):
     for bone in armature_a.data.edit_bones[:]:
         if bone.name in reference_bones:
             armature_a.data.edit_bones.remove(bone)
-            print(f"[Mektools] Removed duplicate bone: {bone.name}")
  
     #mekrig_coverage = set(load_bone_names()) 
     #for bone_name in mekrig_coverage:
@@ -282,14 +285,13 @@ def clear_parents_keep_transform(objects_to_clear):
         except ReferenceError:
             print(f"Skipping deleted object: {obj}")
 
-def link_objects_to_collection(objects_to_link, collection_to_link_to):
+def link_objects_to_collection(objects, collection):
     """Links objects to a collection."""
-    for obj in objects_to_link:
+    for obj in objects:
         try:
-            for collection in obj.users_collection:
-                collection.objects.unlink(obj)
-            
-            collection_to_link_to.objects.link(obj)
+            for user_collection in obj.users_collection:
+                user_collection.objects.unlink(obj)
+            collection.objects.link(obj)
         except ReferenceError:
             print(f"Skipping deleted object: {obj}")
            
@@ -305,30 +307,32 @@ def import_gltf(filepath: str, collection = None):
     imported_gltf = [obj for obj in bpy.context.scene.objects if obj not in scene_obects]
     
     if collection:
-        link_objects_to_collection(import_gltf, collection)
+        link_objects_to_collection(imported_gltf, collection)
         
     return imported_gltf
 
-def remove_icospheres(imported_gltf):
-    """Removes Icospheres from OBJECTS. Returns new set of OBJECTS"""
-    filtered_gltf = []
+def remove_custom_shapes(armature):
+    """Removes custom shapes from all bones in the given armature."""
+    if armature.type != "ARMATURE":
+        print(f"Object '{armature.name}' is not an armature.")
+        return
+    
+    bpy.context.view_layer.objects.active = armature
+    bpy.ops.object.mode_set(mode="POSE")
 
-    for obj in imported_gltf:
-        if obj.type == "MESH" and "Icosphere" in obj.name:
-            bpy.data.objects.remove(obj)
-        else:
-            filtered_gltf.append(obj)
+    for bone in armature.pose.bones:
+        if bone.custom_shape:
+            print(f"Removing custom shape from bone: {bone.name}")
+            bone.custom_shape = None  
+            
+    bpy.ops.object.mode_set(mode="OBJECT")
 
-    return filtered_gltf
-
-def attache_mekrig(objects):
+def attache_mekrig(armature, racial_code):
     """Imports Mekrig, removes duplicate bones and merges it with any armature present in objects list. Returns Mekrig Armature"""
-    gltf_armature = find_armature_in_objects(objects)
-     
-    if gltf_armature:
-        mekrig = append_mekrig(objects)
-
-        stripped_gltf_armature = remove_duplicate_bones(gltf_armature, mekrig.armature)
+    if armature:
+        mekrig = append_mekrig(racial_code)
+        
+        stripped_gltf_armature = remove_duplicate_bones(armature, mekrig.armature)
         
         merged_armature = merge_armatures(mekrig.armature, stripped_gltf_armature)
         
@@ -350,8 +354,28 @@ def create_collection(name="Collection"):
     new_name = f"{name}.{count:03d}"
     new_collection = bpy.data.collections.new(new_name)
     bpy.context.scene.collection.children.link(new_collection)
-    return new_collection  
+    return new_collection 
+
+
+def get_racial_code(objects, id):
+    """Searches for an object containing specified ID in its name and extracts the racial code."""
+    for obj in objects:
+        if id in obj.name:
+            match = re.search(r"c\d{4}", obj.name)
+            if match and match.group() in racial_code_to_operator:
+                return match.group() 
+
+    return None 
+
+def parent_objects(objects, parent_obj, keep_transform=True):
+    """Parents a list of objects to a given parent object."""
     
+    bpy.ops.object.mode_set(mode="OBJECT")  
+
+    for obj in objects:
+        if obj != parent_obj:  
+            obj.parent = parent_obj
+            obj.matrix_parent_inverse = parent_obj.matrix_world.inverted() if keep_transform else obj.matrix_parent_inverse
 
 class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
     """Import GLTF from Meddle and perform cleanup tasks"""
@@ -383,15 +407,18 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
     def execute(self, context):  
         bpy.context.window.cursor_set('WAIT')      
 
-        scene_objects = set(bpy.data.objects)
-        
         #base import function
         import_collection = create_collection("Meddle_Import")
-        imported_gltf = import_gltf(self.filepath, import_collection)      
-        working_object_set = remove_icospheres(imported_gltf)
-        clear_parents_keep_transform(working_object_set)
-        merge_by_material(working_object_set)
+        imported_gltf = import_gltf(self.filepath, import_collection)
         
+        racial_code_identifier="iri"
+        racial_code = get_racial_code(imported_gltf, racial_code_identifier)
+        
+        gltf_armature = find_armature_in_objects(imported_gltf)
+        remove_custom_shapes(gltf_armature)      
+        clear_parents_keep_transform(imported_gltf)
+        
+        working_object_set = merge_by_material(imported_gltf)
         
         #checking for user options
         if self.import_with_shaders_setting:
@@ -400,10 +427,9 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
             bpy.ops.mektools.append_shaders()
             bpy.ops.material.material_fixer_auto()
             
-        if  self.append_mekrig:
-            
-            mekrig_armature = attache_mekrig(working_object_set) 
-            
+        if self.append_mekrig:
+            mekrig_armature = attache_mekrig(gltf_armature, racial_code) 
+            parent_objects(working_object_set, mekrig_armature)
             if self.remove_parent_on_poles:
                 remove_pole_parents(mekrig_armature)   
         
