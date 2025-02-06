@@ -355,9 +355,9 @@ def link_objects_to_collection(objects_to_link, collection_to_link_to):
         # add to the target collection
         collection_to_link_to.objects.link(obj)
         
-def import_gltf(filepath, filter: str = None):
+def import_gltf(filepath: str, filter: str = None):
     """Imports GLTF. Returns List of imported objects of type MESH"""
-    imported_gltf = bpy.ops.import_scene.gltf(filepath)  
+    imported_gltf = bpy.ops.import_scene.gltf(filepath=filepath)  
     if(filter):
         filtered_import = [obj for obj in imported_gltf if obj.type == filter]
         return filtered_import
