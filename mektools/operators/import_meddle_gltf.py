@@ -81,21 +81,6 @@ def remove_pole_parents(armature):
     else:
         print("No armature selected or incorrect object type.")   
 
-def filter_bones(objects_to_filter, mesh_filter_string, bone_names_to_skip = []):
-    """Returns a set of bone names that influence meshes whose name contains the mesh_filter_string. Needs Refactor or delete"""
-    bpy.ops.object.mode_set(mode='OBJECT')
-
-    filtered_objects = [obj for obj in objects_to_filter if mesh_filter_string in obj.name]
-    influential_bones = set()
-    for obj in filtered_objects:
-        for vgroup in obj.vertex_groups:
-            if vgroup.name in bone_names_to_skip:  
-                continue
-            if any(vgroup.index in [g.group for g in v.groups if g.weight > 0] for v in obj.data.vertices):
-                influential_bones.add(vgroup.name)
-
-    return influential_bones
-
 def append_mekrig(racial_code):
     """Appends the correct Mekrig depending on Racial Code and returns the armature and its collection."""
 
@@ -166,22 +151,6 @@ def restore_bone_parents(armature, original_parents):
             armature.data.edit_bones[bone_name].parent = armature.data.edit_bones[parent_name]
 
     bpy.ops.object.mode_set(mode="OBJECT") 
-
-def set_armature_modifier_target(objects_to_set_target, armature_target):
-    for mesh in objects_to_set_target:
-        if mesh.type == 'MESH':
-            mesh.select_set(True)   
-
-    armature_target.select_set(True)
-    bpy.context.view_layer.objects.active = armature_target
-    bpy.ops.object.parent_set(type='OBJECT')
-
-    # set armature modifier to mekrig_armature
-    for mesh in objects_to_set_target:
-        if mesh.type == 'MESH':
-            for mod in mesh.modifiers:
-                if mod.type == 'ARMATURE': 
-                    mod.object = armature_target
                       
 def merge_by_material(objects):
     """Merges objects that share the same material and returns the updated list of objects."""
@@ -254,17 +223,6 @@ def remove_duplicate_bones(armature_a, armature_b):
     bpy.ops.object.mode_set(mode="OBJECT")
     
     return Stripped_Armature_Data(armature_b, original_parents)  
-
-def set_custom_bone_display(bones, custom_shape, theme):
-    # Switch to Pose Mode for hair bone adjustments
-    bpy.ops.object.mode_set(mode='POSE')
-    for bone in bones:
-        print("Searching for bone: ", bone.name)
-        if bone:
-            print("Found bone: ", bone.name)
-            bone.custom_shape = custom_shape
-            print("Setting custom shape to: ", custom_shape.name)
-            bone.color.palette = theme 
 
 def clear_parents_keep_transform(objects_to_clear):
     """Clears the parent of the objects and keeps the transform."""
