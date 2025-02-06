@@ -177,7 +177,29 @@ def apply_mekrig_armature(self, original_gltf_armature, mekrig_armature, objects
     #but it will be "n_root.001" and the above code will fail
     mekrig_armature.name = "Armature"
 
-    #deselect all to ensure only the armature is selected
+    
+    bpy.ops.object.mode_set(mode='OBJECT')
+
+    # We need to deselect everything before parenting the imported meshes to n_root
+    # Just to make sure we dont have an object selected that we dont want to parent
+    bpy.ops.object.select_all(action='DESELECT')
+
+    for mesh in objects_imported:
+        if mesh.type == 'MESH':
+            mesh.select_set(True)   
+
+    mekrig_armature.select_set(True)
+    bpy.context.view_layer.objects.active = mekrig_armature
+    bpy.ops.object.parent_set(type='OBJECT')
+
+    # set armature modifier to mekrig_armature
+    for mesh in objects_imported:
+        if mesh.type == 'MESH':
+            for mod in mesh.modifiers:
+                if mod.type == 'ARMATURE': 
+                    mod.object = mekrig_armature  
+
+    #deselect all to ensure only the armatures are selected
     bpy.ops.object.select_all(action='DESELECT')
 
     bpy.context.view_layer.objects.active = mekrig_armature
@@ -185,13 +207,15 @@ def apply_mekrig_armature(self, original_gltf_armature, mekrig_armature, objects
     mekrig_armature.select_set(True)
     bpy.ops.object.join()    
 
-
+    #ima be real idk why we rotate the bones here but we do
     bpy.ops.object.mode_set(mode='EDIT')
     mek_kao_bone = mekrig_armature.data.edit_bones.get("mek kao")
     for bone in mekrig_armature.data.edit_bones:
         if bone.name in influential_bones:
             bone.parent = mek_kao_bone
             bone.roll = radians(90)
+
+    bpy.ops.object.mode_set(mode='OBJECT')
 
     return mekrig_armature
 
@@ -326,7 +350,6 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
         # Load the list of bone names to delete
         bone_names_to_delete = set(load_bone_names())  # Convert to a set for efficient lookups
 
-        #we re
         objects_imported = rebuild_objects_imported(objects_before_import)
 
         # Reference the armature of the imported objects
@@ -350,45 +373,18 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
         # the mekrig doesn't contain hair bones (thank god it doesnt) so we use the gltf-imported armature's and append those to the mekrig
         influential_bones = filter_bones("hir", objects_imported, bone_names_to_delete)
 
+        
         original_gltf_armature = cleanup_imported_gltf_armature(original_gltf_armature, bone_names_to_delete, objects_imported, influential_bones)
     
+
         mekrig_armature = apply_mekrig_armature(self, original_gltf_armature, mekrig_collection, objects_imported, influential_bones)
 
-        #rebuild the list of objects imported since the mekrig joined the original gltf armature
+        #rebuild the list of objects imported since the mekrig got joined the original gltf armature
         objects_imported = rebuild_objects_imported(objects_before_import)
-
-
-        bpy.ops.object.mode_set(mode='OBJECT')
-
-        # We need to deselect everything before parenting the imported meshes to n_root
-        # Just to make sure we dont have an object selected that we dont want to parent
-        bpy.ops.object.select_all(action='DESELECT')
-
-        for mesh in objects_imported:
-            if mesh.type == 'MESH':
-                mesh.select_set(True)   
-
-        mekrig_armature.select_set(True)
-        bpy.context.view_layer.objects.active = mekrig_armature
-        bpy.ops.object.parent_set(type='OBJECT')
-
-        # Step 6: Update Armature Modifiers for imported meshes
-        for mesh in objects_imported:
-            if mesh.type == 'MESH':
-                for mod in mesh.modifiers:
-                    if mod.type == 'ARMATURE':  # Check if it is an Armature modifier
-                        mod.object = mekrig_armature  # Set n_root as the target
-
-        #we rebuild the list of objects imported
-        objects_imported = set(bpy.data.objects) - objects_before_import
-
-
         
         if self.remove_parent_on_poles:
             remove_pole_parents(mekrig_armature)
 
-        # Step 7: Fix/Append Shaders
-        # If the user wants to append meddle shaders we append those, otherwise we just fix the materials
         if self.import_with_shaders_setting:
             import_meddle_shader(self, imported_meshes)
         else:
