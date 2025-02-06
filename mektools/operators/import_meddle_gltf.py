@@ -219,7 +219,16 @@ def apply_mekrig_armature(self, original_gltf_armature, mekrig_armature, objects
 
     return mekrig_armature
 
+
+
 def mergeMeshes(self, candidate_meshes, common_mesh_string):
+    """Merges the meshes with the common mesh string.
+
+    :param candidate_meshes: meshes to merge
+    :type candidate_meshes: list
+    :param common_mesh_string: string to search for in the mesh name
+    :type common_mesh_string: str
+    """
     skin_meshes = [obj for obj in candidate_meshes if common_mesh_string in obj.name]
     
     # We select the first found mesh as the active object, so we can join all the other meshes to it
@@ -235,8 +244,15 @@ def mergeMeshes(self, candidate_meshes, common_mesh_string):
     # Lastly we deselect everything
     bpy.ops.object.select_all(action='DESELECT')
 
-def find_armature_in_objects(objects_imported):
-    for obj in objects_imported:
+def find_armature_in_objects(objects_to_search):
+    """Finds the armature in the objects imported.
+
+    :param objects_to_search: objects to search for the armature in
+    :type objects_to_search: list
+    :return: armature
+    :rtype: bpy.types.Object
+    """
+    for obj in objects_to_search:
         if obj.type == 'ARMATURE':
             return obj
 
@@ -244,6 +260,14 @@ def find_armature_in_objects(objects_imported):
     return None
 
 def rebuild_objects_imported(objects_before_import):
+    """Rebuilds the list of objects imported.
+
+    :param objects_before_import: objects before the import
+    :type objects_before_import: list
+    :return: objects imported
+    :rtype: list
+    """
+
     #we create a list of objects that were i mported by substracting the
     #objects before the import from the objects after the import
     #and the difference (substraction) between the two is the objects that were imported
@@ -252,6 +276,19 @@ def rebuild_objects_imported(objects_before_import):
     return objects_imported
 
 def cleanup_imported_gltf_armature(original_gltf_armature, bone_names_to_delete, objects_imported, influential_bones):
+    """Cleans up the imported gltf armature.
+
+    :param original_gltf_armature: Original gltf armature
+    :type original_gltf_armature: bpy.types.Object
+    :param bone_names_to_delete: Bone names to delete
+    :type bone_names_to_delete: list
+    :param objects_imported: Objects imported
+    :type objects_imported: list
+    :param influential_bones: Influential bones
+    :type influential_bones: list
+    :return: Cleaned up armature
+    :rtype: bpy.types.Object
+    """
     state_before_cleanup = bpy.context.object.mode
     bpy.context.view_layer.objects.active = original_gltf_armature
     bpy.ops.object.mode_set(mode='EDIT')
@@ -289,12 +326,24 @@ def cleanup_imported_gltf_armature(original_gltf_armature, bone_names_to_delete,
     return original_gltf_armature
 
 def clear_parents_keep_transform(objects_to_clear):
+    """Clears the parent of the objects and keeps the transform.
+
+    :param objects_to_clear: objects to clear the parent of
+    :type objects_to_clear: list
+    """
     for obj in objects_to_clear:
         obj.select_set(True)
         bpy.ops.object.parent_clear(type='CLEAR_KEEP_TRANSFORM')
         obj.select_set(False)
 
 def link_objects_to_collection(objects_to_link, collection_to_link_to):
+    """Links objects to a collection.
+
+    :param objects_to_link: objects to link to the collection
+    :type objects_to_link: list
+    :param collection_to_link_to: collection to link the objects to
+    :type collection_to_link_to: bpy.types.Collection
+    """
     for obj in objects_to_link:
         # stuff is actually parented to the 'root' collection, so we need to unlink it from there first
         for collection in obj.users_collection:
