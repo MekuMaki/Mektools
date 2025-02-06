@@ -354,6 +354,16 @@ def link_objects_to_collection(objects_to_link, collection_to_link_to):
         
         # add to the target collection
         collection_to_link_to.objects.link(obj)
+        
+def import_gltf(filepath: str, filter: str = None):
+    """Imports GLTF. Returns List of imported objects of type MESH"""
+    imported_gltf = bpy.ops.import_scene.gltf(filepath)  
+    if(filter):
+        filtered_import = [obj for obj in imported_gltf if obj.type == filter]
+        return filtered_import
+    else:
+        return imported_gltf
+    
 
 class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
     """Import GLTF from Meddle and perform cleanup tasks"""
@@ -383,23 +393,17 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
     def execute(self, context):  
         bpy.context.window.cursor_set('WAIT')      
 
-        #we keep a list (Set) of all objects before the import 
-        objects_before_import = set(bpy.data.objects)
-
-        # Import the selected GLTF file and capture the imported objects
-        bpy.ops.import_scene.gltf(filepath=self.filepath)
+        scene_objects = set(bpy.data.objects)
         
-        #we set aside the imported meshes to use later (bottom of class) to avoid having to rebuild the list of imported objects
-        #though realistically we could just change it to objects_imported for consistency
-        imported_meshes = [obj for obj in context.selected_objects if obj.type == 'MESH']
-
+        imported_gltf = import_gltf(self.filepath)
+        
         # the gltf imports icospheres to use rather than bones, but those are ugly so we dont need them.
         # if we  dont delete them they just stay in the scene (even after importing mekrig) so we delete them
         icosphere = bpy.data.objects.get("Icosphere")
         if icosphere:
             bpy.data.objects.remove(icosphere)
 
-        objects_imported = rebuild_objects_imported(objects_before_import)
+        objects_imported = rebuild_objects_imported(scene_objects)
 
         clear_parents_keep_transform(objects_imported)
 
@@ -411,7 +415,7 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
         # Load the list of bone names to delete
         bone_names_to_delete = set(load_bone_names())  # Convert to a set for efficient lookups
 
-        objects_imported = rebuild_objects_imported(objects_before_import)
+        objects_imported = rebuild_objects_imported(scene_objects)
 
         # Reference the armature of the imported objects
         original_gltf_armature = find_armature_in_objects(objects_imported)
@@ -427,7 +431,7 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
         
         #we rebuild objects_imported since we added the mekrig 
         #if we dont rebuild and we iterate over objects_imported we will get a rna_error cause the objects wont exist anymore
-        objects_imported = rebuild_objects_imported(objects_before_import)
+        objects_imported = rebuild_objects_imported(scene_objects)
 
         # we get the influential bones for the hir meshes
         # since those are the bones that influence the hair mesh, and we want to keep those and delete the rest
@@ -440,23 +444,21 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
 
         mekrig_armature = apply_mekrig_armature(self, original_gltf_armature, mekrig_collection, objects_imported, influential_bones)
 
-        #rebuild the list of objects imported since the mekrig got joined the original gltf armature
-        objects_imported = rebuild_objects_imported(objects_before_import)
+        objects_imported = rebuild_objects_imported(scene_objects)
         
         if self.remove_parent_on_poles:
             remove_pole_parents(mekrig_armature)
 
         if self.import_with_shaders_setting:
-            import_meddle_shader(self, imported_meshes)
+            import_meddle_shader(self, imported_gltf)
         else:
             bpy.ops.mektools.append_shaders()
             bpy.ops.material.material_fixer_auto()
 
-        link_objects_to_collection(imported_meshes, mekrig_collection)
-
-        mergeMeshes(self, imported_meshes, "skin")
-
-        # Lastly we deselect everything
+        link_objects_to_collection(imported_gltf, mekrig_collection)
+        
+        mergeMeshes(self, imported_gltf, "skin")
+        
         bpy.ops.object.select_all(action='DESELECT')
 
         self.report({'INFO'}, "GLTF imported and processed successfully.")
