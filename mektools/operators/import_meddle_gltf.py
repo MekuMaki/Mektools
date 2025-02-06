@@ -294,6 +294,15 @@ def clear_parents_keep_transform(objects_to_clear):
         bpy.ops.object.parent_clear(type='CLEAR_KEEP_TRANSFORM')
         obj.select_set(False)
 
+def link_objects_to_collection(objects_to_link, collection_to_link_to):
+    for obj in objects_to_link:
+        # stuff is actually parented to the 'root' collection, so we need to unlink it from there first
+        for collection in obj.users_collection:
+            collection.objects.unlink(obj)
+        
+        # add to the target collection
+        collection_to_link_to.objects.link(obj)
+
 class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
     """Import GLTF from Meddle and perform cleanup tasks"""
     bl_idname = "mektools.import_meddle_gltf"
@@ -391,13 +400,7 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
             bpy.ops.mektools.append_shaders()
             bpy.ops.material.material_fixer_auto()
 
-        for obj in imported_meshes:
-            # Remove from all existing collections first if you want EXCLUSIVE membership
-            for collection in obj.users_collection:
-                collection.objects.unlink(obj)
-            
-            # Add to the target collection
-            mekrig_collection.objects.link(obj)
+        link_objects_to_collection(imported_meshes, mekrig_collection)
 
         mergeMeshes(self, imported_meshes, "skin")
 
