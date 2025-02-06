@@ -124,12 +124,13 @@ def merge_armatures(armature_a, armature_b):
     """Merges armature B into armature A and updates only relevant objects that were using armature B.Returns the final merged armature (A)."""
     bpy.ops.object.mode_set(mode="OBJECT")
     bpy.ops.object.select_all(action='DESELECT')
-    
-    
+
+    collection_a = next((col for col in bpy.data.collections if armature_a.name in col.objects), None)
+    collection_b = next((col for col in bpy.data.collections if armature_b.name in col.objects), None)
+
     stripped_armature_data = remove_duplicate_bones(armature_a, armature_b)
-    
-    armature_b = stripped_armature_data.armature
-    
+    armature_b = stripped_armature_data.armature  
+
     objects_with_b = []
     for obj in bpy.context.scene.objects: 
         if obj.type == "MESH": 
@@ -147,10 +148,14 @@ def merge_armatures(armature_a, armature_b):
         mod.object = armature_a  
 
     bpy.ops.object.mode_set(mode="OBJECT")
-    
+
     restore_bone_parents(armature_a, stripped_armature_data.original_parents)
 
-    return armature_a  
+    if collection_a and collection_b and collection_a != collection_b:
+        bpy.context.scene.collection.children.unlink(collection_a)
+        collection_b.children.link(collection_a)
+
+    return armature_a    
 
 def restore_bone_parents(armature, original_parents):
     """Restores lost parent relationships in an armature after modifications."""
@@ -338,7 +343,6 @@ def create_collection(name="Collection"):
     new_collection = bpy.data.collections.new(new_name)
     bpy.context.scene.collection.children.link(new_collection)
     return new_collection 
-
 
 def get_racial_code(objects, id):
     """Searches for an object containing specified ID in its name and extracts the racial code."""
