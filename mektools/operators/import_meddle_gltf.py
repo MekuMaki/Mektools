@@ -379,7 +379,7 @@ def delete_rna_from_objects(objects):
     for obj in objects:
         try:
             if obj.name:
-                new_objects.append(obj)
+                new_objects.add(obj)
         except ReferenceError:
             pass    
     return new_objects
