@@ -340,7 +340,7 @@ def get_collection(object):
 
 def link_to_collection(objects, collection):
     for obj in objects:
-        if obj not in collection.objects: 
+        if not any(obj is coll_obj for coll_obj in collection.objects):
             collection.objects.link(obj)
 
 class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
