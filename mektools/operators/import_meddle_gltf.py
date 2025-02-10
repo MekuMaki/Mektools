@@ -302,6 +302,8 @@ def assign_bones_to_collection(armature, bones, collection_name, bone_keywords =
                 assigned_bones.append(bone.name)
         except ReferenceError:
             print(f"[Mektools] ⚠️ Skipping deleted bone: {bone}")
+            
+    bpy.ops.object.mode_set(mode='OBJECT')
 
 def attache_mekrig(armature, racial_code):
     """Imports Mekrig, removes duplicate bones and merges it with any armature present in objects list. Returns Mekrig Armature"""
