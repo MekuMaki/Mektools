@@ -275,7 +275,7 @@ def remove_custom_shapes(armature):
     bpy.ops.object.mode_set(mode="OBJECT")
 
 def assign_bones_to_collection(armature, bones, collection_name, is_visible = bool, bone_keywords = None):
-    """Searches for bones in an armature containing specific keywords in their name and assigns them to a bone collection using the new bone collection system."""
+    """Searches for bones in a given list that contain specified keywords. Returns assigned Bones"""
 
     bpy.ops.object.mode_set(mode='OBJECT')
 
@@ -306,6 +306,8 @@ def assign_bones_to_collection(armature, bones, collection_name, is_visible = bo
     bone_collection.is_visible = is_visible
             
     bpy.ops.object.mode_set(mode='OBJECT')
+    return assigned_bones
+    
 
 def attache_mekrig(armature, racial_code):
     """Imports Mekrig, removes duplicate bones and merges it with any armature present in objects list. Returns Mekrig Armature"""
@@ -313,9 +315,11 @@ def attache_mekrig(armature, racial_code):
         mekrig = append_mekrig(racial_code)
          
         merged_armature = merge_armatures(mekrig, armature)
-        assign_bones_to_collection(merged_armature, merged_armature.pose.bones, 'Hair', True, ['j_ex', 'j_kami'])
+        hair_bones = assign_bones_to_collection(merged_armature, merged_armature.pose.bones, 'Hair', True, ['j_ex', 'j_kami'])
         assign_bones_to_collection(merged_armature, merged_armature.pose.bones, 'Physic',False, ['phys'])
         assign_bones_to_collection(merged_armature, merged_armature.pose.bones, 'IVCS', False, ['iv_'])
+        
+        set_bone_display(merged_armature, hair_bones, 'cs.hair', 'THEME01')
         
         return merged_armature
     return None
@@ -419,6 +423,21 @@ def delete_rna_from_objects(objects):
         except ReferenceError:
             pass    
     return new_objects
+
+def set_bone_display(armature, bones, cs_bone_name = None, theme = None):
+    bpy.ops.object.mode_set(mode='POSE')
+    cs_obj = None
+    if cs_bone_name:
+        cs_obj = bpy.data.objects.get(cs_bone_name)
+    for bone_name in bones:
+        pose_bone = armature.pose.bones.get(bone_name)
+        if pose_bone:
+            if cs_obj:
+                pose_bone.custom_shape = cs_obj
+            if theme:
+                pose_bone.color.palette = theme 
+    bpy.ops.object.mode_set(mode='OBJECT')
+
 
 class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
     """Import GLTF from Meddle and perform cleanup tasks"""
