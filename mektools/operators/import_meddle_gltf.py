@@ -344,12 +344,18 @@ def link_to_collection(objects, collection):
             collection.objects.link(obj)
             
 def unlink_all_from_collection(collection):
-    """Unlinks all objects from the given collection."""
-    if collection:
-        for obj in list(collection.objects):  
-            collection.objects.unlink(obj)
-        for sub_collection in list(collection.children):
-            collection.children.unlink(sub_collection)
+    """Unlinks all objects and sub-collections from the given collection while keeping the objects in the scene."""
+    scene_collection = bpy.context.scene.collection  
+
+    for obj in list(collection.objects): 
+        if len(obj.users_collection) == 1: 
+            scene_collection.objects.link(obj) 
+        collection.objects.unlink(obj)  
+
+    for sub_collection in list(collection.children):  
+        if sub_collection not in scene_collection.children:
+            scene_collection.children.link(sub_collection)  
+        collection.children.unlink(sub_collection)  
 
 
 class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
