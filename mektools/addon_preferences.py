@@ -22,10 +22,10 @@ class MektoolsPreferences(AddonPreferences):
 
     # General Settings
     search_for_update: EnumProperty(
-        name="Check for updates on startup",
-        description="Toggle this experimental button on or off",
+        name="Update Check",
+        description="Checks for update on Startup. You still have to manually Install and Update.",
         items=[('OFF', "Disable", ""), ('ON', "Enable", "")],
-        default='OFF'
+        default='ON'
     )
 
     # Default File Paths
@@ -56,21 +56,21 @@ class MektoolsPreferences(AddonPreferences):
     # Experimental Buttons
     ex_button_import_pose: EnumProperty(
         name="Import Pose",
-        description="Toggle this experimental button on or off",
+        description="Enables/Disables Pose Import function",
         items=[('OFF', "Disable", ""), ('ON', "Enable", "")],
         default='OFF'
     )
     
     ex_button_spline_tail: EnumProperty(
         name="Spline Tail",
-        description="Toggle this experimental button on or off",
+        description="Enables/Disables import option to generate a spline IK around the tail.",
         items=[('OFF', "Disable", ""), ('ON', "Enable", "")],
         default='OFF'
     )
     
     ex_button_spline_gear: EnumProperty(
         name="Spline Gear",
-        description="Toggle this experimental button on or off",
+        description="Enables/Disables import option to generate a spline IK around the the gear.",
         items=[('OFF', "Disable", ""), ('ON', "Enable", "")],
         default='OFF'
     )
@@ -134,7 +134,7 @@ class MektoolsPreferences(AddonPreferences):
             box = layout.box()
             box.label(text="General Settings")
 
-            draw_toggle("Look for updates on Startup", "search_for_update")
+            draw_toggle("Check for updates on startup", "search_for_update")
             
         elif self.tabs == 'PATHS':
             box = layout.box()
