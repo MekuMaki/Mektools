@@ -110,7 +110,7 @@ def merge_armatures(armature_a, armature_b):
     stripped_armature_data = remove_duplicate_bones(armature_a, armature_b)
     armature_b = stripped_armature_data.armature  
     
-    assign_bones_to_collection(armature_b, armature_b.pose.bones, 'Meddle Import Bones')
+    assign_bones_to_collection(armature_b, armature_b.pose.bones, 'Not Mekrig Bones', False)
 
     objects_with_b = []
     for obj in bpy.context.scene.objects: 
@@ -274,7 +274,7 @@ def remove_custom_shapes(armature):
             
     bpy.ops.object.mode_set(mode="OBJECT")
 
-def assign_bones_to_collection(armature, bones, collection_name, bone_keywords = None):
+def assign_bones_to_collection(armature, bones, collection_name, is_visible = bool, bone_keywords = None):
     """Searches for bones in an armature containing specific keywords in their name and assigns them to a bone collection using the new bone collection system."""
 
     bpy.ops.object.mode_set(mode='OBJECT')
@@ -303,6 +303,8 @@ def assign_bones_to_collection(armature, bones, collection_name, bone_keywords =
         except ReferenceError:
             print(f"[Mektools] ⚠️ Skipping deleted bone: {bone}")
             
+    bone_collection.is_visible = is_visible
+            
     bpy.ops.object.mode_set(mode='OBJECT')
 
 def attache_mekrig(armature, racial_code):
@@ -311,9 +313,9 @@ def attache_mekrig(armature, racial_code):
         mekrig = append_mekrig(racial_code)
          
         merged_armature = merge_armatures(mekrig, armature)
-        assign_bones_to_collection(merged_armature, merged_armature.pose.bones, 'Hair', ['j_ex', 'j_kami'])
-        assign_bones_to_collection(merged_armature, merged_armature.pose.bones, 'Physic', ['phys'])
-        assign_bones_to_collection(merged_armature, merged_armature.pose.bones, 'IVCS', ['iv_'])
+        assign_bones_to_collection(merged_armature, merged_armature.pose.bones, 'Hair', True, ['j_ex', 'j_kami'])
+        assign_bones_to_collection(merged_armature, merged_armature.pose.bones, 'Physic',False, ['phys'])
+        assign_bones_to_collection(merged_armature, merged_armature.pose.bones, 'IVCS', False, ['iv_'])
         
         return merged_armature
     return None
