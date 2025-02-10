@@ -331,6 +331,18 @@ def merge_by_name(objects, name_filter):
 
     return list(updated_objects)  
 
+def get_collection(object):
+    """Returns the collection that contains this object."""
+    for collection in bpy.data.collections:
+        if object.name in collection.objects:
+            return collection 
+    return None 
+
+def link_to_collection(objects, collection):
+    for obj in objects:
+        if obj not in collection.objects: 
+            collection.objects.link(obj)
+
 class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
     """Import GLTF from Meddle and perform cleanup tasks"""
     bl_idname = "mektools.import_meddle_gltf"
@@ -401,12 +413,14 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
         if self.s_append_mekrig:
             clear_parents_keep_transform(working_object_set)
             mekrig_armature = attache_mekrig(gltf_armature, racial_code) 
+            mekrig_collection = get_collection(mekrig_armature)
+            link_to_collection(working_object_set, mekrig_collection)
             parent_objects(working_object_set, mekrig_armature)
             if self.s_remove_parent_on_poles:
                 remove_pole_parents(mekrig_armature)  
                 
                 
-        if self.s_import_collection:
+        if not self.s_import_collection:
             bpy.data.collections.remove(import_collection) 
         
         bpy.ops.object.select_all(action='DESELECT')
