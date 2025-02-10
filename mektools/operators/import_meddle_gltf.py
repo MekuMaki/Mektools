@@ -109,6 +109,8 @@ def merge_armatures(armature_a, armature_b):
 
     stripped_armature_data = remove_duplicate_bones(armature_a, armature_b)
     armature_b = stripped_armature_data.armature  
+    
+    assign_bones_to_collection(armature_b, armature_b.pose.bones, 'Meddle Import Bones')
 
     objects_with_b = []
     for obj in bpy.context.scene.objects: 
@@ -272,49 +274,34 @@ def remove_custom_shapes(armature):
             
     bpy.ops.object.mode_set(mode="OBJECT")
 
-def assign_bones_to_collection(armature, bone_keywords, collection_name):
-    """
-    Searches for bones in an armature containing specific keywords in their name
-    and assigns them to a bone collection using the new bone collection system.
+def assign_bones_to_collection(armature, bones, collection_name, bone_keywords = None):
+    """Searches for bones in an armature containing specific keywords in their name and assigns them to a bone collection using the new bone collection system."""
 
-    :param armature: The armature object to search for bones.
-    :type armature: bpy.types.Object
-    :param bone_keywords: List of strings to match in bone names.
-    :type bone_keywords: list[str]
-    :param collection_name: The name of the bone collection to assign bones to.
-    :type collection_name: str
-    """
-    if not armature or armature.type != "ARMATURE":
-        print("❌ The provided object is not a valid armature.")
-        return
-
-    # 🔹 Step 1: Ensure the armature is in Object Mode before modifying collections
     bpy.ops.object.mode_set(mode='OBJECT')
 
-    # 🔹 Step 2: Get or Create the Bone Collection
     bone_collection = None
-    for coll in armature.data.collections:  # ✅ Correct Blender 4.x syntax
+    for coll in armature.data.collections:  
         if coll.name == collection_name:
             bone_collection = coll
             break
 
     if not bone_collection:
         bone_collection = armature.data.collections.new(name=collection_name)
-        print(f"✅ Created bone collection: {collection_name}")
 
-    # 🔹 Step 3: Assign bones to the collection
-    bpy.ops.object.mode_set(mode='POSE')  # Switch to Pose Mode for assignment
+    bpy.ops.object.mode_set(mode='POSE') 
 
     assigned_bones = []
-    for bone in armature.pose.bones:
+    for bone in bones:
         try:
-            if any(keyword in bone.name for keyword in bone_keywords):  # ✅ Match substrings
-                bone_collection.assign(bone)  # ✅ Use new bone collection assignment method
+            if bone_keywords:
+                if any(keyword in bone.name for keyword in bone_keywords):  
+                    bone_collection.assign(bone)  
+                    assigned_bones.append(bone.name)
+            elif bone_keywords == None:
+                bone_collection.assign(bone)  
                 assigned_bones.append(bone.name)
         except ReferenceError:
-            print(f"⚠️ Skipping deleted bone: {bone}")
-
-    print(f"✅ Assigned {len(assigned_bones)} bones to collection '{collection_name}': {assigned_bones}")
+            print(f"[Mektools] ⚠️ Skipping deleted bone: {bone}")
 
 def attache_mekrig(armature, racial_code):
     """Imports Mekrig, removes duplicate bones and merges it with any armature present in objects list. Returns Mekrig Armature"""
@@ -322,9 +309,9 @@ def attache_mekrig(armature, racial_code):
         mekrig = append_mekrig(racial_code)
          
         merged_armature = merge_armatures(mekrig, armature)
-        assign_bones_to_collection(merged_armature, ['j_ex', 'j_kami'], 'Hair')
-        assign_bones_to_collection(merged_armature, ['phys'], 'Physic')
-        assign_bones_to_collection(merged_armature, ['iv_'], 'IVCS')
+        assign_bones_to_collection(merged_armature, merged_armature.pose.bones, 'Hair', ['j_ex', 'j_kami'])
+        assign_bones_to_collection(merged_armature, merged_armature.pose.bones, 'Physic', ['phys'])
+        assign_bones_to_collection(merged_armature, merged_armature.pose.bones, 'IVCS', ['iv_'])
         
         return merged_armature
     return None
