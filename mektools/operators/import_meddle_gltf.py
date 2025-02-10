@@ -372,6 +372,17 @@ def unlink_from_collection(collection):
     for sub_collection in list(collection.children):       
         collection.children.unlink(sub_collection)  
         scene_collection.children.link(sub_collection)
+        
+        
+def delete_rna_from_objects(objects):
+    new_objects = set()
+    for obj in objects:
+        try:
+            if obj.name:
+                new_objects.append(obj)
+        except ReferenceError:
+            pass    
+    return new_objects
 
 
 class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
@@ -425,7 +436,9 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
         
         gltf_armature = find_armature_in_objects(working_object_set)
         if gltf_armature:
-            remove_custom_shapes(gltf_armature)      
+            remove_custom_shapes(gltf_armature)    
+            
+        working_object_set = delete_rna_from_objects(working_object_set)  
         
         if self.s_merge_by_material:
             working_object_set = merge_by_material(working_object_set)
