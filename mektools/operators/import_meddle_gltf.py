@@ -437,8 +437,6 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
         gltf_armature = find_armature_in_objects(working_object_set)
         if gltf_armature:
             remove_custom_shapes(gltf_armature)    
-            
-        working_object_set = delete_rna_from_objects(working_object_set)  
         
         if self.s_merge_by_material:
             working_object_set = merge_by_material(working_object_set)
@@ -459,6 +457,7 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
             mekrig_armature = attache_mekrig(gltf_armature, racial_code) 
             mekrig_collection = get_collection(mekrig_armature)
             
+            working_object_set = delete_rna_from_objects(working_object_set)  
             link_to_collection(working_object_set, mekrig_collection)
             parent_objects(working_object_set, mekrig_armature)
             if self.s_remove_parent_on_poles:
