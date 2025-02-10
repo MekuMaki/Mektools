@@ -310,7 +310,6 @@ def assign_bones_to_collection(armature, bone_keywords, collection_name):
 
     # 🔹 Return assigned bones for verification
     print(f"✅ Assigned {len(assigned_bones)} bones to collection '{collection_name}': {assigned_bones}")
->>>>>>> origin/feature/gtlf_refactor
 
 def attache_mekrig(armature, racial_code):
     """Imports Mekrig, removes duplicate bones and merges it with any armature present in objects list. Returns Mekrig Armature"""

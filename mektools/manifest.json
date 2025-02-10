@@ -10,10 +10,6 @@
   "tags": ["modeling", "animation", "import-export"],
   "path": "MekTools",
 "feature_name": "feature/gtlf_refactor",
-<<<<<<< HEAD
-"feature_patch": 59,
-=======
-"feature_patch": 59,
->>>>>>> origin/feature/gtlf_refactor
+"feature_patch": 60,
   "location": "View3D > Mektools Tab"
 }
