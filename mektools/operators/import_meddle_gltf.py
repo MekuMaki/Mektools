@@ -308,7 +308,6 @@ def assign_bones_to_collection(armature, bones, collection_name, is_visible = bo
     bpy.ops.object.mode_set(mode='OBJECT')
     return assigned_bones
     
-
 def attache_mekrig(armature, racial_code):
     """Imports Mekrig, removes duplicate bones and merges it with any armature present in objects list. Returns Mekrig Armature"""
     if armature:
