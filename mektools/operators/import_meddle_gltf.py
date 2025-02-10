@@ -333,29 +333,27 @@ def merge_by_name(objects, name_filter):
 
 def get_collection(object):
     """Returns the collection that contains this object."""
-    for collection in bpy.data.collections:
-        if object.name in collection.objects:
-            return collection 
-    return None 
+    return object.users_collection
 
 def link_to_collection(objects, collection):
     for obj in objects:
-        if not any(obj is coll_obj for coll_obj in collection.objects):
-            collection.objects.link(obj)
+        for coll in list(obj.users_collection): 
+            coll.objects.unlink(obj)  
+
+    for obj in objects:
+        collection.objects.link(obj)  
             
 def unlink_all_from_collection(collection):
     """Unlinks all objects and sub-collections from the given collection while keeping the objects in the scene."""
     scene_collection = bpy.context.scene.collection  
 
     for obj in list(collection.objects): 
-        if len(obj.users_collection) == 1: 
-            scene_collection.objects.link(obj) 
         collection.objects.unlink(obj)  
-
-    for sub_collection in list(collection.children):  
-        if sub_collection not in scene_collection.children:
-            scene_collection.children.link(sub_collection)  
+        scene_collection.objects.link(obj) 
+            
+    for sub_collection in list(collection.children):       
         collection.children.unlink(sub_collection)  
+        scene_collection.children.link(sub_collection)
 
 
 class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
@@ -429,6 +427,7 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
             clear_parents_keep_transform(working_object_set)
             mekrig_armature = attache_mekrig(gltf_armature, racial_code) 
             mekrig_collection = get_collection(mekrig_armature)
+            
             link_to_collection(working_object_set, mekrig_collection)
             parent_objects(working_object_set, mekrig_armature)
             if self.s_remove_parent_on_poles:
