@@ -306,6 +306,31 @@ def parent_objects(objects, parent_obj, keep_transform=True):
             obj.parent = parent_obj
             obj.matrix_parent_inverse = parent_obj.matrix_world.inverted() if keep_transform else obj.matrix_parent_inverse
 
+def merge_by_name(objects, name_filter):
+    """Merges all objects in the given list that contain the specified name_filter in their name. Returns an updated object list."""
+    filtered_objects = [obj for obj in objects if name_filter.lower() in obj.name.lower() and obj.type == "MESH"]
+    
+    updated_objects = set(objects)
+
+    if len(filtered_objects) < 2:
+        return list(updated_objects)  
+
+    bpy.ops.object.select_all(action='DESELECT')  
+    for obj in filtered_objects:
+        obj.select_set(True)
+
+    bpy.context.view_layer.objects.active = filtered_objects[0]  
+    bpy.ops.object.join() 
+
+    merged_object = bpy.context.view_layer.objects.active
+
+    updated_objects.difference_update(filtered_objects)  
+    updated_objects.add(merged_object) 
+
+    bpy.ops.object.select_all(action='DESELECT') 
+
+    return list(updated_objects)  
+
 class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
     """Import GLTF from Meddle and perform cleanup tasks"""
     bl_idname = "mektools.import_meddle_gltf"
@@ -315,6 +340,9 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
     
     import_with_shaders_setting: BoolProperty(name="Import with Meddle Shaders", description="Tries to also import all shaders from meddle shader cache", default=True)
     append_mekrig: BoolProperty(name="Append Mekrig", description="Appends Mekrig, disable for Object import", default=True)
+    merge_skin: BoolProperty(name="Merge Skin", description="Merges all skin objects", default=True)
+    merge_by_material: BoolProperty(name="Merge by Material", description="Merges all objects with the same material", default=True)
+    import_collection: BoolProperty(name="Import-Collection", description="Stores all import in a seperatre Collection", default=False)
     remove_parent_on_poles: BoolProperty(name="Remove Parents from Pole-Targets", description="Removes the Parent from Pole-Targets", default=False)
     spline_tail: BoolProperty(name="Generate spline tail", description="Generates and replaces the tail with Spline IKs", default=False)
     spline_gear: BoolProperty(name="Generate spline Gear", description="Generates and replaces the gear with Spline IKs", default=False)
@@ -333,6 +361,9 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
       
         layout.prop(self, "import_with_shaders_setting", toggle=False)
         layout.prop(self, "append_mekrig", toggle=False)
+        layout.prop(self, "merge_skin", toggle=False)
+        layout.prop(self, "merge_by_material", toggle=False)
+        layout.prop(self, "import_collection", toggle=False)
         layout.prop(self, "remove_parent_on_poles", toggle=False)
         if self.prefs.ex_button_spline_tail == 'ON': 
             layout.prop(self, "spline_tail", toggle=False)
@@ -344,16 +375,21 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
 
         #base import function
         import_collection = create_collection("Meddle_Import")
-        imported_gltf = import_gltf(self.filepath, import_collection)
+        working_object_set = import_gltf(self.filepath, import_collection)
         
         racial_code_identifier="iri"
-        racial_code = get_racial_code(imported_gltf, racial_code_identifier)
+        racial_code = get_racial_code(working_object_set, racial_code_identifier)
         
-        gltf_armature = find_armature_in_objects(imported_gltf)
-        remove_custom_shapes(gltf_armature)      
-        clear_parents_keep_transform(imported_gltf)
+        gltf_armature = find_armature_in_objects(working_object_set)
+        if gltf_armature:
+            remove_custom_shapes(gltf_armature)      
         
-        working_object_set = merge_by_material(imported_gltf)
+        if self.merge_by_material:
+            working_object_set = merge_by_material(working_object_set)
+        
+        if self.merge_skin:
+            working_object_set = merge_by_name(working_object_set, 'skin')
+        
         
         #checking for user options
         if self.import_with_shaders_setting:
@@ -363,6 +399,7 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
             bpy.ops.material.material_fixer_auto()
             
         if self.append_mekrig:
+            clear_parents_keep_transform(working_object_set)
             mekrig_armature = attache_mekrig(gltf_armature, racial_code) 
             parent_objects(working_object_set, mekrig_armature)
             if self.remove_parent_on_poles:
