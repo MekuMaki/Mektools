@@ -273,9 +273,26 @@ def remove_custom_shapes(armature):
     bpy.ops.object.mode_set(mode="OBJECT")
 
 def assign_bones_to_collection(armature, bone_keywords, collection_name):
-    """Searches for bones in an armature containing specific keywords in their name and assigns them to a bone collection."""
-    
-    bpy.ops.object.mode_set(mode='POSE')
+    """Searches for bones in an armature containing specific keywords in their name and assigns them to a bone collection using the new bone collection system."""
+    if not armature or armature.type != "ARMATURE":
+        print("❌ The provided object is not a valid armature.")
+        return
+
+    bone_collections = armature.pose.bone_collections
+    bone_collection = bone_collections.get(collection_name)
+
+    if not bone_collection:
+        bone_collection = bone_collections.new(name=collection_name)
+        print(f"✅ Created bone collection: {collection_name}")
+
+    # 🔹 Assign matching bones to the collection
+    assigned_bones = []
+    for bone in armature.pose.bones:
+        if any(keyword in bone.name for keyword in bone_keywords):  # Match substrings
+            bone.bone_collection = bone_collection  # Assign to collection
+            assigned_bones.append(bone.name)
+
+    print(f"[Mektools] ✅ Assigned {len(assigned_bones)} bones to collection '{collection_name}': {assigned_bones}")
 
     bone_collections = armature.pose.bone_collections
     bone_collection = bone_collections.get(collection_name)
@@ -293,6 +310,7 @@ def assign_bones_to_collection(armature, bone_keywords, collection_name):
 
     # 🔹 Return assigned bones for verification
     print(f"✅ Assigned {len(assigned_bones)} bones to collection '{collection_name}': {assigned_bones}")
+>>>>>>> origin/feature/gtlf_refactor
 
 def attache_mekrig(armature, racial_code):
     """Imports Mekrig, removes duplicate bones and merges it with any armature present in objects list. Returns Mekrig Armature"""
