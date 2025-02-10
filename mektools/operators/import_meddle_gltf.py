@@ -272,12 +272,37 @@ def remove_custom_shapes(armature):
             
     bpy.ops.object.mode_set(mode="OBJECT")
 
+def assign_bones_to_collection(armature, bone_keywords, collection_name):
+    """Searches for bones in an armature containing specific keywords in their name and assigns them to a bone collection."""
+    
+    bpy.ops.object.mode_set(mode='POSE')
+
+    bone_collections = armature.pose.bone_collections
+    bone_collection = bone_collections.get(collection_name)
+
+    if not bone_collection:
+        bone_collection = bone_collections.new(name=collection_name)
+        print(f"✅ Created bone collection: {collection_name}")
+
+    # 🔹 Assign matching bones to the collection
+    assigned_bones = []
+    for bone in armature.pose.bones:
+        if any(keyword in bone.name for keyword in bone_keywords):  # Match substrings
+            bone.bone_collection = bone_collection  # Assign to collection
+            assigned_bones.append(bone.name)
+
+    # 🔹 Return assigned bones for verification
+    print(f"✅ Assigned {len(assigned_bones)} bones to collection '{collection_name}': {assigned_bones}")
+
 def attache_mekrig(armature, racial_code):
     """Imports Mekrig, removes duplicate bones and merges it with any armature present in objects list. Returns Mekrig Armature"""
     if armature:
         mekrig = append_mekrig(racial_code)
          
         merged_armature = merge_armatures(mekrig, armature)
+        assign_bones_to_collection(merged_armature, ['j_ex', 'j_kami'], 'Hair')
+        assign_bones_to_collection(merged_armature, ['phys'], 'Physic')
+        assign_bones_to_collection(merged_armature, ['iv_'], 'IVCS')
         
         return merged_armature
     return None
@@ -359,8 +384,7 @@ def link_to_collection(objects, collection):
                 collection.objects.link(obj)  
         except ReferenceError:
             print(f"[Mektools] Skipping deleted object: {obj}")
-        
-            
+                    
 def unlink_from_collection(collection):
     """Unlinks all objects and sub-collections from the given collection while keeping the objects in the scene."""
     scene_collection = bpy.context.scene.collection  
@@ -372,8 +396,7 @@ def unlink_from_collection(collection):
     for sub_collection in list(collection.children):       
         collection.children.unlink(sub_collection)  
         scene_collection.children.link(sub_collection)
-        
-        
+                
 def delete_rna_from_objects(objects):
     new_objects = set()
     for obj in objects:
@@ -383,7 +406,6 @@ def delete_rna_from_objects(objects):
         except ReferenceError:
             pass    
     return new_objects
-
 
 class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
     """Import GLTF from Meddle and perform cleanup tasks"""
@@ -457,7 +479,7 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
             mekrig_armature = attache_mekrig(gltf_armature, racial_code) 
             mekrig_collection = get_collection(mekrig_armature)
             
-            working_object_set = delete_rna_from_objects(working_object_set)  
+            working_object_set = delete_rna_from_objects(working_object_set) # this is here because some of the functions within this iflcause modify the working object set without returning it. Idk wich one it is tho. 
             link_to_collection(working_object_set, mekrig_collection)
             parent_objects(working_object_set, mekrig_armature)
             if self.s_remove_parent_on_poles:
