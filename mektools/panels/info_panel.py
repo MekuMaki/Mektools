@@ -8,6 +8,7 @@ import zipfile
 import sys
 import subprocess
 from bpy.types import Panel, Operator
+from ..addon_preferences import get_addon_preferences 
 
 # GitHub Repository Details
 GITHUB_USER = "MekuMaki"
@@ -262,14 +263,17 @@ class VIEW3D_PT_SupportCommunity(bpy.types.Panel):
             layout.operator("mektools.restart_blender", text="Restart Blender", icon="FILE_REFRESH")
 
 def register():
+    prefs = get_addon_preferences()
     bpy.utils.register_class(MEKTOOLS_OT_InstallUpdate)
     bpy.utils.register_class(MEKTOOLS_OT_RestartBlender)
     bpy.utils.register_class(VIEW3D_PT_SupportCommunity)
     bpy.utils.register_class(MEKTOOLS_OT_CheckForUpdate)
-    bpy.app.timers.register(check_for_updates, first_interval=2)  # Auto-check after 3 seconds
+    if prefs.search_for_update == 'ON':
+        bpy.app.timers.register(check_for_updates, first_interval=2)  
     
 
 def unregister():
+    bpy.app.timers.unregister(check_for_updates)
     bpy.utils.unregister_class(MEKTOOLS_OT_InstallUpdate)
     bpy.utils.unregister_class(MEKTOOLS_OT_RestartBlender)
     bpy.utils.unregister_class(VIEW3D_PT_SupportCommunity)

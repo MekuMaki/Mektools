@@ -8,7 +8,7 @@ from collections import defaultdict, namedtuple
 import re
 from ..addon_preferences import get_addon_preferences 
 
-
+prefs = get_addon_preferences()
 # Load the bone names from bone_names.py in the data folder
 DATA_PATH = os.path.join(os.path.dirname(__file__), "../data")
 BONE_NAMES_FILE = os.path.join(DATA_PATH, "bone_names.py")
@@ -317,9 +317,10 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
     import_with_shaders_setting: BoolProperty(name="Import with Meddle Shaders", description="Tries to also import all shaders from meddle shader cache", default=True)
     append_mekrig: BoolProperty(name="Append Mekrig", description="Appends Mekrig, disable for Object import", default=True)
     remove_parent_on_poles: BoolProperty(name="Remove Parents from Pole-Targets", description="Removes the Parent from Pole-Targets", default=False)
+    spline_tail: BoolProperty(name="Generate spline tail", description="Generates and replaces the tail with Spline IKs", default=False)
+    spline_gear: BoolProperty(name="Generate spline Gear", description="Generates and replaces the gear with Spline IKs", default=False)
     
     def invoke(self, context, event):
-        prefs = get_addon_preferences()
         if prefs.default_meddle_import_path:
             self.filepath = prefs.default_meddle_import_path
         context.window_manager.fileselect_add(self)
@@ -333,6 +334,10 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
         layout.prop(self, "import_with_shaders_setting", toggle=False)
         layout.prop(self, "append_mekrig", toggle=False)
         layout.prop(self, "remove_parent_on_poles", toggle=False)
+        if prefs.ex_button_spline_tail == 'ON': 
+            layout.prop(self, "spline_tail", toggle=False)
+        if prefs.ex_button_spline_gear == 'ON': 
+            layout.prop(self, "spline_gear", toggle=False)
 
     def execute(self, context):  
         bpy.context.window.cursor_set('WAIT')      
