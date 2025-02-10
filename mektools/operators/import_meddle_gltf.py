@@ -333,17 +333,20 @@ def merge_by_name(objects, name_filter):
 
 def get_collection(object):
     """Returns the collection that contains this object."""
-    return object.users_collection
+    for collection in bpy.data.collections:
+        if any(object is coll_obj for coll_obj in collection.objects): 
+            return collection  
+    return None  
 
 def link_to_collection(objects, collection):
     for obj in objects:
         for coll in list(obj.users_collection): 
-            coll.objects.unlink(obj)  
+            coll.objects.unlink(obj) ### prolly wont work beacuse obj.users_collection returns a tuple 
 
     for obj in objects:
         collection.objects.link(obj)  
             
-def unlink_all_from_collection(collection):
+def unlink_from_collection(collection):
     """Unlinks all objects and sub-collections from the given collection while keeping the objects in the scene."""
     scene_collection = bpy.context.scene.collection  
 
@@ -435,7 +438,7 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
                 
                 
         if not self.s_import_collection:
-            unlink_all_from_collection(import_collection)
+            unlink_from_collection(import_collection)
             bpy.data.collections.remove(import_collection) 
         
         bpy.ops.object.select_all(action='DESELECT')
