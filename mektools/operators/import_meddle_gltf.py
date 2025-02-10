@@ -342,6 +342,15 @@ def link_to_collection(objects, collection):
     for obj in objects:
         if not any(obj is coll_obj for coll_obj in collection.objects):
             collection.objects.link(obj)
+            
+def unlink_all_from_collection(collection):
+    """Unlinks all objects from the given collection."""
+    if collection:
+        for obj in list(collection.objects):  
+            collection.objects.unlink(obj)
+        for sub_collection in list(collection.children):
+            collection.children.unlink(sub_collection)
+
 
 class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
     """Import GLTF from Meddle and perform cleanup tasks"""
