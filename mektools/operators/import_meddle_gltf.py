@@ -147,8 +147,9 @@ def restore_bone_parents(armature, original_parents):
     bpy.ops.object.mode_set(mode="OBJECT") 
                       
 def merge_by_material(objects):
-    """Merges objects that share the same material and returns the updated list of objects."""
+    """Merges objects that share the same material and returns the updated list of all objects, including non-mesh objects that were not modified."""
     material_mesh_groups = defaultdict(list)
+    all_objects = set(objects)  
 
     for obj in objects:
         try:
@@ -156,13 +157,13 @@ def merge_by_material(objects):
                 material_name = obj.data.materials[0].name
                 material_mesh_groups[material_name].append(obj)
         except ReferenceError:
-            print(f"[Mektools] Skipping deleted object: {obj}")
+            print(f"[MekTools] Skipping deleted object: {obj}")
 
     new_objects = set()  
 
     for material, meshes in material_mesh_groups.items():
         if len(meshes) < 2:
-            new_objects.update(meshes)  
+            new_objects.update(meshes)  # Keep unmerged meshes
             continue
         bpy.ops.object.select_all(action='DESELECT')
         for mesh in meshes:
@@ -171,10 +172,13 @@ def merge_by_material(objects):
         bpy.ops.object.join()
         merged_object = bpy.context.view_layer.objects.active
         new_objects.add(merged_object)
-
         bpy.ops.object.select_all(action='DESELECT')
-        
-    return list(new_objects)
+
+    non_mesh_objects = {obj for obj in all_objects if obj.type != "MESH"}
+    
+    updated_objects = new_objects | non_mesh_objects  
+
+    return list(updated_objects)
 
 def find_armature_in_objects(objects):
     """Finds the first armature in the objects imported."""
