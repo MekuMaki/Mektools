@@ -174,7 +174,13 @@ def merge_by_material(objects):
         new_objects.add(merged_object)
         bpy.ops.object.select_all(action='DESELECT')
 
-    non_mesh_objects = {obj for obj in all_objects if obj.type != "MESH"}
+    non_mesh_objects = set()
+    for obj in all_objects:
+        try:
+            if obj.type != "MESH":
+                non_mesh_objects.add(obj)
+        except ReferenceError:
+            print(f"[MekTools] Skipping deleted object: {obj}")
     
     updated_objects = new_objects | non_mesh_objects  
 
