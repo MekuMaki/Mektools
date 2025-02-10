@@ -302,9 +302,12 @@ def parent_objects(objects, parent_obj, keep_transform=True):
     bpy.ops.object.mode_set(mode="OBJECT")  
 
     for obj in objects:
-        if obj != parent_obj:  
-            obj.parent = parent_obj
-            obj.matrix_parent_inverse = parent_obj.matrix_world.inverted() if keep_transform else obj.matrix_parent_inverse
+        try:
+            if obj != parent_obj:  
+                obj.parent = parent_obj
+                obj.matrix_parent_inverse = parent_obj.matrix_world.inverted() if keep_transform else obj.matrix_parent_inverse
+        except ReferenceError:
+            print(f"[Mektools] Skipping deleted object: {obj}")        
 
 def merge_by_name(objects, name_filter):
     """Merges all objects in the given list that contain the specified name_filter in their name. Returns an updated object list."""
@@ -340,11 +343,13 @@ def get_collection(object):
 
 def link_to_collection(objects, collection):
     for obj in objects:
-        for coll in list(obj.users_collection): 
-            coll.objects.unlink(obj) ### prolly wont work beacuse obj.users_collection returns a tuple 
-
-    for obj in objects:
-        collection.objects.link(obj)  
+        try: 
+            for coll in list(obj.users_collection): 
+                coll.objects.unlink(obj)
+                collection.objects.link(obj)  
+        except ReferenceError:
+            print(f"[Mektools] Skipping deleted object: {obj}")
+        
             
 def unlink_from_collection(collection):
     """Unlinks all objects and sub-collections from the given collection while keeping the objects in the scene."""
