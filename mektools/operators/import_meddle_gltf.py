@@ -430,6 +430,7 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
                 
                 
         if not self.s_import_collection:
+            unlink_all_from_collection(import_collection)
             bpy.data.collections.remove(import_collection) 
         
         bpy.ops.object.select_all(action='DESELECT')
