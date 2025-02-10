@@ -8,7 +8,6 @@ from collections import defaultdict, namedtuple
 import re
 from ..addon_preferences import get_addon_preferences 
 
-prefs = get_addon_preferences()
 # Load the bone names from bone_names.py in the data folder
 DATA_PATH = os.path.join(os.path.dirname(__file__), "../data")
 BONE_NAMES_FILE = os.path.join(DATA_PATH, "bone_names.py")
@@ -321,8 +320,9 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
     spline_gear: BoolProperty(name="Generate spline Gear", description="Generates and replaces the gear with Spline IKs", default=False)
     
     def invoke(self, context, event):
-        if prefs.default_meddle_import_path:
-            self.filepath = prefs.default_meddle_import_path
+        self.prefs = get_addon_preferences()
+        if self.prefs.default_meddle_import_path:
+            self.filepath = self.prefs.default_meddle_import_path
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
     
@@ -334,9 +334,9 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
         layout.prop(self, "import_with_shaders_setting", toggle=False)
         layout.prop(self, "append_mekrig", toggle=False)
         layout.prop(self, "remove_parent_on_poles", toggle=False)
-        if prefs.ex_button_spline_tail == 'ON': 
+        if self.prefs.ex_button_spline_tail == 'ON': 
             layout.prop(self, "spline_tail", toggle=False)
-        if prefs.ex_button_spline_gear == 'ON': 
+        if self.prefs.ex_button_spline_gear == 'ON': 
             layout.prop(self, "spline_gear", toggle=False)
 
     def execute(self, context):  
