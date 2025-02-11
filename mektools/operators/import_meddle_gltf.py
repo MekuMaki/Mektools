@@ -566,7 +566,7 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
     def execute(self, context):  
         bpy.context.window.cursor_set('WAIT')   
         
-        if not self.filepath: 
+        if not self.filepath or not (self.filepath.lower().endswith(".gltf") or self.filepath.lower().endswith(".glb")): 
             self.report({'ERROR'}, "Please select a File")
             return {'CANCELLED'}   
 
