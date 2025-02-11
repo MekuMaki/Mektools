@@ -247,10 +247,10 @@ def link_objects_to_collection(objects, collection):
         except ReferenceError:
             print(f"[Mektools] Skipping deleted object: {obj}")
            
-def import_gltf(filepath: str, collection = None, pack_images = False, disable_bone_shape = False):
+def import_gltf(filepath: str, collection = None, pack_images = True, disable_bone_shape = False, merge_vertices = False):
     """Imports GLTF. Returns List of imported objects"""
     scene_obects = set(bpy.context.scene.objects)
-    bpy.ops.import_scene.gltf(filepath=filepath, import_pack_images=pack_images, disable_bone_shape=disable_bone_shape)  
+    bpy.ops.import_scene.gltf(filepath=filepath, import_pack_images=pack_images, disable_bone_shape=disable_bone_shape, merge_vertices=merge_vertices)  
     
     garbage_collection = bpy.data.collections.get("glTF_not_exported")
     if garbage_collection:
@@ -445,7 +445,8 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
     filepath: bpy.props.StringProperty(subtype="FILE_PATH")# type: ignore
     filter_glob: bpy.props.StringProperty(default='*.gltf', options={'HIDDEN'})# type: ignore
     
-    s_pack_images: BoolProperty(name="Pack-Images", description="Pack all Images into .blend file", default=False)# type: ignore    #PlaceHolder
+    s_pack_images: BoolProperty(name="Pack-Images", description="Pack all Images into .blend file", default=True)# type: ignore   
+    s_merge_vertices: BoolProperty(name="Merge Vertices", description="The glTF format requires discontinuous normals, UVs, and other vertex attributes to be stored as separate vertices, as required for rendering on typical graphics hardware. This option attempts to combine co -located vertices where possible. Currently cannot combine verts with different normals.", default=False)# type: ignore  
     s_import_collection: BoolProperty(name="Import-Collection", description="Stores all import in a seperatre Collection", default=False)# type: ignore
     
     s_merge_skin: BoolProperty(name="Merge Skin", description="Merges all skin objects", default=True)# type: ignore
@@ -494,6 +495,10 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
         split = col.split(factor=indent)
         split.label(text=" ")
         split.prop(self, "s_pack_images", text="Pack Images")
+        
+        split = col.split(factor=indent)
+        split.label(text=" ")
+        split.prop(self, "s_merge_vertices", text="Merge Vertices")
 
         split = col.split(factor=indent)  
         split.label(text=" ")
@@ -532,7 +537,7 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
         col = box.column(align=True)
         split = col.split(factor=indent)  
         split.label(text=" ")
-        split.prop(self, "s_disable_bone_shapes", text="Disable Bone Shapes")
+        split.prop(self, "s_disable_bone_shape", text="Disable Bone Shapes")
 
         # 🔹 Armature Type Selection (Vanilla vs Mekrig)
         row = box.row()
@@ -563,15 +568,12 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
 
         #base import function
         import_collection = create_collection("Meddle_Import")
-        working_object_set = import_gltf(self.filepath, import_collection, self.s_pack_images, self.s_disable_bone_shape)
+        working_object_set = import_gltf(self.filepath, import_collection, self.s_pack_images, self.s_disable_bone_shape, self.s_merge_vertices)
         
         racial_code_identifier="iri"
         racial_code = get_racial_code(working_object_set, racial_code_identifier)
         
-        #gltf_armature = find_armature_in_objects(working_object_set)
-        #if gltf_armature:
-            #if self.s_disable_bone_shapes:
-                #remove_custom_shapes(gltf_armature)    
+        gltf_armature = find_armature_in_objects(working_object_set)  
         
         if self.s_merge_by_material:
             working_object_set = merge_by_material(working_object_set)
