@@ -473,48 +473,53 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
     
     def draw(self, context):
         layout = self.layout
+        settings = context.scene.import_settings  # Access property group
 
         # 🔹 Import Settings Title
         layout.label(text="Import Settings", icon="PREFERENCES")
 
-        # 🔹 Mesh Options
+        # 🔹 Mesh Options Section
         box = layout.box()
         row = box.row()
         row.label(text="Mesh Options", icon="MESH_DATA")
 
-        box.prop(self, "s_merge_skin", text="Merge Skin", toggle=True)
-        box.prop(self, "s_merge_by_material", text="Merge by Material", toggle=True)
+        col = box.column(align=True)
+        col.prop(settings, "s_merge_skin", text="Merge Skin")
+        col.prop(settings, "s_merge_by_material", text="Merge by Material")
 
-        # 🔹 Shaders
+        # 🔹 Shaders Section
         box = layout.box()
         row = box.row()
         row.label(text="Shaders", icon="SHADING_RENDERED")
 
-        box.prop(self, "s_import_with_shaders_setting", text="Append Meddle Shaders", toggle=True)
+        col = box.column(align=True)
+        col.prop(settings, "s_import_with_shaders_setting", text="Append Meddle Shaders")
 
-        # 🔹 Armature Options
+        # 🔹 Armature Section
         box = layout.box()
         row = box.row()
         row.label(text="Armature", icon="ARMATURE_DATA")
 
-        box.prop(self, "s_disable_bone_shapes", text="Disable Bone Shapes", toggle=True)
+        col = box.column(align=True)
+        col.prop(settings, "s_disable_bone_shapes", text="Disable Bone Shapes")
 
-        # 🔹 Armature Type (Vanilla vs Mekrig)
+        # 🔹 Armature Type Selection (Vanilla vs Mekrig)
         row = box.row()
         row.label(text="Armature Type:")
-        armature_type_row = row.row(align=True)
-        armature_type_row.prop(self, "s_armature_type", expand=True)
+        row.prop(settings, "s_armature_type", expand=True)
 
         # ❌ Disable Mekrig-Specific Settings if "Vanilla" is Selected
-        is_mekrig = self.s_armature_type == "Mekrig"
+        is_mekrig = settings.s_armature_type == "MEKRIG"
 
-        box.prop(self, "s_remove_parent_on_poles", text="Unparent Pole Targets", toggle=True, enabled=is_mekrig)
+        col = box.column(align=True)
+        col.prop(settings, "s_remove_parent_on_poles", text="Unparent Pole Targets", enabled=is_mekrig)
 
-        if self.prefs.ex_button_spline_tail == 'ON':
-            box.prop(self, "s_spline_tail", text="Generate Spline Tail", toggle=True, enabled=is_mekrig)
+        if settings.prefs.ex_button_spline_tail == 'ON':
+            col.prop(settings, "s_spline_tail", text="Generate Spline Tail", enabled=is_mekrig)
 
-        if self.prefs.ex_button_spline_gear == 'ON':
-            box.prop(self, "s_spline_gear", text="Generate Spline Gear", toggle=True, enabled=is_mekrig)
+        if settings.prefs.ex_button_spline_gear == 'ON':
+            col.prop(settings, "s_spline_gear", text="Generate Spline Gear", enabled=is_mekrig)
+
 
     def execute(self, context):  
         bpy.context.window.cursor_set('WAIT')      
