@@ -247,10 +247,10 @@ def link_objects_to_collection(objects, collection):
         except ReferenceError:
             print(f"[Mektools] Skipping deleted object: {obj}")
            
-def import_gltf(filepath: str, collection = None):
+def import_gltf(filepath: str, collection = None, pack_images = False, disable_bone_shapes = False):
     """Imports GLTF. Returns List of imported objects"""
     scene_obects = set(bpy.context.scene.objects)
-    bpy.ops.import_scene.gltf(filepath=filepath)  
+    bpy.ops.import_scene.gltf(filepath=filepath, import_pack_images=pack_images, disable_bone_shapes=disable_bone_shapes)  
     
     garbage_collection = bpy.data.collections.get("glTF_not_exported")
     if garbage_collection:
@@ -538,7 +538,8 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
         row = box.row()
         split = row.split(factor=indent)
         split.label(text="Armature Type:")
-        split.prop(self, "s_armature_type", expand=True)
+        row = split.row(align=True)
+        row.prop(self, "s_armature_type", expand=True)
         
         col = box.column(align=True)
         col.active = self.s_armature_type == 'Mekrig'
@@ -562,15 +563,15 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
 
         #base import function
         import_collection = create_collection("Meddle_Import")
-        working_object_set = import_gltf(self.filepath, import_collection)
+        working_object_set = import_gltf(self.filepath, import_collection, self.s_pack_images, self.s_disable_bone_shapes)
         
         racial_code_identifier="iri"
         racial_code = get_racial_code(working_object_set, racial_code_identifier)
         
-        gltf_armature = find_armature_in_objects(working_object_set)
-        if gltf_armature:
-            if self.s_disable_bone_shapes:
-                remove_custom_shapes(gltf_armature)    
+        #gltf_armature = find_armature_in_objects(working_object_set)
+        #if gltf_armature:
+            #if self.s_disable_bone_shapes:
+                #remove_custom_shapes(gltf_armature)    
         
         if self.s_merge_by_material:
             working_object_set = merge_by_material(working_object_set)
