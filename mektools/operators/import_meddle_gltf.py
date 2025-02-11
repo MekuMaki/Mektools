@@ -7,6 +7,7 @@ from bpy.props import BoolProperty
 from collections import defaultdict, namedtuple
 import re
 from ..addon_preferences import get_addon_preferences 
+from ..generator.tail_spline import generatr_tail_spline_ik
 
 # Load the bone names from bone_names.py in the data folder
 DATA_PATH = os.path.join(os.path.dirname(__file__), "../data")
@@ -598,11 +599,20 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
             mekrig_armature = attache_mekrig(gltf_armature, racial_code) 
             mekrig_collection = get_collection(mekrig_armature)
             
-            working_object_set = delete_rna_from_objects(working_object_set) # this is here because some of the functions within this iflcause modify the working object set without returning it. Idk wich one it is tho. 
+            working_object_set = delete_rna_from_objects(working_object_set) # this is just for sanity
             link_to_collection(working_object_set, mekrig_collection)
             parent_objects(working_object_set, mekrig_armature)
+            
             if self.s_remove_parent_on_poles:
                 remove_pole_parents(mekrig_armature)  
+                
+            if self.s_spline_tail:
+                reference_bones = ["n_sippo_a", "n_sippo_b", "n_sippo_c", "n_sippo_d", "n_sippo_e"]
+                generatr_tail_spline_ik(
+                    armature=mekrig_armature,
+                    reference_bone_names=reference_bones,
+                    curve_name="TailCurve"
+                )
                 
                 
         if not self.s_import_collection:
