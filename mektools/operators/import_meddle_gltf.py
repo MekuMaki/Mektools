@@ -441,7 +441,7 @@ def set_bone_display(armature, bones, cs_bone_name = None, theme = None):
 class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
     """Import GLTF from Meddle and perform cleanup tasks"""
     bl_idname = "mektools.import_meddle_gltf"
-    bl_label = "Import GLTF from Meddle"
+    bl_label = "Meddle Import"
     filepath: bpy.props.StringProperty(subtype="FILE_PATH")# type: ignore
     filter_glob: bpy.props.StringProperty(default='*.gltf', options={'HIDDEN'})# type: ignore
     
@@ -502,7 +502,7 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
 
         split = col.split(factor=indent)  
         split.label(text=" ")
-        split.prop(self, "s_import_collection", text="Create Import-Collection")
+        split.prop(self, "s_import_collection", text="Create Collection")
         
         # 🔹 Mesh Options Section
         box = layout.box()
@@ -564,7 +564,11 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
 
 
     def execute(self, context):  
-        bpy.context.window.cursor_set('WAIT')      
+        bpy.context.window.cursor_set('WAIT')   
+        
+        if not self.filepath: 
+            self.report({'ERROR'}, "Please select a File")
+            return {'CANCELLED'}   
 
         #base import function
         import_collection = create_collection("Meddle_Import")
