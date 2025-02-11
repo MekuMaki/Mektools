@@ -473,7 +473,7 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
     
     def draw(self, context):
         layout = self.layout
-        settings = context.scene.import_settings  # Access property group
+        settings = context.scene.display_settings  # Access property group
 
         # 🔹 Import Settings Title
         layout.label(text="Import Settings", icon="PREFERENCES")
