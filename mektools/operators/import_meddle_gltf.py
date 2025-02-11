@@ -247,10 +247,10 @@ def link_objects_to_collection(objects, collection):
         except ReferenceError:
             print(f"[Mektools] Skipping deleted object: {obj}")
            
-def import_gltf(filepath: str, collection = None, pack_images = False, disable_bone_shapes = False):
+def import_gltf(filepath: str, collection = None, pack_images = False, disable_bone_shape = False):
     """Imports GLTF. Returns List of imported objects"""
     scene_obects = set(bpy.context.scene.objects)
-    bpy.ops.import_scene.gltf(filepath=filepath, import_pack_images=pack_images, disable_bone_shapes=disable_bone_shapes)  
+    bpy.ops.import_scene.gltf(filepath=filepath, import_pack_images=pack_images, disable_bone_shape=disable_bone_shape)  
     
     garbage_collection = bpy.data.collections.get("glTF_not_exported")
     if garbage_collection:
@@ -453,7 +453,7 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
     
     s_import_with_shaders_setting: BoolProperty(name="Import with Meddle Shaders", description="Tries to also import all shaders from meddle shader cache", default=True)# type: ignore
         
-    s_disable_bone_shapes: BoolProperty(name="Disable Bone Shapes", description="Disables the generation of Bone Shapes on Import", default=True)# type: ignore
+    s_disable_bone_shape: BoolProperty(name="Disable Bone Shapes", description="Disables the generation of Bone Shapes on Import", default=True)# type: ignore
     
     s_remove_parent_on_poles: BoolProperty(name="Remove Parents from Pole-Targets", description="Removes the Parent from Pole-Targets", default=False)# type: ignore
     s_spline_tail: BoolProperty(name="Generate spline tail", description="Generates and replaces the tail with Spline IKs", default=False)# type: ignore
@@ -563,7 +563,7 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
 
         #base import function
         import_collection = create_collection("Meddle_Import")
-        working_object_set = import_gltf(self.filepath, import_collection, self.s_pack_images, self.s_disable_bone_shapes)
+        working_object_set = import_gltf(self.filepath, import_collection, self.s_pack_images, self.s_disable_bone_shape)
         
         racial_code_identifier="iri"
         racial_code = get_racial_code(working_object_set, racial_code_identifier)
