@@ -2,13 +2,16 @@ import bpy
 import json
 import os
 
+from . import (
+    addon_preferences,
+)
+
 from .panels import (
     info_panel, 
     mektools_import_panel,
     pose_panel,
     glb_export_panel,
-    
-    
+        
 )
 from .operators import (
     import_meddle_gltf, 
@@ -23,11 +26,6 @@ from .operators import (
     pose_helper,
 )
 
-from . import (
-    addon_preferences,
-)
-
-
 bl_info = {
     "name": "MekTools",
     "author": "MekuMaki & Shino Mythmaker",
@@ -39,6 +37,9 @@ bl_info = {
 }
 
 def register():
+    #register all preferences
+    addon_preferences.register()
+    
     # Register all panels
     info_panel.register()
     mektools_import_panel.register()
@@ -56,9 +57,6 @@ def register():
     lizzer_auto_shaders.register()
     fixer_operators.register()
     pose_helper.register()
-    
-    #register all preferences
-    addon_preferences.register()
 
 def unregister():
     # Unregister all panels

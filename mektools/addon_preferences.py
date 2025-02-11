@@ -13,9 +13,19 @@ class MektoolsPreferences(AddonPreferences):
         description="Select a preference tab",
         items=[
             ('GENERAL', "General", "General settings"),
+            ('PATHS', "Paths", "Set default paths for various functions"),
+            ('EXPERIMENTAL', "Experimental", "Enabel or disable experimental buttrons"),
             ('LEGACY', "Legacy Buttons", "Enable or disable legacy buttons"),
         ],
         default='GENERAL'
+    )
+
+    # General Settings
+    search_for_update: EnumProperty(
+        name="Update Check",
+        description="Checks for update on Startup. You still have to manually Install and Update.",
+        items=[('OFF', "Disable", ""), ('ON', "Enable", "")],
+        default='ON'
     )
 
     # Default File Paths
@@ -43,7 +53,29 @@ class MektoolsPreferences(AddonPreferences):
         description="Select the default directory for importing pose files"
     )
 
-    # Legacy Buttons with Proper Toggle Layout
+    # Experimental Buttons
+    ex_button_import_pose: EnumProperty(
+        name="Import Pose",
+        description="Enables/Disables Pose Import function",
+        items=[('OFF', "Disable", ""), ('ON', "Enable", "")],
+        default='OFF'
+    )
+    
+    ex_button_spline_tail: EnumProperty(
+        name="Spline Tail",
+        description="Enables/Disables import option to generate a spline IK around the tail.",
+        items=[('OFF', "Disable", ""), ('ON', "Enable", "")],
+        default='OFF'
+    )
+    
+    ex_button_spline_gear: EnumProperty(
+        name="Spline Gear",
+        description="Enables/Disables import option to generate a spline IK around the the gear.",
+        items=[('OFF', "Disable", ""), ('ON', "Enable", "")],
+        default='OFF'
+    )
+    
+    # Legacy Buttons
     legacy_button_import_shaders: EnumProperty(
         name="Import Shaders",
         description="Toggle this legacy button on or off",
@@ -87,28 +119,47 @@ class MektoolsPreferences(AddonPreferences):
     )
 
     def draw(self, context):
+        def draw_toggle(label, prop_name):
+                row = box.row()
+                row.label(text=label)
+                row.prop(self, prop_name, expand=True)
+        
         layout = self.layout
 
         # Tabs
         row = layout.row()
         row.prop(self, "tabs", expand=True)
-
+        
         if self.tabs == 'GENERAL':
+            box = layout.box()
+            box.label(text="General Settings")
+
+            draw_toggle("Check for updates on startup", "search_for_update")
+            
+        elif self.tabs == 'PATHS':
             box = layout.box()
             box.label(text="Default File Paths")
             box.prop(self, "default_meddle_import_path")
             box.prop(self, "default_textools_import_path")
             box.prop(self, "default_pose_import_path")
             box.prop(self, "default_pose_export_path")
+            
+        elif self.tabs == 'EXPERIMENTAL':
+            box = layout.box()
+            box.label(text="Experimental Features")
+
+            row = box.row()
+            row.label(text="Meddle Import")
+            draw_toggle("Import with Spline Tail", "ex_button_spline_tail")
+            draw_toggle("Import with Spline Gear", "ex_button_spline_gear")
+            
+            row = box.row()
+            row.label(text="Pose Helper")
+            draw_toggle("Import Pose", "ex_button_import_pose")
 
         elif self.tabs == 'LEGACY':
             box = layout.box()
             box.label(text="Legacy Buttons")
-
-            def draw_toggle(label, prop_name):
-                row = box.row()
-                row.label(text=label)
-                row.prop(self, prop_name, expand=True)
 
             row = box.row()
             row.label(text="Import")

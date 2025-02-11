@@ -1,5 +1,6 @@
 import bpy
 from bpy.types import Panel
+from ..addon_preferences import get_addon_preferences 
    
 class VIEW3D_PT_PoseHelper(Panel):
     bl_idname = "VIEW3D_PT_PoseHelper"
@@ -13,12 +14,14 @@ class VIEW3D_PT_PoseHelper(Panel):
         return context.active_object is not None and context.active_object.type == 'ARMATURE'
 
     def draw(self, context):
+        prefs = get_addon_preferences()
         layout = self.layout
         
         col = layout.column(align=False)
         col.label(text="Pose File")
         row = col.row()
-        row.operator("pose.import", text="Import",icon="IMPORT")
+        if prefs.ex_button_import_pose == 'ON':
+            row.operator("pose.import", text="Import",icon="IMPORT")
         row.operator("pose.export", text="Export",icon = "EXPORT")
         
         col = layout.column(align=False)
