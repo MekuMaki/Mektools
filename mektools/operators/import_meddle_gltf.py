@@ -445,11 +445,16 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
     filepath: bpy.props.StringProperty(subtype="FILE_PATH")# type: ignore
     filter_glob: bpy.props.StringProperty(default='*.gltf', options={'HIDDEN'})# type: ignore
     
-    s_import_with_shaders_setting: BoolProperty(name="Import with Meddle Shaders", description="Tries to also import all shaders from meddle shader cache", default=True)# type: ignore
-    s_disable_bone_shapes: BoolProperty(name="Disable Bone Shapes", description="Disables the generation of Bone Shapes on Import", default=True)# type: ignore
+    s_pack_images: BoolProperty(name="Pack-Images", description="Pack all Images into .blend file", default=False)# type: ignore    #PlaceHolder
+    s_import_collection: BoolProperty(name="Import-Collection", description="Stores all import in a seperatre Collection", default=False)# type: ignore
+    
     s_merge_skin: BoolProperty(name="Merge Skin", description="Merges all skin objects", default=True)# type: ignore
     s_merge_by_material: BoolProperty(name="Merge by Material", description="Merges all objects with the same material", default=True)# type: ignore
-    s_import_collection: BoolProperty(name="Import-Collection", description="Stores all import in a seperatre Collection", default=False)# type: ignore
+    
+    s_import_with_shaders_setting: BoolProperty(name="Import with Meddle Shaders", description="Tries to also import all shaders from meddle shader cache", default=True)# type: ignore
+        
+    s_disable_bone_shapes: BoolProperty(name="Disable Bone Shapes", description="Disables the generation of Bone Shapes on Import", default=True)# type: ignore
+    
     s_remove_parent_on_poles: BoolProperty(name="Remove Parents from Pole-Targets", description="Removes the Parent from Pole-Targets", default=False)# type: ignore
     s_spline_tail: BoolProperty(name="Generate spline tail", description="Generates and replaces the tail with Spline IKs", default=False)# type: ignore
     s_spline_gear: BoolProperty(name="Generate spline Gear", description="Generates and replaces the gear with Spline IKs", default=False) # type: ignore
@@ -472,19 +477,42 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
         return {'RUNNING_MODAL'}
     
     def draw(self, context):
+        indent = 0.3
+        indent_nested = 0.3
         layout = self.layout
 
         # 🔹 Import Settings Title
         layout.label(text="Import Settings", icon="PREFERENCES")
 
+        # 🔹 Import Options Section
+        box = layout.box()
+        row = box.row()
+        row.label(text="GLTF Import", icon="IMPORT")
+
+        col = box.column(align=True)
+    
+        split = col.split(factor=indent)
+        split.label(text=" ")
+        split.prop(self, "s_pack_images", text="Pack Images")
+
+        split = col.split(factor=indent)  
+        split.label(text=" ")
+        split.prop(self, "s_import_collection", text="Create Import-Collection")
+        
         # 🔹 Mesh Options Section
         box = layout.box()
         row = box.row()
         row.label(text="Mesh Options", icon="MESH_DATA")
 
         col = box.column(align=True)
-        col.prop(self, "s_merge_skin", text="Merge Skin")
-        col.prop(self, "s_merge_by_material", text="Merge by Material")
+    
+        split = col.split(factor=indent)
+        split.label(text=" ")
+        split.prop(self, "s_merge_skin", text="Merge Skin")
+
+        split = col.split(factor=indent)  
+        split.label(text=" ")
+        split.prop(self, "s_merge_by_material", text="Merge by Material")
 
         # 🔹 Shaders Section
         box = layout.box()
@@ -492,7 +520,9 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
         row.label(text="Shaders", icon="SHADING_RENDERED")
 
         col = box.column(align=True)
-        col.prop(self, "s_import_with_shaders_setting", text="Append Meddle Shaders")
+        split = col.split(factor=indent)  
+        split.label(text=" ")
+        split.prop(self, "s_import_with_shaders_setting", text="Append Meddle Shaders")
 
         # 🔹 Armature Section
         box = layout.box()
@@ -500,24 +530,31 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
         row.label(text="Armature", icon="ARMATURE_DATA")
 
         col = box.column(align=True)
-        col.prop(self, "s_disable_bone_shapes", text="Disable Bone Shapes")
+        split = col.split(factor=indent)  
+        split.label(text=" ")
+        split.prop(self, "s_disable_bone_shapes", text="Disable Bone Shapes")
 
         # 🔹 Armature Type Selection (Vanilla vs Mekrig)
         row = box.row()
-        row.label(text="Armature Type:")
-        row.prop(self, "s_armature_type", expand=True)
-
-        # ❌ Disable Mekrig-Specific Settings if "Vanilla" is Selected
-        col.active = self.s_armature_type == "MEKRIG"
-
+        split = row.split(factor=indent)
+        split.label(text="Armature Type:")
+        split.prop(self, "s_armature_type", expand=True)
+        
         col = box.column(align=True)
-        col.prop(self, "s_remove_parent_on_poles", text="Unparent Pole Targets")
+        col.active = self.s_armature_type == 'Mekrig'
+        split = col.split(factor=indent_nested)  
+        split.label(text=" ")
+        split.prop(self, "s_remove_parent_on_poles", text="Unparent Pole Targets")
 
         if self.prefs.ex_button_spline_tail == 'ON':
-            col.prop(self, "s_spline_tail", text="Generate Spline Tail")
+            split = col.split(factor=indent_nested)  
+            split.label(text=" ")
+            split.prop(self, "s_spline_tail", text="Generate Spline Tail")
 
         if self.prefs.ex_button_spline_gear == 'ON':
-            col.prop(self, "s_spline_gear", text="Generate Spline Gear")
+            split = col.split(factor=indent_nested)  
+            split.label(text=" ")
+            split.prop(self, "s_spline_gear", text="Generate Spline Gear")
 
 
     def execute(self, context):  
