@@ -11,6 +11,7 @@ from .panels import (
     mektools_import_panel,
     pose_panel,
     glb_export_panel,
+    actors_pt,
         
 )
 from .operators import (
@@ -24,12 +25,13 @@ from .operators import (
     lizzer_auto_shaders, 
     fixer_operators, 
     pose_helper,
+    actors_ot,
 )
 
 bl_info = {
     "name": "MekTools",
     "author": "MekuMaki & Shino Mythmaker",
-    "version": (1,6,6),
+    "version": (1,7,0),
     "blender": (4,2,0),
     "description": "A collection of tools for working with FFXIV models in Blender.",
     "category": "Mektools",
@@ -40,13 +42,14 @@ def register():
     #register all preferences
     addon_preferences.register()
     
-    # Register all panels
+    # Register all panel types
     info_panel.register()
     mektools_import_panel.register()
     pose_panel.register()
     glb_export_panel.register()
+    actors_pt.register()
     
-    # Register all operators
+    # Register all operators types
     import_meddle_gltf.register()
     import_textools_fbx.register()
     export_pose.register()
@@ -57,15 +60,17 @@ def register():
     lizzer_auto_shaders.register()
     fixer_operators.register()
     pose_helper.register()
+    actors_ot.register()
 
 def unregister():
-    # Unregister all panels
+    # Unregister all panel types
     info_panel.unregister()
     mektools_import_panel.unregister()
     pose_panel.unregister()
     glb_export_panel.unregister()
+    actors_pt.unregister()
     
-    # Unregister all operators
+    # Unregister all operator types
     import_meddle_gltf.unregister()
     import_textools_fbx.unregister()
     export_pose.unregister()
@@ -76,6 +81,7 @@ def unregister():
     lizzer_auto_shaders.unregister()
     fixer_operators.unregister()
     pose_helper.unregister()
+    actors_ot.unregister()
    
     #unregister all preferences
     addon_preferences.unregister() 

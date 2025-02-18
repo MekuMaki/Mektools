@@ -7,7 +7,7 @@ from bpy.props import BoolProperty
 from collections import defaultdict, namedtuple
 import re
 from ..addon_preferences import get_addon_preferences 
-from ..generator.tail_spline import generatr_tail_spline_ik
+from ..functions.tail_spline_gen import generatr_tail_spline_ik
 
 # Load the bone names from bone_names.py in the data folder
 DATA_PATH = os.path.join(os.path.dirname(__file__), "../data")
@@ -618,6 +618,9 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
         if not self.s_import_collection:
             unlink_from_collection(import_collection)
             bpy.data.collections.remove(import_collection) 
+            
+        #refresh actor list
+        bpy.ops.mektools.ot_refresh_actors()
         
         bpy.ops.object.select_all(action='DESELECT')
         
