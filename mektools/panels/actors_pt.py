@@ -5,8 +5,8 @@ from ..functions import actors_fn as actors
 
 class ActorItem(bpy.types.PropertyGroup):
     """Stores an armature reference for the UI list"""
-    name: bpy.props.StringProperty(name="Armature Name") # type: ignore
-    armature: bpy.props.PointerProperty(type=bpy.types.Object) # type: ignore
+    name: bpy.props.StringProperty(name="Armature Name") 
+    armature: bpy.props.PointerProperty(type=bpy.types.Object) 
 
 class UI_UL_Actors(bpy.types.UIList):
     """List UI for displaying armatures"""
@@ -42,8 +42,8 @@ class MEKTOOLS_PT_Actors(Panel):
         row = box.row()
         row.template_list("UI_UL_Actors", "", scene, "actors", scene, "actors_index")
 
-        col = row.column(align=True)
-        col.operator("mektools.ot_delete_actor", icon="X", text="")
+        #col = row.column(align=True)
+        #col.operator("mektools.ot_delete_actor", icon="X", text="")
            
 
 def register():

@@ -6,10 +6,10 @@ class MEKTOOLS_OT_ACTORS_RefreshActors(bpy.types.Operator):
 
     def execute(self, context):
         scene = context.scene
-        scene.actors.clear()  # Clears existing data
+        scene.actors.clear()
 
         for obj in bpy.data.objects:
-            if obj.type == 'ARMATURE':  # Add only armatures
+            if obj.type == 'ARMATURE': 
                 actor = scene.actors.add()
                 actor.name = obj.name
                 actor.armature = obj

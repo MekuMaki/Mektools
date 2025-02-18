@@ -7,7 +7,7 @@ from bpy.props import BoolProperty
 from collections import defaultdict, namedtuple
 import re
 from ..addon_preferences import get_addon_preferences 
-from ..functions.tail_spline_gen import generatr_tail_spline_ik
+from ..functions.spline_gen_fn import generatr_tail_spline_ik
 
 # Load the bone names from bone_names.py in the data folder
 DATA_PATH = os.path.join(os.path.dirname(__file__), "../data")
@@ -310,10 +310,16 @@ def assign_bones_to_collection(armature, bones, collection_name, is_visible = bo
     return assigned_bones
     
 def attache_mekrig(armature, racial_code):
-    """Imports Mekrig, removes duplicate bones and merges it with any armature present in objects list. Returns Mekrig Armature"""
+    """Appends Mekrig, merges diff between armature and mekrig while keeping parents. Returns merged armature"""
     if armature:
         mekrig = append_mekrig(racial_code)
-         
+        
+        #resets pose before merging with mekrig
+        bpy.ops.object.select_all(action='DESELECT')
+        bpy.context.view_layer.objects.active = armature
+        armature.select_set(True)
+        bpy.ops.pose.reset()
+        
         merged_armature = merge_armatures(mekrig, armature)
         hair_bones = assign_bones_to_collection(merged_armature, merged_armature.pose.bones, 'Hair', True, ['j_ex', 'j_kami'])
         assign_bones_to_collection(merged_armature, merged_armature.pose.bones, 'Physic',False, ['phys'])
@@ -443,23 +449,23 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
     """Import GLTF from Meddle and perform cleanup tasks"""
     bl_idname = "mektools.import_meddle_gltf"
     bl_label = "Meddle Import"
-    filepath: bpy.props.StringProperty(subtype="FILE_PATH")# type: ignore
-    filter_glob: bpy.props.StringProperty(default='*.gltf', options={'HIDDEN'})# type: ignore
+    filepath: bpy.props.StringProperty(subtype="FILE_PATH")
+    filter_glob: bpy.props.StringProperty(default='*.gltf', options={'HIDDEN'})
     
-    s_pack_images: BoolProperty(name="Pack-Images", description="Pack all Images into .blend file", default=True)# type: ignore   
+    s_pack_images: BoolProperty(name="Pack-Images", description="Pack all Images into .blend file", default=True)  
     s_merge_vertices: BoolProperty(name="Merge Vertices", description="The glTF format requires discontinuous normals, UVs, and other vertex attributes to be stored as separate vertices, as required for rendering on typical graphics hardware. This option attempts to combine co -located vertices where possible. Currently cannot combine verts with different normals.", default=False)# type: ignore  
-    s_import_collection: BoolProperty(name="Import-Collection", description="Stores all import in a seperatre Collection", default=False)# type: ignore
+    s_import_collection: BoolProperty(name="Import-Collection", description="Stores all import in a seperatre Collection", default=False)
     
-    s_merge_skin: BoolProperty(name="Merge Skin", description="Merges all skin objects", default=True)# type: ignore
-    s_merge_by_material: BoolProperty(name="Merge by Material", description="Merges all objects with the same material", default=True)# type: ignore
+    s_merge_skin: BoolProperty(name="Merge Skin", description="Merges all skin objects", default=True)
+    s_merge_by_material: BoolProperty(name="Merge by Material", description="Merges all objects with the same material", default=True)
     
-    s_import_with_shaders_setting: BoolProperty(name="Import with Meddle Shaders", description="Tries to also import all shaders from meddle shader cache", default=True)# type: ignore
+    s_import_with_shaders_setting: BoolProperty(name="Import with Meddle Shaders", description="Tries to also import all shaders from meddle shader cache", default=True)
         
-    s_disable_bone_shape: BoolProperty(name="Disable Bone Shapes", description="Disables the generation of Bone Shapes on Import", default=True)# type: ignore
+    s_disable_bone_shape: BoolProperty(name="Disable Bone Shapes", description="Disables the generation of Bone Shapes on Import", default=True)
     
-    s_remove_parent_on_poles: BoolProperty(name="Remove Parents from Pole-Targets", description="Removes the Parent from Pole-Targets", default=False)# type: ignore
-    s_spline_tail: BoolProperty(name="Generate spline tail", description="Generates and replaces the tail with Spline IKs", default=False)# type: ignore
-    s_spline_gear: BoolProperty(name="Generate spline Gear", description="Generates and replaces the gear with Spline IKs", default=False) # type: ignore
+    s_remove_parent_on_poles: BoolProperty(name="Remove Parents from Pole-Targets", description="Removes the Parent from Pole-Targets", default=False)
+    s_spline_tail: BoolProperty(name="Generate spline tail", description="Generates and replaces the tail with Spline IKs", default=False)
+    s_spline_gear: BoolProperty(name="Generate spline Gear", description="Generates and replaces the gear with Spline IKs", default=False) 
     
     s_armature_type: bpy.props.EnumProperty(
         name="Armature Type",

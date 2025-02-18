@@ -5,7 +5,6 @@ import re
 from bpy.types import Operator
 from mathutils import Matrix, Quaternion
 from mathutils import Vector
-from . import pose_helper
 from ..addon_preferences import get_addon_preferences 
 
 collection_visibility = {}

@@ -18,7 +18,7 @@ class MektoolsPreferences(AddonPreferences):
             ('LEGACY', "Legacy Buttons", "Enable or disable legacy buttons"),
         ],
         default='GENERAL'
-    ) # type: ignore
+    )
 
     # General Settings
     search_for_update: EnumProperty(
@@ -26,46 +26,46 @@ class MektoolsPreferences(AddonPreferences):
         description="Checks for update on Startup. You still have to manually Install and Update.",
         items=[('OFF', "Disable", ""), ('ON', "Enable", "")],
         default='ON'
-    ) # type: ignore
+    ) 
     
     general_transform_tools: EnumProperty(
         name="Transform Tools",
         description="Enables/Disables Transform helper buttons for users that are unfamiliar with blender controls",
         items=[('OFF', "Disable", ""), ('ON', "Enable", "")],
         default='OFF'
-    ) # type: ignore
+    ) 
     
     general_pose_mode_toggle: EnumProperty(
         name="PoseMode Toggle",
         description="Enables/Disables Pose Mode toggle buttons for users that are unfamiliar with blender controls",
         items=[('OFF', "Disable", ""), ('ON', "Enable", "")],
         default='OFF'
-    ) # type: ignore
+    ) 
 
     # Default File Paths
     default_meddle_import_path: StringProperty(
         name="Meddle GLTF Import",
         subtype='DIR_PATH',
         description="Select the default directory for importing Meddle GLTF files"
-    ) # type: ignore
+    ) 
 
     default_textools_import_path: StringProperty(
         name="Textools FBX Import",
         subtype='DIR_PATH',
         description="Select the default directory for importing Textools FBX files"
-    ) # type: ignore
+    ) 
 
     default_pose_export_path: StringProperty(
         name="Pose Export",
         subtype='DIR_PATH',
         description="Select the default directory for saving pose files"
-    ) # type: ignore
+    ) 
 
     default_pose_import_path: StringProperty(
         name="Pose Import",
         subtype='DIR_PATH',
         description="Select the default directory for importing pose files"
-    ) # type: ignore
+    ) 
 
     # Experimental Buttons   
     ex_actors: EnumProperty(
@@ -73,28 +73,28 @@ class MektoolsPreferences(AddonPreferences):
         description="Enables/Disables Actors panel. Actors are supposed to be a better way fo switching between multiple armatures and objects that are important to the scene instead of browsing through an extensive outliner that includes everything.",
         items=[('OFF', "Disable", ""), ('ON', "Enable", "")],
         default='OFF'
-    ) # type: ignore
+    ) 
         
     ex_button_import_pose: EnumProperty(
         name="Import Pose",
         description="Enables/Disables Pose Import function",
         items=[('OFF', "Disable", ""), ('ON', "Enable", "")],
         default='OFF'
-    ) # type: ignore
+    ) 
     
     ex_button_spline_tail: EnumProperty(
         name="Spline Tail",
         description="Enables/Disables import option to generate a spline IK around the tail.",
         items=[('OFF', "Disable", ""), ('ON', "Enable", "")],
         default='OFF'
-    ) # type: ignore
+    ) 
     
     ex_button_spline_gear: EnumProperty(
         name="Spline Gear",
         description="Enables/Disables import option to generate a spline IK around the the gear.",
         items=[('OFF', "Disable", ""), ('ON', "Enable", "")],
         default='OFF'
-    ) # type: ignore
+    ) 
     
     # Legacy Buttons
     legacy_button_import_shaders: EnumProperty(
@@ -102,42 +102,42 @@ class MektoolsPreferences(AddonPreferences):
         description="Toggle this legacy button on or off",
         items=[('OFF', "Disable", ""), ('ON', "Enable", "")],
         default='OFF'
-    ) # type: ignore
+    ) 
 
     legacy_button_apply_shaders: EnumProperty(
         name="Apply Shaders",
         description="Toggle this legacy button on or off",
         items=[('OFF', "Disable", ""), ('ON', "Enable", "")],
         default='OFF'
-    ) # type: ignore
+    ) 
 
     legacy_button_fix_backface_culling: EnumProperty(
         name="Fix Backface Culling",
         description="Toggle this legacy button on or off",
         items=[('OFF', "Disable", ""), ('ON', "Enable", "")],
         default='OFF'
-    ) # type: ignore
+    ) 
 
     legacy_button_clear_custom_split_normals: EnumProperty(
         name="Clear Custom Split Normals",
         description="Toggle this legacy button on or off",
         items=[('OFF', "Disable", ""), ('ON', "Enable", "")],
         default='OFF'
-    ) # type: ignore
+    ) 
 
     legacy_button_clear_parents_keep_transform: EnumProperty(
         name="Clear Parents (Keep Transform)",
         description="Toggle this legacy button on or off",
         items=[('OFF', "Disable", ""), ('ON', "Enable", "")],
         default='OFF'
-    ) # type: ignore
+    ) 
     
     legacy_button_import_rigs: EnumProperty(
         name="Import Rigs",
         description="Toggle this legacy button on or off",
         items=[('OFF', "Disable", ""), ('ON', "Enable", "")],
         default='OFF'
-    ) # type: ignore
+    ) 
 
     def draw(self, context):
         def draw_toggle(label, prop_name):
@@ -173,11 +173,14 @@ class MektoolsPreferences(AddonPreferences):
         elif self.tabs == 'EXPERIMENTAL':
             box = layout.box()
             box.label(text="Experimental Features")
+            
+            box.label(text="These features are in development and may not function as expected.")
+            box.label(text="Use them at your own discretion, and feel free to provide feedback.")
 
             box = layout.box()
             box.label(text="Meddle Import")
             draw_toggle("Import with Spline Tail", "ex_button_spline_tail")
-            draw_toggle("Import with Spline Gear", "ex_button_spline_gear")
+            #draw_toggle("Import with Spline Gear", "ex_button_spline_gear")
             
             box = layout.box()
             box.label(text="Pose Helper")
@@ -190,7 +193,10 @@ class MektoolsPreferences(AddonPreferences):
         elif self.tabs == 'LEGACY':
             box = layout.box()
             box.label(text="Legacy Buttons")
-
+            
+            box.label(text="These are buttons or functions that we are no longer actively supporting.")
+            box.label(text="However if you miss them you can bring the back right here.")
+        
             box = layout.box()
             box.label(text="Import")
             draw_toggle("Import Shaders", "legacy_button_import_shaders")
