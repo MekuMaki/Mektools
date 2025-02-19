@@ -1,4 +1,4 @@
-# Mektools-Version 1.7.10
+# Mektools-Version 1.7.3
 
 The following is a bit outdated, as we are currently working on a 2.0 release with a nice wiki and guides we will make some rapid changes so the readme will maybe be a bit beglected. For help you can always visit the [Discord](https://www.discord.gg/98DqcKE)
 
