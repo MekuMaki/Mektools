@@ -1,11 +1,8 @@
-# Mektools-Version 1.2.10
+# Mektools-Version 1.7.10
 
-## Mektools for Dawntrail is finally here!
-### Tutorial here!
-[![How to Use MekTools](https://img.youtube.com/vi/r6b5W6WNh0Q/0.jpg)](https://youtu.be/r6b5W6WNh0Q)
+The following is a bit outdated, as we are currently working on a 2.0 release with a nice wiki and guides we will make some rapid changes so the readme will maybe be a bit beglected. For help you can always visit the [Discord](https://www.discord.gg/98DqcKE)
 
-
-![MekTools Addon Interface](assets/mektools_ui_10.png)
+![MekTools Addon Interface](mektools/assets/mektools_ui_10.png)
 
 please wait a bit while I organize a proper tutorial and place it here...
 
@@ -44,10 +41,10 @@ If there are any issues found, please make sure you are using Blender 4.2 or hig
 
 Disclaimer: Do this in newly opened blender files for best results, if you have additional data in the blender file when importing, things might implode. If you want more than 1 character to be in the scene together after they've both been processed, select all of their mesh and the bones in Object mode, hit M to move the stuff to a new Collection, Name that collection the name of your character-- I like having mine set like this image below:
 
-![Outliner Collection example](assets/outliner_collection_example.png)
+![Outliner Collection example](mektools/assets/outliner_collection_example.png)
 
 when I go to append my characters to another scene, I go to File > Append > Navigate to the Blend file they are located in > Collections and then click on this image below:
 
-![Appending Characters to scenes](assets/append_char_collection.png)
+![Appending Characters to scenes](mektools/assets/append_char_collection.png)
 
 This will pull in characters from other files and keep their collections intact! ♥ ps you are cute ♥
