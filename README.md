@@ -1,6 +1,6 @@
-# Mektools-Version 1.2.10
+# Mektools-Version 1.7.10
 
-## Mektools for Dawntrail is finally here!
+The following is a bit outdated, as we are currently working on a 2.0 release with a nice wiki and guides we will make some rapid changes so the readme will maybe be a bit beglected. For help you can always visit the [Discord](https://www.discord.gg/98DqcKE)
 
 ![MekTools Addon Interface](mektools/assets/mektools_ui_10.png)
 
@@ -48,5 +48,3 @@ when I go to append my characters to another scene, I go to File > Append > Navi
 ![Appending Characters to scenes](mektools/assets/append_char_collection.png)
 
 This will pull in characters from other files and keep their collections intact! ♥ ps you are cute ♥
-
-
