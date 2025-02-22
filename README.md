@@ -30,7 +30,7 @@
 | **Stable Release** | [Latest Version](https://github.com/MekuMaki/Mektools/archive/refs/heads/main.zip) |
 | **Development Version** | [DevBranch Version](https://github.com/MekuMaki/Mektools/archive/refs/heads/dev.zip) |
 
-📖 *See the full [Installation Guide](./wiki/installation-guide) for details.*  
+📖 *See the full [Installation Guide](../../wiki/installation-guide) for details.*  
 
 ---
 
