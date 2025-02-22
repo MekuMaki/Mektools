@@ -68,7 +68,7 @@
 - **[GitHub Issues](https://github.com/MekuMaki/Mektools/issues)** – Report bugs & request features.  
 - **Pull Requests** welcome! Fork the repo & submit improvements.  
 
-☕ **Support development** via [Mektools Landing Page](https://mektools.carrd.co).  
+☕ **Support development** via [Mektools Landing Page]([https://mektools.carrd.co](https://mektools.carrd.co/#support)).  
 
 ---
 <div align="center">
