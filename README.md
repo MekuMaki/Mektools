@@ -54,11 +54,11 @@
 ## 📖 Documentation  
 
 📚 **Need help?** Check out the **[Mektools Wiki](https://github.com/MekuMaki/Mektools/wiki)**  
-🔹 [Installation & Setup](./installation-guide)  
-🔹 [Pose Panel](./pose-panel)  
-🔹 [Meddle Import](./meddle-import)  
-🔹 [GLTF Export](./gltf-export)  
-🔹 [Preferences & Settings](./preferences)  
+🔹 [Installation & Setup](../../wiki/installation-guide)  
+🔹 [Pose Panel](../../wiki/pose-panel)  
+🔹 [Meddle Import](../../wiki/meddle-import)  
+🔹 [GLTF Export](../../wiki/gltf-export)  
+🔹 [Preferences & Settings](../../wiki/preferences)  
 
 ---
 
