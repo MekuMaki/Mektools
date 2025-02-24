@@ -1,7 +1,3 @@
-import bpy
-import json
-import os
-
 from . import (
     addon_preferences,
 )

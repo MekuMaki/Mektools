@@ -1,18 +1,26 @@
 import bpy
 from bpy.types import Panel
 from ..addon_preferences import get_addon_preferences 
-from ..functions import actors_fn as actors
+from ..libs import actors
 
 class ActorItem(bpy.types.PropertyGroup):
-    """Stores an armature reference for the UI list"""
-    name: bpy.props.StringProperty(name="Armature Name") 
-    armature: bpy.props.PointerProperty(type=bpy.types.Object) 
+    """Stores an armature reference for the UI list with differentiation"""
+    name: bpy.props.StringProperty(name="Armature Name")
+    armature: bpy.props.PointerProperty(type=bpy.types.Object)
+    armature_type: bpy.props.StringProperty(name="Armature Type", default="Unknown")
 
 class UI_UL_Actors(bpy.types.UIList):
-    """List UI for displaying armatures"""
+    """List UI for displaying categorized armatures"""
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            layout.label(text=item.name, icon='OUTLINER_OB_ARMATURE')
+            icon_type = 'ARMATURE_DATA'
+            
+            if item.armature_type == "mekrig":
+                icon_type = 'OUTLINER_OB_ARMATURE'
+            elif item.armature_type != "Unknown":
+                icon_type = 'MOD_ARMATURE'
+            
+            layout.label(text=item.name, icon=icon_type)
         elif self.layout_type == 'GRID':
             layout.alignment = 'CENTER'
             layout.label(text="", icon='OUTLINER_OB_ARMATURE')

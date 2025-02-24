@@ -2,12 +2,11 @@ import bpy
 from bpy.types import Operator
 import os
 import importlib.util
-from math import radians
 from bpy.props import BoolProperty
 from collections import defaultdict, namedtuple
 import re
 from ..addon_preferences import get_addon_preferences 
-from ..functions.spline_gen_fn import generatr_tail_spline_ik
+from ..libs import actors, spline_gen
 
 # Load the bone names from bone_names.py in the data folder
 DATA_PATH = os.path.join(os.path.dirname(__file__), "../data")
@@ -609,16 +608,20 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
             link_to_collection(working_object_set, mekrig_collection)
             parent_objects(working_object_set, mekrig_armature)
             
+            actors.add_actor_properties(mekrig_armature, "Unknown Actor", "mekrig", True, mekrig_collection)
+            
             if self.s_remove_parent_on_poles:
                 remove_pole_parents(mekrig_armature)  
                 
             if self.s_spline_tail:
                 reference_bones = ["n_sippo_a", "n_sippo_b", "n_sippo_c", "n_sippo_d", "n_sippo_e"]
-                generatr_tail_spline_ik(
+                spline_gen.generatr_tail_spline_ik(
                     armature=mekrig_armature,
                     reference_bone_names=reference_bones,
                     curve_name="TailCurve"
                 )
+        elif True:
+            actors.add_actor_properties(gltf_armature, "Unknown Actor", "import", True)
                 
                 
         if not self.s_import_collection:

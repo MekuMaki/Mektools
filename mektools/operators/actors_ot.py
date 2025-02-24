@@ -1,6 +1,7 @@
 import bpy
             
 class MEKTOOLS_OT_ACTORS_RefreshActors(bpy.types.Operator):
+    """Refresh the list of actors and categorize them"""
     bl_idname = "mektools.ot_refresh_actors"
     bl_label = "Refresh Actors"
 
@@ -9,11 +10,23 @@ class MEKTOOLS_OT_ACTORS_RefreshActors(bpy.types.Operator):
         scene.actors.clear()
 
         for obj in bpy.data.objects:
-            if obj.type == 'ARMATURE': 
+            if obj.type == 'ARMATURE' and obj.data:
+                armature_type = "Unknown"
+                actor_name = obj.data.get("mektools_actor_name", "Unknown actor")
+                
+                # Check for mektools properties stored in Armature data block
+                if "mektools_is_actor" in obj.data.keys() and obj.data["mektools_is_actor"]:
+                    armature_type = obj.data.get("mektools_armature_type", "Unknown")
+                else:
+                    actor_name = "Unknown Armature"
+                
                 actor = scene.actors.add()
-                actor.name = obj.name
+                actor.name = actor_name
                 actor.armature = obj
+                actor.armature_type = armature_type
+
         return {'FINISHED'}
+
 
 class MEKTOOLS_OT_ACTORS_DeleteActor(bpy.types.Operator):
     bl_idname = "mektools.ot_delete_actor"
