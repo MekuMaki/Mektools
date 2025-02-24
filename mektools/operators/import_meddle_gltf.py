@@ -2,7 +2,7 @@ import bpy
 from bpy.types import Operator
 import os
 import importlib.util
-from bpy.props import BoolProperty
+from bpy.props import BoolProperty, StringProperty
 from collections import defaultdict, namedtuple
 import re
 from ..addon_preferences import get_addon_preferences 
@@ -448,8 +448,8 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
     """Import GLTF from Meddle and perform cleanup tasks"""
     bl_idname = "mektools.import_meddle_gltf"
     bl_label = "Meddle Import"
-    filepath: bpy.props.StringProperty(subtype="FILE_PATH")
-    filter_glob: bpy.props.StringProperty(default='*.gltf', options={'HIDDEN'})
+    filepath: StringProperty(subtype="FILE_PATH")
+    filter_glob: StringProperty(default='*.gltf', options={'HIDDEN'})
     
     s_pack_images: BoolProperty(name="Pack-Images", description="Pack all Images into .blend file", default=True)  
     s_merge_vertices: BoolProperty(name="Merge Vertices", description="The glTF format requires discontinuous normals, UVs, and other vertex attributes to be stored as separate vertices, as required for rendering on typical graphics hardware. This option attempts to combine co -located vertices where possible. Currently cannot combine verts with different normals.", default=False)# type: ignore  
@@ -463,8 +463,11 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
     s_disable_bone_shape: BoolProperty(name="Disable Bone Shapes", description="Disables the generation of Bone Shapes on Import", default=True)
     
     s_remove_parent_on_poles: BoolProperty(name="Remove Parents from Pole-Targets", description="Removes the Parent from Pole-Targets", default=False)
-    s_spline_tail: BoolProperty(name="Generate spline tail", description="Generates and replaces the tail with Spline IKs", default=False)
+    s_spline_tail: BoolProperty(name="Generate spline Tail", description="Generates and replaces the tail with Spline IKs", default=False)
     s_spline_gear: BoolProperty(name="Generate spline Gear", description="Generates and replaces the gear with Spline IKs", default=False) 
+    
+    s_is_actor:  BoolProperty(name="Is Actor", description="Set the imported object as Actor", default=True) 
+    s_actor_name: StringProperty(name="Actor Name", description="Set the imported object as Actor", default="Unknown Actor") 
     
     s_armature_type: bpy.props.EnumProperty(
         name="Armature Type",
@@ -500,15 +503,15 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
     
         split = col.split(factor=indent)
         split.label(text=" ")
-        split.prop(self, "s_pack_images", text="Pack Images")
+        split.prop(self, "s_pack_images")
         
         split = col.split(factor=indent)
         split.label(text=" ")
-        split.prop(self, "s_merge_vertices", text="Merge Vertices")
+        split.prop(self, "s_merge_vertices")
 
         split = col.split(factor=indent)  
         split.label(text=" ")
-        split.prop(self, "s_import_collection", text="Create Collection")
+        split.prop(self, "s_import_collection")
         
         # 🔹 Mesh Options Section
         box = layout.box()
@@ -519,11 +522,11 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
     
         split = col.split(factor=indent)
         split.label(text=" ")
-        split.prop(self, "s_merge_skin", text="Merge Skin")
+        split.prop(self, "s_merge_skin")
 
         split = col.split(factor=indent)  
         split.label(text=" ")
-        split.prop(self, "s_merge_by_material", text="Merge by Material")
+        split.prop(self, "s_merge_by_material")
 
         # 🔹 Shaders Section
         box = layout.box()
@@ -533,7 +536,7 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
         col = box.column(align=True)
         split = col.split(factor=indent)  
         split.label(text=" ")
-        split.prop(self, "s_import_with_shaders_setting", text="Append Meddle Shaders")
+        split.prop(self, "s_import_with_shaders_setting")
 
         # 🔹 Armature Section
         box = layout.box()
@@ -543,7 +546,7 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
         col = box.column(align=True)
         split = col.split(factor=indent)  
         split.label(text=" ")
-        split.prop(self, "s_disable_bone_shape", text="Disable Bone Shapes")
+        split.prop(self, "s_disable_bone_shape")
 
         # 🔹 Armature Type Selection (Vanilla vs Mekrig)
         row = box.row()
@@ -556,17 +559,34 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
         col.active = self.s_armature_type == 'Mekrig'
         split = col.split(factor=indent_nested)  
         split.label(text=" ")
-        split.prop(self, "s_remove_parent_on_poles", text="Unparent Pole Targets")
+        split.prop(self, "s_remove_parent_on_poles")
 
         if self.prefs.ex_button_spline_tail == 'ON':
             split = col.split(factor=indent_nested)  
             split.label(text=" ")
-            split.prop(self, "s_spline_tail", text="Generate Spline Tail")
+            split.prop(self, "s_spline_tail")
 
         if self.prefs.ex_button_spline_gear == 'ON':
             split = col.split(factor=indent_nested)  
             split.label(text=" ")
-            split.prop(self, "s_spline_gear", text="Generate Spline Gear")
+            split.prop(self, "s_spline_gear")
+            
+        # 🔹 Actor Section 
+        box = layout.box()
+        row = box.row()
+        row.label(text="Actor", icon="POSE_HLT")
+        
+        col = box.column(align=True)
+        
+        split = col.split(factor=indent)  
+        split.label(text=" ")
+        split.prop(self, "s_is_actor")
+        
+        col = box.column(align=True)
+        col.active = self.s_is_actor
+        split = col.split(factor=indent)  
+        split.label(text="Actor Name")
+        split.prop(self, "s_actor_name", text=" ")
 
 
     def execute(self, context):  
@@ -608,7 +628,8 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
             link_to_collection(working_object_set, mekrig_collection)
             parent_objects(working_object_set, mekrig_armature)
             
-            actors.add_actor_properties(mekrig_armature, "Unknown Actor", "mekrig", True, mekrig_collection)
+            if self.s_is_actor:
+                actors.add_actor_properties(mekrig_armature, self.s_actor_name, "mekrig", True, mekrig_collection)
             
             if self.s_remove_parent_on_poles:
                 remove_pole_parents(mekrig_armature)  
@@ -620,8 +641,8 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
                     reference_bone_names=reference_bones,
                     curve_name="TailCurve"
                 )
-        elif True:
-            actors.add_actor_properties(gltf_armature, "Unknown Actor", "import", True)
+        elif self.s_is_actor:
+            actors.add_actor_properties(gltf_armature, self.s_actor_name, "import", True)
                 
                 
         if not self.s_import_collection:
