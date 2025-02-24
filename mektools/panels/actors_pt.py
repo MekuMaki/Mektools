@@ -13,7 +13,7 @@ class UI_UL_Actors(bpy.types.UIList):
     """List UI for displaying categorized armatures"""
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            icon_type = 'ARMATURE_DATA'
+            icon_type = 'GHOST_DISABLED'
             
             if item.armature_type == "mekrig":
                 icon_type = 'OUTLINER_OB_ARMATURE'
@@ -50,8 +50,28 @@ class MEKTOOLS_PT_Actors(Panel):
         row = box.row()
         row.template_list("UI_UL_Actors", "", scene, "actors", scene, "actors_index")
 
-        #col = row.column(align=True)
-        #col.operator("mektools.ot_delete_actor", icon="X", text="")
+        col = row.column(align=True)
+        col.operator("mektools.ot_refresh_actors", icon="ADD", text="")  # Add aka import 
+        col.operator("mektools.ot_refresh_actors", icon="REMOVE", text="")  # delete / remove 
+        
+        col.separator(factor=1.0)
+        
+        col.operator("mektools.ot_refresh_actors", icon="GREASEPENCIL", text="") # rename actor 
+        col.operator("mektools.ot_refresh_actors", icon="DUPLICATE", text="")  # duplicate 
+        
+        col.separator(factor=1.0)
+        col.operator("mektools.ot_refresh_actors", icon="TRIA_UP", text="")  # hierachy up 
+        col.operator("mektools.ot_refresh_actors", icon="TRIA_DOWN", text="")  # hierachy down
+        
+        row = layout.row(align=True)
+        if len(scene.actors) > 0 and 0 <= scene.actors_index < len(scene.actors):
+            actor = scene.actors[scene.actors_index]
+            if "mektools_is_actor" in actor.armature.data.keys() and actor.armature.data["mektools_is_actor"]:    
+                row.operator("mektools.ot_refresh_actors", text="Migrate Rig") # migrate to mekrig 
+                row.operator("mektools.ot_refresh_actors", text="Reimport Mesh") # reimport mesh
+            else:
+                row.operator("mektools.ot_add_actor_properties", icon="ADD", text="Make Actor") # adds actor properties this should later on only be displayed if its an unknown armature
+        
            
 
 def register():

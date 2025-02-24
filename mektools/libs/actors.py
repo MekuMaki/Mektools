@@ -17,7 +17,7 @@ def update_selected_actor(self, context):
             except RuntimeError:
                 bpy.ops.object.mode_set(mode='OBJECT') 
                 
-def add_actor_properties(armature, name = "Unkown Actor", armature_type = "unkown", is_actor = True, collection = None):
+def add_actor_properties(armature, name = "Unknown Actor", armature_type = "unknown", is_actor = True, collection = None):
     """Adds custom properties to an armature data block."""
     if armature and armature.type == 'ARMATURE':
         armature.data["mektools_actor_collection"] = collection

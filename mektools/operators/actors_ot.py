@@ -1,5 +1,6 @@
 import bpy
-            
+from ..libs import actors
+  
 class MEKTOOLS_OT_ACTORS_RefreshActors(bpy.types.Operator):
     """Refresh the list of actors and categorize them"""
     bl_idname = "mektools.ot_refresh_actors"
@@ -42,11 +43,27 @@ class MEKTOOLS_OT_ACTORS_DeleteActor(bpy.types.Operator):
             scene.actors_index = max(0, scene.actors_index - 1)
         return {'FINISHED'}
     
+class MEKTOOLS_OT_ACTORS_AddActorProperties(bpy.types.Operator):
+    bl_idname = "mektools.ot_add_actor_properties"
+    bl_label = "Add Actor Properties"
+
+    def execute(self, context):
+        scene = context.scene
+        if len(scene.actors) > 0 and 0 <= scene.actors_index < len(scene.actors):
+            actor = scene.actors[scene.actors_index]
+            if actor.armature:
+                actors.add_actor_properties(actor.armature, "Unknown Actor", "custom", True)
+                
+        bpy.ops.mektools.ot_refresh_actors()
+        return {'FINISHED'}
+    
     
 def register():
+    bpy.utils.register_class(MEKTOOLS_OT_ACTORS_AddActorProperties)
     bpy.utils.register_class(MEKTOOLS_OT_ACTORS_DeleteActor)
     bpy.utils.register_class(MEKTOOLS_OT_ACTORS_RefreshActors)
 
 def unregister():
+    bpy.utils.unregister_class(MEKTOOLS_OT_ACTORS_AddActorProperties)
     bpy.utils.unregister_class(MEKTOOLS_OT_ACTORS_DeleteActor)
     bpy.utils.unregister_class(MEKTOOLS_OT_ACTORS_RefreshActors)
