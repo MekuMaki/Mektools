@@ -1,3 +1,5 @@
+from .custom_icons import register_custom_icons, unregister_custom_icons
+
 from . import (
     addon_preferences,
 )
@@ -35,15 +37,11 @@ bl_info = {
 }
 
 def register():
-    #register all preferences
-    addon_preferences.register()
+    #Register Icons 
+    register_custom_icons()
     
-    # Register all panel types
-    info_panel.register()
-    mektools_import_panel.register()
-    pose_panel.register()
-    glb_export_panel.register()
-    actors_pt.register()
+    #Register all preferences
+    addon_preferences.register()
     
     # Register all operators types
     import_meddle_gltf.register()
@@ -57,6 +55,14 @@ def register():
     fixer_operators.register()
     pose_helper.register()
     actors_ot.register()
+   
+    # Register all panel types
+    info_panel.register()
+    mektools_import_panel.register()
+    pose_panel.register()
+    glb_export_panel.register()
+    actors_pt.register()
+    
 
 def unregister():
     # Unregister all panel types
@@ -81,6 +87,9 @@ def unregister():
    
     #unregister all preferences
     addon_preferences.unregister() 
+    
+    # Unregister Icons 
+    unregister_custom_icons()
     
     
 

@@ -2,25 +2,92 @@ import bpy
 from bpy.types import Panel
 from ..addon_preferences import get_addon_preferences 
 from ..libs import actors
+from ..custom_icons import preview_collections
 
 class ActorItem(bpy.types.PropertyGroup):
     """Stores an armature reference for the UI list with differentiation"""
-    name: bpy.props.StringProperty(name="Armature Name")
     armature: bpy.props.PointerProperty(type=bpy.types.Object)
-    armature_type: bpy.props.StringProperty(name="Armature Type", default="Unknown")
+    
+    @property
+    def hide_armature(self):
+        return self.armature and self.armature.data.get("mektools_actor_hide_armature", False)
+    
+    @property
+    def hide_actor(self):
+        return self.armature and self.armature.data.get("mektools_actor_hide_actor", False)    
+    
+    @property
+    def is_actor(self):
+        return self.armature and self.armature.data.get("mektools_is_actor", False)
+    
+    @property
+    def armature_type(self):
+        return self.armature and self.armature.data.get("mektools_armature_type", "Unknown")
+    
+    @property
+    def actor_name(self):
+        return self.armature and self.armature.data.get("mektools_actor_name", self.armature.name)
 
 class UI_UL_Actors(bpy.types.UIList):
     """List UI for displaying categorized armatures"""
-    def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
+    
+    def draw_filter(self, context, layout):
+        """Draws the filter UI inside the list panel."""
+        layout.prop(context.scene, "hide_non_actors", text="Filter only Actors", toggle=True)
+    
+    def filter_items(self, context, data, propname):
+        """Filter function to exclude non-actors when toggled"""
+        items = getattr(data, propname)
+        filtered = []
+        order = []
+        hide_non_actors = context.scene.hide_non_actors
+    
+        for i, item in enumerate(items):
+            flag = self.bitflag_filter_item  # Default: Show the item
+
+            if hide_non_actors and not item.is_actor:
+                flag &= ~self.bitflag_filter_item  # Hide the item
+        
+            filtered.append(flag)
+            order.append(i)
+    
+        return filtered, order
+    
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname):       
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            icon_type = 'GHOST_DISABLED'
             
             if item.armature_type == "mekrig":
-                icon_type = 'OUTLINER_OB_ARMATURE'
-            elif item.armature_type != "Unknown":
-                icon_type = 'MOD_ARMATURE'
+                if item.is_actor:
+                    icon_type = "OUTLINER_OB_ARMATURE"
+                else: 
+                    icon_type = "GHOST_ENABLED"
+            else:
+                if item.is_actor:
+                    icon_type = "MOD_ARMATURE"
+                else:
+                    icon_type = "GHOST_DISABLED"
+
             
-            layout.label(text=item.name, icon=icon_type)
+            row = layout.row(align=True)
+            row.active = not item.hide_actor
+            row.label(text=item.actor_name, icon=icon_type)
+           
+            hide_armature_icon = preview_collections["main"]["BONE_DATA_OFF"].icon_id
+            # Hide Armature Button
+            if item.hide_armature:
+                op = row.operator("mektools.ot_toggle_actor_visibility", text="", icon_value=hide_armature_icon, emboss=False)
+            else:
+                op = row.operator("mektools.ot_toggle_actor_visibility", text="", icon="BONE_DATA", emboss=False)
+            op.actor_name = item.armature.name
+            op.hide_armature = not item.hide_armature
+            op.hide_actor = item.hide_actor
+
+            # Hide Actor Button
+            op = row.operator("mektools.ot_toggle_actor_visibility", text="", icon='HIDE_ON' if item.hide_actor else 'HIDE_OFF', emboss=False)
+            op.actor_name = item.armature.name
+            op.hide_armature = item.hide_armature
+            op.hide_actor =  not item.hide_actor
+            
         elif self.layout_type == 'GRID':
             layout.alignment = 'CENTER'
             layout.label(text="", icon='OUTLINER_OB_ARMATURE')
@@ -51,26 +118,17 @@ class MEKTOOLS_PT_Actors(Panel):
         row.template_list("UI_UL_Actors", "", scene, "actors", scene, "actors_index")
 
         col = row.column(align=True)
-        col.operator("mektools.ot_refresh_actors", icon="ADD", text="")  # Add aka import 
-        col.operator("mektools.ot_refresh_actors", icon="REMOVE", text="")  # delete / remove 
+        op = col.operator("mektools.ot_set_is_actor", icon="ADD", text="")  # make actor
+        op.is_actor = True
+        op = col.operator("mektools.ot_set_is_actor", icon="REMOVE", text="")  # make actor
+        op.is_actor = False
         
         col.separator(factor=1.0)
         
         col.operator("mektools.ot_refresh_actors", icon="GREASEPENCIL", text="") # rename actor 
         col.operator("mektools.ot_refresh_actors", icon="DUPLICATE", text="")  # duplicate 
+        col.operator("mektools.ot_refresh_actors", icon="TRASH", text="")  # delete actor
         
-        col.separator(factor=1.0)
-        col.operator("mektools.ot_refresh_actors", icon="TRIA_UP", text="")  # hierachy up 
-        col.operator("mektools.ot_refresh_actors", icon="TRIA_DOWN", text="")  # hierachy down
-        
-        row = layout.row(align=True)
-        if len(scene.actors) > 0 and 0 <= scene.actors_index < len(scene.actors):
-            actor = scene.actors[scene.actors_index]
-            if "mektools_is_actor" in actor.armature.data.keys() and actor.armature.data["mektools_is_actor"]:    
-                row.operator("mektools.ot_refresh_actors", text="Migrate Rig") # migrate to mekrig 
-                row.operator("mektools.ot_refresh_actors", text="Reimport Mesh") # reimport mesh
-            else:
-                row.operator("mektools.ot_add_actor_properties", icon="ADD", text="Make Actor") # adds actor properties this should later on only be displayed if its an unknown armature
         
            
 
