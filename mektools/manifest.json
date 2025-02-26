@@ -10,6 +10,6 @@
   "tags": ["modeling", "animation", "import-export"],
   "path": "MekTools",
 "feature_name": "feature/actors",
-"feature_patch": 4,
+"feature_patch": 5,
   "location": "View3D > Mektools Tab"
 }

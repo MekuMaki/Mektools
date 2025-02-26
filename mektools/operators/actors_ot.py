@@ -1,10 +1,11 @@
 import bpy
-from ..libs import actors
+from ..libs import helper
   
 class MEKTOOLS_OT_ACTORS_RefreshActors(bpy.types.Operator):
     """Refresh the list of actors and categorize them"""
     bl_idname = "mektools.ot_refresh_actors"
     bl_label = "Refresh Actors"
+    bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
         scene = context.scene
@@ -32,19 +33,6 @@ class MEKTOOLS_OT_ACTORS_DeleteActor(bpy.types.Operator):
             scene.actors_index = max(0, scene.actors_index - 1)
         return {'FINISHED'}
     
-class MEKTOOLS_OT_ACTORS_AddActorProperties(bpy.types.Operator):
-    bl_idname = "mektools.ot_add_actor_properties"
-    bl_label = "Add Actor Properties"
-
-    def execute(self, context):
-        scene = context.scene
-        if len(scene.actors) > 0 and 0 <= scene.actors_index < len(scene.actors):
-            actor = scene.actors[scene.actors_index]
-            if actor.armature:
-                actors.add_actor_properties(actor.armature, "Unknown Actor", "custom", True)
-                
-        bpy.ops.mektools.ot_refresh_actors()
-        return {'FINISHED'}
     
 class MEKTOOLS_OT_ToggleHideNonActors(bpy.types.Operator):
     """Toggle hiding non-actor armatures in the UI list"""
@@ -61,18 +49,18 @@ class MEKTOOLS_OT_ToggleActorVisibility(bpy.types.Operator):
     bl_idname = "mektools.ot_toggle_actor_visibility"
     bl_label = "Toggle Actor Visibility"
     
-    actor_name: bpy.props.StringProperty()
+    armature_name: bpy.props.StringProperty()
     hide_armature: bpy.props.BoolProperty(default=False)
     hide_actor: bpy.props.BoolProperty(default=False)
     
     def execute(self, context):
         scene = context.scene
-        actor = bpy.data.objects.get(self.actor_name)
+        armature = bpy.data.objects.get(self.armature_name)
 
-        if not actor:
+        if not armature:
             return {'CANCELLED'}
 
-        actor_item = next((a for a in scene.actors if a.armature == actor), None)
+        actor_item = next((a for a in scene.actors if a.armature == armature), None)
 
         if actor_item is None:
             return {'CANCELLED'}
@@ -80,22 +68,17 @@ class MEKTOOLS_OT_ToggleActorVisibility(bpy.types.Operator):
         actor_item.armature.data["mektools_actor_hide_armature"] = self.hide_armature
         actor_item.armature.data["mektools_actor_hide_actor"] = self.hide_actor
         
-        def safe_hide_set(obj, hide):
-            if obj and obj.name in context.view_layer.objects:
-                obj.hide_set(hide)
 
         # Ensure actor armature is hidden if actor is hidden
         if self.hide_actor:
             self.hide_armature = True
 
         # Toggle armature visibility
-        safe_hide_set(actor, self.hide_armature)
+        helper.safe_hide_set(context, armature, self.hide_armature)
 
         # Toggle actor visibility (all parented objects)
-        for child in actor.children:
-            safe_hide_set(child, self.hide_actor)
-
-        
+        for child in armature.children:
+            helper.safe_hide_set(context, child, self.hide_actor)
 
         return {'FINISHED'}
     
@@ -117,9 +100,71 @@ class MEKTOOLS_OT_Set_Is_Actor(bpy.types.Operator):
         
         return {'FINISHED'}
     
+class MEKTOOLS_OT_RenameActor(bpy.types.Operator):
+    """Rename the active actor with a unique name"""
+    bl_idname = "mektools.ot_rename_actor"
+    bl_label = "Rename Actor"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    new_name: bpy.props.StringProperty(name="New Name")
+    
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
+    
+    def execute(self, context):
+        scene = context.scene
+        actor = scene.actors[scene.actors_index]
+        
+        if not actor:
+            self.report({'WARNING'}, "No valid actor selected.")
+            return {'CANCELLED'}
+        
+        # Rename the actor
+        actor.armature.name= self.new_name
+        self.report({'INFO'}, f"Renamed to {self.new_name}")
+        return {'FINISHED'}
+    
+    
+class MEKTOOLS_OT_DuplicateActor(bpy.types.Operator):
+    """Duplicate the active actor"""
+    bl_idname = "mektools.ot_duplicate_actor"
+    bl_label = "Duplicate Actor"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    duplicate_with_parent: bpy.props.BoolProperty(name="Duplicate Parent Collection", default=False)
+    
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
+
+    def execute(self, context):
+        scene = context.scene
+        actor = scene.actors[scene.actors_index]
+        
+        if not actor:
+            self.report({'WARNING'}, "No valid actor selected.")
+            return {'CANCELLED'}
+        
+        if self.duplicate_with_parent and actor.armature.users_collection:
+            collection = actor.armature.users_collection[0]
+            new_collection = helper.create_collection(collection.name)
+            
+            helper.dupe_with_childs(actor.armature)
+            
+            for obj in context.selected_objects:
+                collection.objects.unlink(obj)
+                new_collection.objects.link(obj)
+
+        else:
+            helper.dupe_with_childs(actor.armature)
+        
+        bpy.ops.mektools.ot_refresh_actors()
+        self.report({'INFO'}, "Actor duplicated successfully")
+        return {'FINISHED'}
+    
     
 def register():
-    bpy.utils.register_class(MEKTOOLS_OT_ACTORS_AddActorProperties)
+    bpy.utils.register_class(MEKTOOLS_OT_DuplicateActor)
+    bpy.utils.register_class(MEKTOOLS_OT_RenameActor)
     bpy.utils.register_class(MEKTOOLS_OT_ToggleActorVisibility)
     bpy.utils.register_class(MEKTOOLS_OT_Set_Is_Actor)
     bpy.utils.register_class(MEKTOOLS_OT_ToggleHideNonActors)
@@ -129,7 +174,8 @@ def register():
     bpy.types.Scene.hide_non_actors = bpy.props.BoolProperty(name="Hide Non-Actors", default=False)
 
 def unregister():
-    bpy.utils.unregister_class(MEKTOOLS_OT_ACTORS_AddActorProperties)
+    bpy.utils.unregister_class(MEKTOOLS_OT_DuplicateActor)
+    bpy.utils.unregister_class(MEKTOOLS_OT_RenameActor)
     bpy.utils.unregister_class(MEKTOOLS_OT_ToggleActorVisibility)
     bpy.utils.unregister_class(MEKTOOLS_OT_Set_Is_Actor)
     bpy.utils.unregister_class(MEKTOOLS_OT_ToggleHideNonActors)

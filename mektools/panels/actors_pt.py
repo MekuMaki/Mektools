@@ -14,8 +14,8 @@ class ActorItem(bpy.types.PropertyGroup):
     
     @property
     def hide_actor(self):
-        return self.armature and self.armature.data.get("mektools_actor_hide_actor", False)    
-    
+        return self.armature and self.armature.data.get("mektools_actor_hide_actor", False)  
+      
     @property
     def is_actor(self):
         return self.armature and self.armature.data.get("mektools_is_actor", False)
@@ -23,10 +23,6 @@ class ActorItem(bpy.types.PropertyGroup):
     @property
     def armature_type(self):
         return self.armature and self.armature.data.get("mektools_armature_type", "Unknown")
-    
-    @property
-    def actor_name(self):
-        return self.armature and self.armature.data.get("mektools_actor_name", self.armature.name)
 
 class UI_UL_Actors(bpy.types.UIList):
     """List UI for displaying categorized armatures"""
@@ -70,7 +66,7 @@ class UI_UL_Actors(bpy.types.UIList):
             
             row = layout.row(align=True)
             row.active = not item.hide_actor
-            row.label(text=item.actor_name, icon=icon_type)
+            row.label(text=item.armature.name, icon=icon_type)
            
             hide_armature_icon = preview_collections["main"]["BONE_DATA_OFF"].icon_id
             # Hide Armature Button
@@ -78,13 +74,13 @@ class UI_UL_Actors(bpy.types.UIList):
                 op = row.operator("mektools.ot_toggle_actor_visibility", text="", icon_value=hide_armature_icon, emboss=False)
             else:
                 op = row.operator("mektools.ot_toggle_actor_visibility", text="", icon="BONE_DATA", emboss=False)
-            op.actor_name = item.armature.name
+            op.armature_name = item.armature.name
             op.hide_armature = not item.hide_armature
             op.hide_actor = item.hide_actor
 
             # Hide Actor Button
             op = row.operator("mektools.ot_toggle_actor_visibility", text="", icon='HIDE_ON' if item.hide_actor else 'HIDE_OFF', emboss=False)
-            op.actor_name = item.armature.name
+            op.armature_name = item.armature.name
             op.hide_armature = item.hide_armature
             op.hide_actor =  not item.hide_actor
             
@@ -125,8 +121,9 @@ class MEKTOOLS_PT_Actors(Panel):
         
         col.separator(factor=1.0)
         
-        col.operator("mektools.ot_refresh_actors", icon="GREASEPENCIL", text="") # rename actor 
-        col.operator("mektools.ot_refresh_actors", icon="DUPLICATE", text="")  # duplicate 
+        op = col.operator("mektools.ot_rename_actor", icon="GREASEPENCIL", text="") # rename actor 
+        op.new_name = scene.actors[scene.actors_index].armature.name if scene.actors else ""
+        col.operator("mektools.ot_duplicate_actor", icon="DUPLICATE", text="")  # duplicate 
         col.operator("mektools.ot_refresh_actors", icon="TRASH", text="")  # delete actor
         
         

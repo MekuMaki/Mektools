@@ -6,7 +6,7 @@ from bpy.props import BoolProperty, StringProperty
 from collections import defaultdict, namedtuple
 import re
 from ..addon_preferences import get_addon_preferences 
-from ..libs import actors, spline_gen
+from ..libs import spline_gen, helper
 
 # Load the bone names from bone_names.py in the data folder
 DATA_PATH = os.path.join(os.path.dirname(__file__), "../data")
@@ -329,22 +329,6 @@ def attache_mekrig(armature, racial_code):
         return merged_armature
     return None
     
-def create_collection(name="Collection"):
-    """Creates a Collection"""
-    if name not in bpy.data.collections:
-        new_collection = bpy.data.collections.new(name)
-        bpy.context.scene.collection.children.link(new_collection)
-        return new_collection  
-
-    count = 1
-    while f"{name}.{count:03d}" in bpy.data.collections:
-        count += 1
-
-    new_name = f"{name}.{count:03d}"
-    new_collection = bpy.data.collections.new(new_name)
-    bpy.context.scene.collection.children.link(new_collection)
-    return new_collection 
-
 def get_racial_code(objects, id):
     """Searches for an object containing specified ID in its name and extracts the racial code."""
     for obj in objects:
@@ -448,6 +432,8 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
     """Import GLTF from Meddle and perform cleanup tasks"""
     bl_idname = "mektools.import_meddle_gltf"
     bl_label = "Meddle Import"
+    bl_options = {'REGISTER', 'UNDO'}
+    
     filepath: StringProperty(subtype="FILE_PATH")
     filter_glob: StringProperty(default='*.gltf', options={'HIDDEN'})
     
@@ -467,7 +453,7 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
     s_spline_gear: BoolProperty(name="Generate spline Gear", description="Generates and replaces the gear with Spline IKs", default=False) 
     
     s_is_actor:  BoolProperty(name="Is Actor", description="Set the imported object as Actor", default=True) 
-    s_actor_name: StringProperty(name="Actor Name", description="Set the imported object as Actor", default="Unknown Actor") 
+    s_actor_name: StringProperty(name="Actor Name", description="Set the imported object as Actor", default="") 
     
     s_armature_type: bpy.props.EnumProperty(
         name="Armature Type",
@@ -583,7 +569,7 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
         split.prop(self, "s_is_actor")
         
         col = box.column(align=True)
-        col.active = self.s_is_actor
+        #col.active = self.s_is_actor  not needed anymore since armatures can have names without them being an actor
         split = col.split(factor=indent)  
         split.label(text="Actor Name")
         split.prop(self, "s_actor_name", text=" ")
@@ -597,54 +583,54 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
             return {'CANCELLED'}   
 
         #base import function
-        import_collection = create_collection("Meddle_Import")
-        working_object_set = import_gltf(self.filepath, import_collection, self.s_pack_images, self.s_disable_bone_shape, self.s_merge_vertices)
+        import_collection = helper.create_collection("Meddle_Import")
+        object_set = import_gltf(self.filepath, import_collection, self.s_pack_images, self.s_disable_bone_shape, self.s_merge_vertices)
         
         racial_code_identifier="iri"
-        racial_code = get_racial_code(working_object_set, racial_code_identifier)
+        racial_code = get_racial_code(object_set, racial_code_identifier)
         
-        gltf_armature = find_armature_in_objects(working_object_set)  
+        armature = find_armature_in_objects(object_set)  
         
         if self.s_merge_by_material:
-            working_object_set = merge_by_material(working_object_set)
+            object_set = merge_by_material(object_set)
         
         if self.s_merge_skin:
-            working_object_set = merge_by_name(working_object_set, 'skin')
+            object_set = merge_by_name(object_set, 'skin')
         
         
         #checking for user options
         if self.s_import_with_shaders_setting:
-            import_meddle_shader(self, working_object_set)
+            import_meddle_shader(self, object_set)
         else:
             bpy.ops.mektools.append_shaders()
             bpy.ops.material.material_fixer_auto()
             
+        #armature setup  
         if self.s_armature_type == 'Mekrig':
-            clear_parents_keep_transform(working_object_set)
-            mekrig_armature = attache_mekrig(gltf_armature, racial_code) 
-            mekrig_collection = get_collection(mekrig_armature)
+            clear_parents_keep_transform(object_set)
+            armature = attache_mekrig(armature, racial_code) 
+            mekrig_collection = get_collection(armature)
             
-            working_object_set = delete_rna_from_objects(working_object_set) # this is just for sanity
-            link_to_collection(working_object_set, mekrig_collection)
-            parent_objects(working_object_set, mekrig_armature)
-            
-            if self.s_is_actor:
-                actors.add_actor_properties(mekrig_armature, self.s_actor_name, "mekrig", True, mekrig_collection)
+            object_set = delete_rna_from_objects(object_set) # this is just for sanity
+            link_to_collection(object_set, mekrig_collection)
+            parent_objects(object_set, armature)
             
             if self.s_remove_parent_on_poles:
-                remove_pole_parents(mekrig_armature)  
+                remove_pole_parents(armature)  
                 
             if self.s_spline_tail:
                 reference_bones = ["n_sippo_a", "n_sippo_b", "n_sippo_c", "n_sippo_d", "n_sippo_e"]
                 spline_gen.generatr_tail_spline_ik(
-                    armature=mekrig_armature,
+                    armature=armature,
                     reference_bone_names=reference_bones,
                     curve_name="TailCurve"
                 )
-        elif self.s_is_actor:
-            actors.add_actor_properties(gltf_armature, self.s_actor_name, "import", True)
-                
-                
+            
+            armature.data["mektools_armature_type"] = "mekrig"
+            
+        armature.data["mektools_is_actor"] = self.s_is_actor
+        armature.name = self.s_actor_name if self.s_actor_name != "" else armature.name 
+             
         if not self.s_import_collection:
             unlink_from_collection(import_collection)
             bpy.data.collections.remove(import_collection) 
@@ -656,7 +642,6 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
         
         self.report({'INFO'}, "GLTF imported and processed successfully.")
         bpy.context.window.cursor_set('DEFAULT')
-        bpy.ops.ed.undo_push()
         return {'FINISHED'}
 
 def register():
