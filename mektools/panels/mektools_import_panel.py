@@ -52,8 +52,8 @@ class VIEW3D_PT_ImportPanel(Panel):
             row.operator("mektools.import_textools_fbx", text="TexTools", icon = "IMPORT")
             
             row = layout.row(align=True) # these should only show if meddle is installed 
-            row.operator("mektools.ot_refresh_actors", text="Migrate Rig") # migrate to mekrig 
-            row.operator("mektools.ot_refresh_actors", text="Reimport Mesh") # reimport mesh
+            #row.operator("mektools.ot_refresh_actors", text="Migrate Rig") # migrate to mekrig placeholder
+            #row.operator("mektools.ot_refresh_actors", text="Reimport Mesh") # reimport mesh placeholder
 
         # We need to split the logic here since we want different things to happen wether meddle is installed or not
         # and if the operators are available or not

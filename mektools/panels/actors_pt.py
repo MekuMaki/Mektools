@@ -51,38 +51,38 @@ class UI_UL_Actors(bpy.types.UIList):
     
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname):       
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            
-            if item.armature_type == "mekrig":
-                if item.is_actor:
-                    icon_type = "OUTLINER_OB_ARMATURE"
-                else: 
-                    icon_type = "GHOST_ENABLED"
-            else:
-                if item.is_actor:
-                    icon_type = "MOD_ARMATURE"
+            if item.armature:
+                if item.armature_type == "mekrig":
+                    if item.is_actor:
+                        icon_type = "OUTLINER_OB_ARMATURE"
+                    else: 
+                        icon_type = "GHOST_ENABLED"
                 else:
-                    icon_type = "GHOST_DISABLED"
+                    if item.is_actor:
+                        icon_type = "MOD_ARMATURE"
+                    else:
+                        icon_type = "GHOST_DISABLED"
 
             
-            row = layout.row(align=True)
-            row.active = not item.hide_actor
-            row.label(text=item.armature.name, icon=icon_type)
+                row = layout.row(align=True)
+                row.active = not item.hide_actor
+                row.label(text=item.armature.name, icon=icon_type)
            
-            hide_armature_icon = preview_collections["main"]["BONE_DATA_OFF"].icon_id
-            # Hide Armature Button
-            if item.hide_armature:
-                op = row.operator("mektools.ot_toggle_actor_visibility", text="", icon_value=hide_armature_icon, emboss=False)
-            else:
-                op = row.operator("mektools.ot_toggle_actor_visibility", text="", icon="BONE_DATA", emboss=False)
-            op.armature_name = item.armature.name
-            op.hide_armature = not item.hide_armature
-            op.hide_actor = item.hide_actor
+                hide_armature_icon = preview_collections["main"]["BONE_DATA_OFF"].icon_id
+                # Hide Armature Button
+                if item.hide_armature:
+                    op = row.operator("mektools.ot_toggle_actor_visibility", text="", icon_value=hide_armature_icon, emboss=False)
+                else:
+                    op = row.operator("mektools.ot_toggle_actor_visibility", text="", icon="BONE_DATA", emboss=False)
+                op.armature_name = item.armature.name
+                op.hide_armature = not item.hide_armature
+                op.hide_actor = item.hide_actor
 
-            # Hide Actor Button
-            op = row.operator("mektools.ot_toggle_actor_visibility", text="", icon='HIDE_ON' if item.hide_actor else 'HIDE_OFF', emboss=False)
-            op.armature_name = item.armature.name
-            op.hide_armature = item.hide_armature
-            op.hide_actor =  not item.hide_actor
+                # Hide Actor Button
+                op = row.operator("mektools.ot_toggle_actor_visibility", text="", icon='HIDE_ON' if item.hide_actor else 'HIDE_OFF', emboss=False)
+                op.armature_name = item.armature.name
+                op.hide_armature = item.hide_armature
+                op.hide_actor =  not item.hide_actor
             
         elif self.layout_type == 'GRID':
             layout.alignment = 'CENTER'
@@ -122,9 +122,9 @@ class MEKTOOLS_PT_Actors(Panel):
         col.separator(factor=1.0)
         
         op = col.operator("mektools.ot_rename_actor", icon="GREASEPENCIL", text="") # rename actor 
-        op.new_name = scene.actors[scene.actors_index].armature.name if scene.actors else ""
+        op.new_name = scene.actors[scene.actors_index].armature.name if scene.actors[scene.actors_index].armature else ""
         col.operator("mektools.ot_duplicate_actor", icon="DUPLICATE", text="")  # duplicate 
-        col.operator("mektools.ot_refresh_actors", icon="TRASH", text="")  # delete actor
+        col.operator("mektools.ot_delete_actor", icon="TRASH", text="")  # delete actor
         
         
            
