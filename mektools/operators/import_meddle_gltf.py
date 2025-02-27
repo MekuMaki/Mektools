@@ -625,18 +625,17 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
                     reference_bone_names=reference_bones,
                     curve_name="TailCurve"
                 )
-            
             armature.data["mektools_armature_type"] = "mekrig"
             
-        armature.data["mektools_is_actor"] = self.s_is_actor
         armature.name = self.s_actor_name if self.s_actor_name != "" else armature.name 
+        
+        if self.s_is_actor:
+            new_actor = context.scene.actors.add()
+            new_actor.armature = armature
              
         if not self.s_import_collection:
             unlink_from_collection(import_collection)
             bpy.data.collections.remove(import_collection) 
-            
-        #refresh actor list
-        bpy.ops.mektools.ot_refresh_actors()
         
         bpy.ops.object.select_all(action='DESELECT')
         

@@ -1,33 +1,6 @@
 import bpy
-from ..libs import helper
-  
-class MEKTOOLS_OT_ACTORS_RefreshActors(bpy.types.Operator):
-    """Refresh the list of actors and categorize them"""
-    bl_idname = "mektools.ot_refresh_actors"
-    bl_label = "Refresh Actors"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    def execute(self, context):
-        scene = context.scene
-        scene.actors.clear()
-
-        for obj in bpy.data.objects:
-            if obj.type == 'ARMATURE' and obj.data: 
-                actor = scene.actors.add()
-                actor.armature = obj
-
-        return {'FINISHED'}
-   
-class MEKTOOLS_OT_ToggleHideNonActors(bpy.types.Operator):
-    """Toggle hiding non-actor armatures in the UI list"""
-    bl_idname = "mektools.ot_toggle_hide_non_actors"
-    bl_label = "Toggle Hide Non-Actors"
-
-    def execute(self, context):
-        scene = context.scene
-        scene.hide_non_actors = not scene.hide_non_actors
-        return {'FINISHED'}
-    
+from ..libs import helper, actors
+     
 class MEKTOOLS_OT_ToggleActorVisibility(bpy.types.Operator):
     """Toggles visibility for an actor's armature and parented objects"""
     bl_idname = "mektools.ot_toggle_actor_visibility"
@@ -76,12 +49,24 @@ class MEKTOOLS_OT_Set_Is_Actor(bpy.types.Operator):
     
     def execute(self, context):
         scene = context.scene
-        if len(scene.actors) > 0 and 0 <= scene.actors_index < len(scene.actors):
-            actor = scene.actors[scene.actors_index]
-            if actor.armature:
-                actor.armature.data["mektools_is_actor"] = self.is_actor
+        selected_armature = None
+
+        # Check if multiple objects are selected and find the first armature
+        for obj in context.selected_objects:
+            if obj.type == 'ARMATURE':
+                selected_armature = obj
+                break
         
+        if self.is_actor:
+            if selected_armature:
+                if not any(actor.armature == selected_armature for actor in scene.actors):
+                    new_actor = scene.actors.add()
+                    new_actor.armature = selected_armature
+        else:
+            if len(scene.actors) > 0 and 0 <= scene.actors_index < len(scene.actors):
+                scene.actors.remove(scene.actors_index)
         
+        actors.update_active_actor(scene)
         return {'FINISHED'}
     
 class MEKTOOLS_OT_RenameActor(bpy.types.Operator):
@@ -121,6 +106,7 @@ class MEKTOOLS_OT_DuplicateActor(bpy.types.Operator):
         return context.window_manager.invoke_props_dialog(self)
 
     def execute(self, context):
+        actors.remove_callback()
         scene = context.scene
         actor = scene.actors[scene.actors_index]
         
@@ -140,8 +126,13 @@ class MEKTOOLS_OT_DuplicateActor(bpy.types.Operator):
 
         else:
             helper.dupe_with_childs(actor.armature)
+            
+        bpy.ops.mektools.ot_set_is_actor(is_actor=True)
         
-        bpy.ops.mektools.ot_refresh_actors()
+        actors.update_active_actor(scene)
+        
+        actors.add_callback()
+        
         self.report({'INFO'}, "Actor duplicated successfully")
         return {'FINISHED'}
     
@@ -189,10 +180,6 @@ class MEKTOOLS_OT_DeleteActor(bpy.types.Operator):
         # Remove actor from the actor list
         scene.actors.remove(scene.actors_index)
         
-        # Ensure orphaned data is cleaned
-        bpy.ops.outliner.orphans_purge(do_local_ids=True, do_linked_ids=True, do_recursive=True)
-        
-        bpy.ops.mektools.ot_refresh_actors()
         self.report({'INFO'}, "Actor and all associated data deleted successfully.")
         return {'FINISHED'}
     
@@ -202,17 +189,16 @@ def register():
     bpy.utils.register_class(MEKTOOLS_OT_RenameActor)
     bpy.utils.register_class(MEKTOOLS_OT_ToggleActorVisibility)
     bpy.utils.register_class(MEKTOOLS_OT_Set_Is_Actor)
-    bpy.utils.register_class(MEKTOOLS_OT_ToggleHideNonActors)
     bpy.utils.register_class(MEKTOOLS_OT_DeleteActor)
-    bpy.utils.register_class(MEKTOOLS_OT_ACTORS_RefreshActors)
     
+    bpy.app.handlers.depsgraph_update_post.append(actors.on_update_callback)
     bpy.types.Scene.hide_non_actors = bpy.props.BoolProperty(name="Hide Non-Actors", default=False)
 
 def unregister():
+    bpy.app.handlers.depsgraph_update_post.remove(actors.on_update_callback)
+    
     bpy.utils.unregister_class(MEKTOOLS_OT_DuplicateActor)
     bpy.utils.unregister_class(MEKTOOLS_OT_RenameActor)
     bpy.utils.unregister_class(MEKTOOLS_OT_ToggleActorVisibility)
     bpy.utils.unregister_class(MEKTOOLS_OT_Set_Is_Actor)
-    bpy.utils.unregister_class(MEKTOOLS_OT_ToggleHideNonActors)
     bpy.utils.unregister_class(MEKTOOLS_OT_DeleteActor)
-    bpy.utils.unregister_class(MEKTOOLS_OT_ACTORS_RefreshActors)

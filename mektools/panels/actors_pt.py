@@ -1,4 +1,5 @@
 import bpy
+import weakref
 from bpy.types import Panel
 from ..addon_preferences import get_addon_preferences 
 from ..libs import actors
@@ -15,10 +16,6 @@ class ActorItem(bpy.types.PropertyGroup):
     @property
     def hide_actor(self):
         return self.armature and self.armature.data.get("mektools_actor_hide_actor", False)  
-      
-    @property
-    def is_actor(self):
-        return self.armature and self.armature.data.get("mektools_is_actor", False)
     
     @property
     def armature_type(self):
@@ -29,39 +26,35 @@ class UI_UL_Actors(bpy.types.UIList):
     
     def draw_filter(self, context, layout):
         """Draws the filter UI inside the list panel."""
-        layout.prop(context.scene, "hide_non_actors", text="Filter only Actors", toggle=True)
-    
+        layout.prop(context.scene, "hide_ghosts", text="Filter Ghosts", toggle=True)
+        
     def filter_items(self, context, data, propname):
-        """Filter function to exclude non-actors when toggled"""
         items = getattr(data, propname)
         filtered = []
         order = []
-        hide_non_actors = context.scene.hide_non_actors
+        hide_ghosts = context.scene.hide_ghosts
     
         for i, item in enumerate(items):
             flag = self.bitflag_filter_item  # Default: Show the item
 
-            if hide_non_actors and not item.is_actor:
+            if hide_ghosts and item.armature not in bpy.context.view_layer.objects.values():
                 flag &= ~self.bitflag_filter_item  # Hide the item
         
             filtered.append(flag)
             order.append(i)
     
         return filtered, order
-    
+        
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname):       
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             if item.armature:
-                if item.armature_type == "mekrig":
-                    if item.is_actor:
+                if item.armature in bpy.context.view_layer.objects.values():
+                    if item.armature_type == "mekrig":
                         icon_type = "OUTLINER_OB_ARMATURE"
-                    else: 
-                        icon_type = "GHOST_ENABLED"
-                else:
-                    if item.is_actor:
-                        icon_type = "MOD_ARMATURE"
                     else:
-                        icon_type = "GHOST_DISABLED"
+                        icon_type = "MOD_ARMATURE"
+                else: 
+                    icon_type = "GHOST_DISABLED"
 
             
                 row = layout.row(align=True)
@@ -108,7 +101,6 @@ class MEKTOOLS_PT_Actors(Panel):
         box = layout.box()
         row = box.split(factor=0.63)
         row.label(text="Available Actors")
-        row.operator("mektools.ot_refresh_actors", icon="FILE_REFRESH", text="Refresh")
             
         row = box.row()
         row.template_list("UI_UL_Actors", "", scene, "actors", scene, "actors_index")
@@ -121,10 +113,11 @@ class MEKTOOLS_PT_Actors(Panel):
         
         col.separator(factor=1.0)
         
-        op = col.operator("mektools.ot_rename_actor", icon="GREASEPENCIL", text="") # rename actor 
-        op.new_name = scene.actors[scene.actors_index].armature.name if scene.actors[scene.actors_index].armature else ""
-        col.operator("mektools.ot_duplicate_actor", icon="DUPLICATE", text="")  # duplicate 
-        col.operator("mektools.ot_delete_actor", icon="TRASH", text="")  # delete actor
+        if len(scene.actors) > 0 and 0 <= scene.actors_index < len(scene.actors):
+            op = col.operator("mektools.ot_rename_actor", icon="GREASEPENCIL", text="") # rename actor 
+            op.new_name = scene.actors[scene.actors_index].armature.name if scene.actors[scene.actors_index].armature else ""
+            col.operator("mektools.ot_duplicate_actor", icon="DUPLICATE", text="")  # duplicate 
+            col.operator("mektools.ot_delete_actor", icon="TRASH", text="")  # delete actor
         
         
            
@@ -136,6 +129,8 @@ def register():
     bpy.types.Scene.actors = bpy.props.CollectionProperty(type=ActorItem)
     bpy.types.Scene.actors_index = bpy.props.IntProperty()
     bpy.types.Scene.actors_index = bpy.props.IntProperty(update=actors.update_selected_actor)
+    
+    bpy.types.Scene.hide_ghosts = bpy.props.BoolProperty(name="Hide Ghosts", default=True)
     
     bpy.utils.register_class(MEKTOOLS_PT_Actors)
 

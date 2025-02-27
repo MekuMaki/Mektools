@@ -27,6 +27,7 @@ def dupe_with_childs(armature):
     bpy.ops.object.select_all(action='DESELECT')
     armature.select_set(True)
     for child in armature.children:
+        print(child.name)
         child.select_set(True)
             
     bpy.ops.object.duplicate_move()
