@@ -1,10 +1,10 @@
 schema_version = "0.0.1"
 
 id = "mektools"
-version = "1.7.3"
+version = "1.8.0"
 name = "MekTools"
-feature_patch = "8"
-feature_name = "feature/actors"
+feature_patch = "0"
+feature_name = "dev"
 tagline = "This is another extension"
 maintainer = "MekuMaki, Shino Mythmaker"
 type = "add-on"
