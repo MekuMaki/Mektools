@@ -1,6 +1,7 @@
 import bpy
 
 def update_selected_actor(self, context):
+    """Updates selection based on active actor index while respecting Shift selection."""
     scene = context.scene
     if len(scene.actors) > 0 and 0 <= scene.actors_index < len(scene.actors):
         if scene.actors_index >= 0:
@@ -17,12 +18,11 @@ def update_selected_actor(self, context):
                 try:
                     bpy.ops.object.mode_set(mode=previous_mode)
                 except RuntimeError:
-                    bpy.ops.object.mode_set(mode='OBJECT')   
+                    bpy.ops.object.mode_set(mode='OBJECT')
 
 def update_active_actor(scene):
-    """Updates the active actor index based on selection while preventing infinite recursion."""
+    """Updates the active actor index based on selection."""
     selected_armatures = {obj for obj in bpy.context.selected_objects if obj.type == 'ARMATURE'}
-    
     # Find the first actor whose armature is in the selected armatures
     new_index = -1
     for i, actor in enumerate(scene.actors):
