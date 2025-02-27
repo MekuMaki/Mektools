@@ -13,6 +13,7 @@ class EXPORT_POSE_OT(Operator, ExportHelper):
     """Exports armature pose into a .pose file."""
     bl_idname = "pose.export"
     bl_label = "Export to Pose File"
+    bl_options = {'REGISTER'}
     
     filepath: bpy.props.StringProperty(subtype="FILE_PATH")
     filename_ext = '.pose'
@@ -129,7 +130,6 @@ class EXPORT_POSE_OT(Operator, ExportHelper):
             json.dump(skeleton_data, f, indent=4)
         
         self.report({'INFO'}, "Pose exported successfully!")
-        bpy.ops.ed.undo_push()
         return {'FINISHED'}
 
 

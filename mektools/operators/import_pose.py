@@ -269,6 +269,7 @@ class IMPORT_POSE_OT(Operator):
     """Import Pose File this is experimental. Face bones are not properly calculatyed rn"""
     bl_idname = "pose.import"
     bl_label = "Import Pose File"
+    bl_options = {'REGISTER', 'UNDO'}
 
     filepath: bpy.props.StringProperty(subtype="FILE_PATH")
     filter_glob: bpy.props.StringProperty(default='*.pose', options={'HIDDEN'})
@@ -304,7 +305,6 @@ class IMPORT_POSE_OT(Operator):
             restore_collection_visibility(collection, armature)
                 
         bpy.context.window.cursor_set('DEFAULT')
-        bpy.ops.ed.undo_push()
         
         return {'FINISHED'}
 
