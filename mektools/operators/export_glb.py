@@ -6,6 +6,9 @@ from bpy_extras.io_utils import ExportHelper
 class EXPORT_ACTION_OT_glb(Operator, ExportHelper):
     bl_idname = "export_action.glb"
     bl_label = "Export Animation"
+    bl_options = {'REGISTER'}
+    
+    
     arg: bpy.props.StringProperty()
 
     filename_ext = ".glb"
@@ -81,6 +84,8 @@ class EXPORT_ACTION_OT_glb(Operator, ExportHelper):
 class EXPORT_VFXOBJ_OT_glb(Operator, ExportHelper):
     bl_idname = "export_vfxobj.glb"
     bl_label = "Export Model"
+    bl_options = {'REGISTER'}
+    
     arg: bpy.props.StringProperty()
     filename_ext = ".glb"
     filter_glob: StringProperty(default="*.glb", options={'HIDDEN'})
@@ -104,7 +109,7 @@ class EXPORT_VFXOBJ_OT_glb(Operator, ExportHelper):
             export_texcoords=True,
             export_normals=True, 
             export_tangents=True, 
-            export_yup=True,  # Apply Y-up coordinate system
+            export_yup=False,  # Y Up no longer needed as VFX Editor does take in in account.
             export_apply=True,  # Apply modifiers
             export_materials='NONE'  # No material export needed
         )

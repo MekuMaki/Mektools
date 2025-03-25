@@ -2,12 +2,11 @@ import bpy
 from bpy.types import Operator
 import os
 import importlib.util
-from math import radians
-from bpy.props import BoolProperty
+from bpy.props import BoolProperty, StringProperty
 from collections import defaultdict, namedtuple
 import re
 from ..addon_preferences import get_addon_preferences 
-from ..functions.spline_gen_fn import generatr_tail_spline_ik
+from ..libs import spline_gen, helper
 
 # Load the bone names from bone_names.py in the data folder
 DATA_PATH = os.path.join(os.path.dirname(__file__), "../data")
@@ -276,7 +275,7 @@ def remove_custom_shapes(armature):
     bpy.ops.object.mode_set(mode="OBJECT")
 
 def assign_bones_to_collection(armature, bones, collection_name, is_visible = bool, bone_keywords = None):
-    """Searches for bones in a given list that contain specified keywords. Returns assigned Bones"""
+    """Searches for bones in a given list that contain specified keywords. Can set Bone Collection and Collection-Visibilty state. Returns assigned Bones"""
 
     bpy.ops.object.mode_set(mode='OBJECT')
 
@@ -330,22 +329,6 @@ def attache_mekrig(armature, racial_code):
         return merged_armature
     return None
     
-def create_collection(name="Collection"):
-    """Creates a Collection"""
-    if name not in bpy.data.collections:
-        new_collection = bpy.data.collections.new(name)
-        bpy.context.scene.collection.children.link(new_collection)
-        return new_collection  
-
-    count = 1
-    while f"{name}.{count:03d}" in bpy.data.collections:
-        count += 1
-
-    new_name = f"{name}.{count:03d}"
-    new_collection = bpy.data.collections.new(new_name)
-    bpy.context.scene.collection.children.link(new_collection)
-    return new_collection 
-
 def get_racial_code(objects, id):
     """Searches for an object containing specified ID in its name and extracts the racial code."""
     for obj in objects:
@@ -449,8 +432,10 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
     """Import GLTF from Meddle and perform cleanup tasks"""
     bl_idname = "mektools.import_meddle_gltf"
     bl_label = "Meddle Import"
-    filepath: bpy.props.StringProperty(subtype="FILE_PATH")
-    filter_glob: bpy.props.StringProperty(default='*.gltf', options={'HIDDEN'})
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    filepath: StringProperty(subtype="FILE_PATH")
+    filter_glob: StringProperty(default='*.gltf', options={'HIDDEN'})
     
     s_pack_images: BoolProperty(name="Pack-Images", description="Pack all Images into .blend file", default=True)  
     s_merge_vertices: BoolProperty(name="Merge Vertices", description="The glTF format requires discontinuous normals, UVs, and other vertex attributes to be stored as separate vertices, as required for rendering on typical graphics hardware. This option attempts to combine co -located vertices where possible. Currently cannot combine verts with different normals.", default=False)# type: ignore  
@@ -464,8 +449,11 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
     s_disable_bone_shape: BoolProperty(name="Disable Bone Shapes", description="Disables the generation of Bone Shapes on Import", default=True)
     
     s_remove_parent_on_poles: BoolProperty(name="Remove Parents from Pole-Targets", description="Removes the Parent from Pole-Targets", default=False)
-    s_spline_tail: BoolProperty(name="Generate spline tail", description="Generates and replaces the tail with Spline IKs", default=False)
+    s_spline_tail: BoolProperty(name="Generate spline Tail", description="Generates and replaces the tail with Spline IKs", default=False)
     s_spline_gear: BoolProperty(name="Generate spline Gear", description="Generates and replaces the gear with Spline IKs", default=False) 
+    
+    s_is_pinned:  BoolProperty(name="Is Pinned", description="Pinns the imported object", default=True) 
+    s_obj_name: StringProperty(name="Object Name", description="Set a name for the imported object", default="") 
     
     s_armature_type: bpy.props.EnumProperty(
         name="Armature Type",
@@ -501,15 +489,15 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
     
         split = col.split(factor=indent)
         split.label(text=" ")
-        split.prop(self, "s_pack_images", text="Pack Images")
+        split.prop(self, "s_pack_images")
         
         split = col.split(factor=indent)
         split.label(text=" ")
-        split.prop(self, "s_merge_vertices", text="Merge Vertices")
+        split.prop(self, "s_merge_vertices")
 
         split = col.split(factor=indent)  
         split.label(text=" ")
-        split.prop(self, "s_import_collection", text="Create Collection")
+        split.prop(self, "s_import_collection")
         
         # 🔹 Mesh Options Section
         box = layout.box()
@@ -520,11 +508,11 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
     
         split = col.split(factor=indent)
         split.label(text=" ")
-        split.prop(self, "s_merge_skin", text="Merge Skin")
+        split.prop(self, "s_merge_skin")
 
         split = col.split(factor=indent)  
         split.label(text=" ")
-        split.prop(self, "s_merge_by_material", text="Merge by Material")
+        split.prop(self, "s_merge_by_material")
 
         # 🔹 Shaders Section
         box = layout.box()
@@ -534,7 +522,7 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
         col = box.column(align=True)
         split = col.split(factor=indent)  
         split.label(text=" ")
-        split.prop(self, "s_import_with_shaders_setting", text="Append Meddle Shaders")
+        split.prop(self, "s_import_with_shaders_setting")
 
         # 🔹 Armature Section
         box = layout.box()
@@ -544,7 +532,7 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
         col = box.column(align=True)
         split = col.split(factor=indent)  
         split.label(text=" ")
-        split.prop(self, "s_disable_bone_shape", text="Disable Bone Shapes")
+        split.prop(self, "s_disable_bone_shape")
 
         # 🔹 Armature Type Selection (Vanilla vs Mekrig)
         row = box.row()
@@ -557,17 +545,33 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
         col.active = self.s_armature_type == 'Mekrig'
         split = col.split(factor=indent_nested)  
         split.label(text=" ")
-        split.prop(self, "s_remove_parent_on_poles", text="Unparent Pole Targets")
+        split.prop(self, "s_remove_parent_on_poles")
 
         if self.prefs.ex_button_spline_tail == 'ON':
             split = col.split(factor=indent_nested)  
             split.label(text=" ")
-            split.prop(self, "s_spline_tail", text="Generate Spline Tail")
+            split.prop(self, "s_spline_tail")
 
         if self.prefs.ex_button_spline_gear == 'ON':
             split = col.split(factor=indent_nested)  
             split.label(text=" ")
-            split.prop(self, "s_spline_gear", text="Generate Spline Gear")
+            split.prop(self, "s_spline_gear")
+            
+        # 🔹 Pin Section 
+        box = layout.box()
+        row = box.row()
+        row.label(text="Pin", icon="PINNED")
+        
+        col = box.column(align=True)
+        
+        split = col.split(factor=indent)  
+        split.label(text=" ")
+        split.prop(self, "s_is_pinned")
+        
+        col = box.column(align=True)
+        split = col.split(factor=indent)  
+        split.label(text="Object Name")
+        split.prop(self, "s_obj_name", text=" ")
 
 
     def execute(self, context):  
@@ -578,61 +582,66 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
             return {'CANCELLED'}   
 
         #base import function
-        import_collection = create_collection("Meddle_Import")
-        working_object_set = import_gltf(self.filepath, import_collection, self.s_pack_images, self.s_disable_bone_shape, self.s_merge_vertices)
+        import_collection = helper.create_collection("Meddle_Import")
+        import_collection.color_tag = "COLOR_05"
+        object_set = import_gltf(self.filepath, import_collection, self.s_pack_images, self.s_disable_bone_shape, self.s_merge_vertices)
         
         racial_code_identifier="iri"
-        racial_code = get_racial_code(working_object_set, racial_code_identifier)
+        racial_code = get_racial_code(object_set, racial_code_identifier)
         
-        gltf_armature = find_armature_in_objects(working_object_set)  
+        armature = find_armature_in_objects(object_set)  
         
         if self.s_merge_by_material:
-            working_object_set = merge_by_material(working_object_set)
+            object_set = merge_by_material(object_set)
         
         if self.s_merge_skin:
-            working_object_set = merge_by_name(working_object_set, 'skin')
+            object_set = merge_by_name(object_set, 'skin')
         
         
         #checking for user options
         if self.s_import_with_shaders_setting:
-            import_meddle_shader(self, working_object_set)
+            import_meddle_shader(self, object_set)
         else:
             bpy.ops.mektools.append_shaders()
             bpy.ops.material.material_fixer_auto()
             
+        #armature setup  
         if self.s_armature_type == 'Mekrig':
-            clear_parents_keep_transform(working_object_set)
-            mekrig_armature = attache_mekrig(gltf_armature, racial_code) 
-            mekrig_collection = get_collection(mekrig_armature)
+            clear_parents_keep_transform(object_set)
+            armature = attache_mekrig(armature, racial_code) 
+            mekrig_collection = get_collection(armature)
+            mekrig_collection.color_tag = "COLOR_01"
             
-            working_object_set = delete_rna_from_objects(working_object_set) # this is just for sanity
-            link_to_collection(working_object_set, mekrig_collection)
-            parent_objects(working_object_set, mekrig_armature)
+            object_set = delete_rna_from_objects(object_set) # this is just for sanity
+            link_to_collection(object_set, mekrig_collection)
+            parent_objects(object_set, armature)
             
             if self.s_remove_parent_on_poles:
-                remove_pole_parents(mekrig_armature)  
+                remove_pole_parents(armature)  
                 
             if self.s_spline_tail:
                 reference_bones = ["n_sippo_a", "n_sippo_b", "n_sippo_c", "n_sippo_d", "n_sippo_e"]
-                generatr_tail_spline_ik(
-                    armature=mekrig_armature,
+                spline_gen.generatr_tail_spline_ik(
+                    armature=armature,
                     reference_bone_names=reference_bones,
                     curve_name="TailCurve"
                 )
-                
-                
+            armature.data["mektools_armature_type"] = "mekrig"
+            
+        armature.name = self.s_obj_name if self.s_obj_name != "" else armature.name 
+        
+        if self.s_is_pinned:
+            new_pin = context.scene.pins.add()
+            new_pin.object = armature
+             
         if not self.s_import_collection:
             unlink_from_collection(import_collection)
             bpy.data.collections.remove(import_collection) 
-            
-        #refresh actor list
-        bpy.ops.mektools.ot_refresh_actors()
         
         bpy.ops.object.select_all(action='DESELECT')
         
         self.report({'INFO'}, "GLTF imported and processed successfully.")
         bpy.context.window.cursor_set('DEFAULT')
-        bpy.ops.ed.undo_push()
         return {'FINISHED'}
 
 def register():

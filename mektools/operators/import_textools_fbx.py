@@ -41,8 +41,17 @@ class MEKTOOLS_OT_ImportFBXFromTexTools(Operator):
     """Import FBX from TexTools and perform cleanup tasks"""
     bl_idname = "mektools.import_textools_fbx"
     bl_label = "Import FBX from TexTools"
+    bl_options = {'REGISTER', 'UNDO'}
+    
     filepath: bpy.props.StringProperty(subtype="FILE_PATH")
     filter_glob: bpy.props.StringProperty(default='*.fbx', options={'HIDDEN'})
+    
+    def invoke(self, context, event):
+        prefs = get_addon_preferences()
+        if prefs.default_textools_import_path:
+            self.filepath = prefs.default_textools_import_path
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
 
     def execute(self, context):
         bpy.context.window.cursor_set('WAIT')
@@ -174,15 +183,7 @@ class MEKTOOLS_OT_ImportFBXFromTexTools(Operator):
 
         self.report({'INFO'}, "Imported FBX with cleanup complete.")
         bpy.context.window.cursor_set('DEFAULT')
-        bpy.ops.ed.undo_push()
         return {'FINISHED'}
-
-    def invoke(self, context, event):
-        prefs = get_addon_preferences()
-        if prefs.default_textools_import_path:
-            self.filepath = prefs.default_textools_import_path
-        context.window_manager.fileselect_add(self)
-        return {'RUNNING_MODAL'}
 
 def register():
     bpy.utils.register_class(MEKTOOLS_OT_ImportFBXFromTexTools)

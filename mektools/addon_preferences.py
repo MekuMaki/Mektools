@@ -68,9 +68,9 @@ class MektoolsPreferences(AddonPreferences):
     ) 
 
     # Experimental Buttons   
-    ex_actors: EnumProperty(
-        name="Actors",
-        description="Enables/Disables Actors panel. Actors are supposed to be a better way fo switching between multiple armatures and objects that are important to the scene instead of browsing through an extensive outliner that includes everything.",
+    ex_pins: EnumProperty(
+        name="Pinns",
+        description="Enables/Disables Pins panel. Pins are supposed to be a better way fo switching between multiple armatures and objects that are important to the scene instead of browsing through an extensive outliner that includes everything.",
         items=[('OFF', "Disable", ""), ('ON', "Enable", "")],
         default='OFF'
     ) 
@@ -187,8 +187,8 @@ class MektoolsPreferences(AddonPreferences):
             draw_toggle("Import Pose", "ex_button_import_pose")
             
             box = layout.box()
-            box.label(text="Actors")
-            draw_toggle("Actors", "ex_actors")
+            box.label(text="Pins")
+            draw_toggle("Pins", "ex_pins")
 
         elif self.tabs == 'LEGACY':
             box = layout.box()

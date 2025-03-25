@@ -5,6 +5,7 @@ class POSE_RESET_OT(Operator):
     """Reset Transform of every Bone in Armature"""
     bl_idname = "pose.reset"
     bl_label = "Reset Pose"
+    bl_options = {'REGISTER', 'UNDO'}
     
     def execute(self, context):
         armature = context.object
@@ -18,13 +19,13 @@ class POSE_RESET_OT(Operator):
             bone.scale = (1, 1, 1)
         
         self.report({'INFO'}, "Pose Reset for all bones.")
-        bpy.ops.ed.undo_push()
         return {'FINISHED'}
     
 class POSE_RESET_OT_Selection(Operator):
     """Reset Transform of selected Bones"""
     bl_idname = "pose.reset_selection"
     bl_label = "Reset Selected Bones"
+    bl_options = {'REGISTER', 'UNDO'}
     
     def execute(self, context):
         armature = context.object
@@ -43,7 +44,6 @@ class POSE_RESET_OT_Selection(Operator):
             bone.scale = (1, 1, 1)
         
         self.report({'INFO'}, "Pose Reset for selected bones.")
-        bpy.ops.ed.undo_push()
         return {'FINISHED'}
 
 
