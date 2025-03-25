@@ -16,21 +16,23 @@ class MEKTOOLS_OT_TogglePinVisibility(bpy.types.Operator):
         if not obj:
             return {'CANCELLED'}
          
-        obj.data["mt_actor_hide_armature"] = self.hide_armature
-        obj.data["mt_actor_hide_object"] = self.hide_object
+        obj["mt_pin_hide_armature"] = self.hide_armature
+        obj["mt_pin_hide_object"] = self.hide_object
         
-
-        # Ensure pins armature is hidden if pin is hidden
-        if self.hide_object:
-            self.hide_armature = True
-
-        # Toggle armature visibility
-        if obj.type == "ARMATURE":
-            helper.safe_hide_set(context, obj, self.hide_armature)
 
         # Toggle pin visibility (all parented objects)
         for child in obj.children:
-            helper.safe_hide_set(context, child, self.hide_object)
+            if child.type == "ARMATURE":
+                helper.safe_hide_set(context, child, self.hide_armature)
+            else:
+                helper.safe_hide_set(context, child, self.hide_object)
+                
+        # Toggle armature visibility
+        if obj.type == "ARMATURE":
+            helper.safe_hide_set(context, obj, self.hide_armature) 
+        else:
+            helper.safe_hide_set(context, obj, self.hide_object)
+            
 
         return {'FINISHED'}
     
@@ -75,7 +77,7 @@ class MEKTOOLS_OT_DuplicatePin(bpy.types.Operator):
         
         pins.add_callback()
         
-        self.report({'INFO'}, "Actor duplicated successfully")
+        self.report({'INFO'}, "Pin duplicated successfully")
         return {'FINISHED'}
     
 class MEKTOOLS_OT_DeletePin(bpy.types.Operator):
@@ -126,10 +128,12 @@ class MEKTOOLS_OT_DeletePin(bpy.types.Operator):
         return {'FINISHED'}
     
 class MEKTOOLS_OT_SetIsPinned(bpy.types.Operator):
-    bl_idname = "mektools.set_is_pinned"
+    bl_idname = "mektools.ot_set_is_pinned"
     bl_label = "Toggle Pin Object"
     bl_description = "Add or remove the active object from the pin list"
     bl_options = {'REGISTER', 'UNDO'}
+    
+    is_pin: bpy.props.BoolProperty(default=False)
 
     def execute(self, context):
         scene = context.scene
@@ -142,14 +146,17 @@ class MEKTOOLS_OT_SetIsPinned(bpy.types.Operator):
         # Check if object is already pinned
         pins_index = next((i for i, item in enumerate(scene.pins) if item.object == obj), -1)
 
-        if pins_index >= 0:
+        if scene.pins_index > -1 and not self.is_pin:
             # Object is pinned, remove it
-            scene.pins.remove(pins_index)
+            scene.pins.remove(scene.pins_index)
             self.report({'INFO'}, f"Unpinned: {obj.name}")
-        else:
+        elif self.is_pin:
             # Object is NOT pinned, so we add it
             pin = scene.pins.add()
             pin.object = obj
+            
+            # Set the index to the new pin
+            scene.pins_index = len(scene.pins) - 1
             self.report({'INFO'}, f"Pinned: {obj.name}")
 
         return {'FINISHED'}

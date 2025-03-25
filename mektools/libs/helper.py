@@ -35,3 +35,8 @@ def dupe_with_childs(armature):
     
 def get_object_icon(obj):
     return bpy.types.Object.bl_rna.properties['type'].enum_items[obj.type].icon
+
+def normalize_edit_mode(mode_str):
+    if mode_str[:4] == "EDIT":
+        return "EDIT"
+    return mode_str

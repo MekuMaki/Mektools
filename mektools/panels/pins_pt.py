@@ -10,11 +10,11 @@ class ItemPin(bpy.types.PropertyGroup):
     
     @property
     def hide_armature(self):
-        return self.object and self.object.data.get("mt_pin_hide_armature", False)
+        return self.object and self.object.get("mt_pin_hide_armature", False)
     
     @property
     def hide_object(self):
-        return self.object and self.object.data.get("mt_pin_hide_object", False)  
+        return self.object and self.object.get("mt_pin_hide_object", False)  
 
 class UI_UL_Pins(bpy.types.UIList):
     """List UI for displaying categorized Pins"""
@@ -62,9 +62,9 @@ class UI_UL_Pins(bpy.types.UIList):
                     op = row.operator("mektools.ot_toggle_pin_visibility", text="", icon="BONE_DATA", emboss=False)
                 op.object_name = obj.name
                 op.hide_armature = not item.hide_armature
-                op.hide_actor = item.hide_object
+                op.hide_object = item.hide_object
 
-                # Hide Actor Button
+                # Hide Object Button
                 op = row.operator("mektools.ot_toggle_pin_visibility", text="", icon='HIDE_ON' if item.hide_object else 'HIDE_OFF', emboss=False)
                 op.object_name = obj.name
                 op.hide_armature = item.hide_armature
@@ -77,7 +77,7 @@ class UI_UL_Pins(bpy.types.UIList):
        
 class MEKTOOLS_PT_Pins(Panel):
     bl_idname = "mektools.pt_pins"
-    bl_label = "Actors"
+    bl_label = "Pins"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = "Mektools"
@@ -100,15 +100,13 @@ class MEKTOOLS_PT_Pins(Panel):
 
         col = row.column(align=True)
         op = col.operator("mektools.ot_set_is_pinned", icon="ADD", text="") 
-        op.is_actor = True
+        op.is_pin = True
         op = col.operator("mektools.ot_set_is_pinned", icon="REMOVE", text="")
-        op.is_actor = False
+        op.is_pin = False
         
         col.separator(factor=1.0)
         
         if len(scene.pins) > 0 and 0 <= scene.pins_index < len(scene.pins):
-            op = col.operator("mektools.ot_rename_pin", icon="GREASEPENCIL", text="") 
-            op.new_name = scene.pins[scene.pins_index].object.name if scene.pins[scene.pins_index].object else ""
             col.operator("mektools.ot_duplicate_pin", icon="DUPLICATE", text="")  
             col.operator("mektools.ot_delete_pin", icon="TRASH", text="")  
         
@@ -124,6 +122,7 @@ def register():
     bpy.types.Scene.pins_index = bpy.props.IntProperty(update=pins.select_pin)
     
     bpy.types.Scene.hide_ghosts = bpy.props.BoolProperty(name="Hide Ghosts", default=True)
+    bpy.types.Scene.suppress_pins = bpy.props.BoolProperty(name="supressPinList", default=False)
     
     bpy.utils.register_class(MEKTOOLS_PT_Pins)
 
@@ -131,6 +130,8 @@ def unregister():
     bpy.utils.unregister_class(MEKTOOLS_PT_Pins)
     del bpy.types.Scene.pins
     del bpy.types.Scene.pins_index
+    del bpy.types.Scene.hide_ghosts
+    del bpy.types.Scene.suppress_pins
 
     bpy.utils.unregister_class(ItemPin)
     bpy.utils.unregister_class(UI_UL_Pins)

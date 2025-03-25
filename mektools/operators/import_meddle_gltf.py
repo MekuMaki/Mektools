@@ -557,22 +557,21 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
             split.label(text=" ")
             split.prop(self, "s_spline_gear")
             
-        # 🔹 Actor Section 
+        # 🔹 Pin Section 
         box = layout.box()
         row = box.row()
-        row.label(text="Actor", icon="POSE_HLT")
+        row.label(text="Pin", icon="PINNED")
         
         col = box.column(align=True)
         
         split = col.split(factor=indent)  
         split.label(text=" ")
-        split.prop(self, "s_is_actor")
+        split.prop(self, "s_is_pinned")
         
         col = box.column(align=True)
-        #col.active = self.s_is_actor  not needed anymore since armatures can have names without them being an actor
         split = col.split(factor=indent)  
-        split.label(text="Actor Name")
-        split.prop(self, "s_actor_name", text=" ")
+        split.label(text="Object Name")
+        split.prop(self, "s_object_name", text=" ")
 
 
     def execute(self, context):  

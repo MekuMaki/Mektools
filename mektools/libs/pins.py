@@ -1,18 +1,19 @@
 import bpy
+from . import helper
 suppress_pin_callback = False
 
 def select_pin(self, context):
     """Updates selection based on selected pins index"""
-    global suppress_pin_callback
-    if suppress_pin_callback:
+    scene = context.scene
+    if scene.suppress_pins:
         return
     
-    scene = context.scene
     if len(scene.pins) > 0 and 0 <= scene.pins_index < len(scene.pins):
         if scene.pins_index >= 0:
             pin = scene.pins[scene.pins_index]
             if pin.object:
-                previous_mode = context.mode
+                previous_mode = bpy.context.mode
+                print(previous_mode)
                 if context.view_layer.objects.active:
                     bpy.ops.object.mode_set(mode='OBJECT')
                 
@@ -20,15 +21,15 @@ def select_pin(self, context):
                 pin.object.select_set(True)
                 context.view_layer.objects.active = pin.object
                 
-                try:
-                    bpy.ops.object.mode_set(mode=previous_mode)
-                except RuntimeError:
-                    bpy.ops.object.mode_set(mode='OBJECT')
+                if context.view_layer.objects.active:
+                    try:
+                        bpy.ops.object.mode_set(mode=helper.normalize_edit_mode(previous_mode))
+                    except RuntimeError:
+                        bpy.ops.object.mode_set(mode='OBJECT')
 
 def sync_list_with_viewport_selection(scene):
-    """Updates the active actor index based on selection."""
-    global suppress_pin_callback
-    suppress_pin_callback = True
+    """Syncs the UIUL Pin list with viewport selection"""
+    scene.suppress_pins = True
     active_obj = bpy.context.view_layer.objects.active
     new_index = -1
     for i, pin in enumerate(scene.pins):
@@ -40,7 +41,7 @@ def sync_list_with_viewport_selection(scene):
     if scene.pins_index != new_index:     
         scene.pins_index = new_index    
     
-    suppress_pin_callback = False                    
+    scene.suppress_pins = False                  
                 
 def cleanup_pin_list(scene):
     """Removes pins from the list if the object is no longer in the viewport.""" 
@@ -58,21 +59,17 @@ def on_update_callback(scene):
     """Callback function triggered when Blender's update operation is called."""
     remove_callback()  # Temporarily disable callback
     sync_list_with_viewport_selection(scene) 
-    #cleanup_pin_list(scene)
+    cleanup_pin_list(scene)
     add_callback()  # Re-enable callback
     
 def add_callback():
     """Ensures the callback is only added once."""
-    global suppress_pin_callback
-    suppress_pin_callback = False
     
     if on_update_callback not in bpy.app.handlers.depsgraph_update_post:
         bpy.app.handlers.depsgraph_update_post.append(on_update_callback)
 
 def remove_callback():
     """Removes the callback to prevent infinite recursion."""
-    global suppress_pin_callback
-    suppress_pin_callback = True
     
     if on_update_callback in bpy.app.handlers.depsgraph_update_post:
         bpy.app.handlers.depsgraph_update_post.remove(on_update_callback)
