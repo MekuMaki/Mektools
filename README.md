@@ -13,10 +13,10 @@
 
 ## ⚡ Whats new ?
 
-✔ **Pins** – [Experimental Feature](https://github.com/MekuMaki/Mektools/wiki/Pins-Panel).
-✔ **Minor import Adjustments**.  
-✔ **Bug Fixes**.  
-✔ **Recommended version updates, see below**. 
+- ✔ **Pins** – [Experimental Feature](https://github.com/MekuMaki/Mektools/wiki/Pins-Panel)
+- ✔ **Minor import Adjustments**.  
+- ✔ **Bug Fixes**.  
+- ✔ **Recommended version updates, see below**. 
   
 
 ---
