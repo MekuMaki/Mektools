@@ -7,9 +7,9 @@ from . import (
 from .panels import (
     info_panel, 
     mektools_import_panel,
+    pins_pt,
     pose_panel,
     glb_export_panel,
-    actors_pt,
         
 )
 from .operators import (
@@ -21,9 +21,9 @@ from .operators import (
     mekrig_operators, 
     append_shaders,
     lizzer_auto_shaders, 
-    fixer_operators, 
+    fixer_operators,
+    pins_ot, 
     pose_helper,
-    actors_ot,
 )
 
 bl_info = {
@@ -54,14 +54,14 @@ def register():
     lizzer_auto_shaders.register()
     fixer_operators.register()
     pose_helper.register()
-    actors_ot.register()
+    pins_ot.register()
    
     # Register all panel types
     info_panel.register()
     mektools_import_panel.register()
     pose_panel.register()
     glb_export_panel.register()
-    actors_pt.register()
+    pins_pt.register()
     
 
 def unregister():
@@ -70,7 +70,7 @@ def unregister():
     mektools_import_panel.unregister()
     pose_panel.unregister()
     glb_export_panel.unregister()
-    actors_pt.unregister()
+    pins_pt.unregister()
     
     # Unregister all operator types
     import_meddle_gltf.unregister()
@@ -83,7 +83,7 @@ def unregister():
     lizzer_auto_shaders.unregister()
     fixer_operators.unregister()
     pose_helper.unregister()
-    actors_ot.unregister()
+    pins_ot.unregister()
    
     #unregister all preferences
     addon_preferences.unregister() 

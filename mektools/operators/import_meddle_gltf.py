@@ -275,7 +275,7 @@ def remove_custom_shapes(armature):
     bpy.ops.object.mode_set(mode="OBJECT")
 
 def assign_bones_to_collection(armature, bones, collection_name, is_visible = bool, bone_keywords = None):
-    """Searches for bones in a given list that contain specified keywords. Returns assigned Bones"""
+    """Searches for bones in a given list that contain specified keywords. Can set Bone Collection and Collection-Visibilty state. Returns assigned Bones"""
 
     bpy.ops.object.mode_set(mode='OBJECT')
 
@@ -452,8 +452,8 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
     s_spline_tail: BoolProperty(name="Generate spline Tail", description="Generates and replaces the tail with Spline IKs", default=False)
     s_spline_gear: BoolProperty(name="Generate spline Gear", description="Generates and replaces the gear with Spline IKs", default=False) 
     
-    s_is_actor:  BoolProperty(name="Is Actor", description="Set the imported object as Actor", default=True) 
-    s_actor_name: StringProperty(name="Actor Name", description="Set the imported object as Actor", default="") 
+    s_is_pinned:  BoolProperty(name="Is Pinned", description="Pinns the imported object", default=True) 
+    s_obj_name: StringProperty(name="Object Name", description="Set a name for the imported object", default="") 
     
     s_armature_type: bpy.props.EnumProperty(
         name="Armature Type",
@@ -627,11 +627,11 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
                 )
             armature.data["mektools_armature_type"] = "mekrig"
             
-        armature.name = self.s_actor_name if self.s_actor_name != "" else armature.name 
+        armature.name = self.s_obj_name if self.s_obj_name != "" else armature.name 
         
-        if self.s_is_actor:
-            new_actor = context.scene.actors.add()
-            new_actor.armature = armature
+        if self.s_is_pinned:
+            new_pin = context.scene.pins.add()
+            new_pin.object = armature
              
         if not self.s_import_collection:
             unlink_from_collection(import_collection)

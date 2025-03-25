@@ -31,3 +31,7 @@ def dupe_with_childs(armature):
         child.select_set(True)
             
     bpy.ops.object.duplicate_move()
+    
+    
+def get_object_icon(obj):
+    return bpy.types.Object.bl_rna.properties['type'].enum_items[obj.type].icon
