@@ -2,8 +2,8 @@
   <h1> Mektools – FFXIV Animation & Posing Toolkit </h1>
   <p>
     <img src="https://img.shields.io/github/v/release/MekuMaki/Mektools?label=Mektools&color=blue">
-    <img src="https://img.shields.io/badge/Blender-4.3%2B-orange">
-    <img src="https://img.shields.io/badge/Meddle-0.21%2B-blue">
+    <img src="https://img.shields.io/badge/Blender-4.4%2B-orange">
+    <img src="https://img.shields.io/badge/Meddle-0.24%2B-blue">
     <img src="https://img.shields.io/github/license/MekuMaki/Mektools">
   </p>
   <p>🚀 The all-in-one Blender extension for importing, posing, and exporting FFXIV characters.</p>
