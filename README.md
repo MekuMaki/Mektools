@@ -11,11 +11,12 @@
 
 ---
 
-## ⚡ New ?
+## ⚡ Whats new ?
 
-✔ **Pins** – Experimental **Add quick ref pins for any object**.
+✔ **Pins** – [Experimental Feature](https://github.com/MekuMaki/Mektools/wiki/Pins-Panel).
 ✔ **Minor import Adjustments**.  
 ✔ **Bug Fixes**.  
+✔ **Recommended version updates, see below**. 
   
 
 ---
@@ -36,8 +37,8 @@
 
 | **Software** | **Recommended Version** |
 |-------------|----------------------|
-| **Blender** | 4.3+ |
-| **Meddle**  | 0.21+ |
+| **Blender** | 4.4+ |
+| **Meddle**  | 0.24+ |
 
 > **You can use newer versions, but these are the tested ones.**  
 
