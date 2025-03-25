@@ -109,7 +109,7 @@ class EXPORT_VFXOBJ_OT_glb(Operator, ExportHelper):
             export_texcoords=True,
             export_normals=True, 
             export_tangents=True, 
-            export_yup=True,  # Apply Y-up coordinate system
+            export_yup=False,  # Y Up no longer needed as VFX Editor does take in in account.
             export_apply=True,  # Apply modifiers
             export_materials='NONE'  # No material export needed
         )

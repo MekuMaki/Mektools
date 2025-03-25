@@ -571,7 +571,7 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
         col = box.column(align=True)
         split = col.split(factor=indent)  
         split.label(text="Object Name")
-        split.prop(self, "s_object_name", text=" ")
+        split.prop(self, "s_obj_name", text=" ")
 
 
     def execute(self, context):  
@@ -583,6 +583,7 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
 
         #base import function
         import_collection = helper.create_collection("Meddle_Import")
+        import_collection.color_tag = "COLOR_05"
         object_set = import_gltf(self.filepath, import_collection, self.s_pack_images, self.s_disable_bone_shape, self.s_merge_vertices)
         
         racial_code_identifier="iri"
@@ -609,6 +610,7 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
             clear_parents_keep_transform(object_set)
             armature = attache_mekrig(armature, racial_code) 
             mekrig_collection = get_collection(armature)
+            mekrig_collection.color_tag = "COLOR_01"
             
             object_set = delete_rna_from_objects(object_set) # this is just for sanity
             link_to_collection(object_set, mekrig_collection)
