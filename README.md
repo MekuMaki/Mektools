@@ -11,14 +11,12 @@
 
 ---
 
-## ⚡ Features  
+## ⚡ New ?
 
-✔ **FFXIV Character Import** – Supports **Meddle & TexTools**.  
-✔ **Mekrig System** – Advanced **FFXIV-compatible rigging**.  
-✔ **Pose Import & Export** – Save and load **pose files**.  
-✔ **GLTF Export** – Optimized **.glb** for **VFX editors**.  
-✔ **Actor Management** – Experimental **multi-character support**.  
-✔ **Customizable Interface** – Hide features **you don’t need**.  
+✔ **Pins** – Experimental **Add quick ref pins for any object**.
+✔ **Minor import Adjustments**.  
+✔ **Bug Fixes**.  
+  
 
 ---
 
