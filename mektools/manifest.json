@@ -2,14 +2,14 @@
   "id": "MekTools",
   "name": "MekTools",
   "type": "extensions",
-"version": [1, 8, 1],
+"version": [1, 8, 2],
   "blender": [4, 2, 0],
   "author": "MekuMaki & Shino Mythmaker",
   "category": "Mektools",
   "description": "A collection of tools for working with FFXIV models in Blender.",
   "tags": ["modeling", "animation", "import-export"],
   "path": "MekTools",
-"feature_name": "dev",
+"feature_name": "main",
 "feature_patch": 0,
   "location": "View3D > Mektools Tab"
 }

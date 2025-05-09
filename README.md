@@ -2,8 +2,8 @@
   <h1> Mektools – FFXIV Animation & Posing Toolkit </h1>
   <p>
     <img src="https://img.shields.io/github/v/release/MekuMaki/Mektools?label=Mektools&color=blue">
-    <img src="https://img.shields.io/badge/Blender-4.3%2B-orange">
-    <img src="https://img.shields.io/badge/Meddle-0.21%2B-blue">
+    <img src="https://img.shields.io/badge/Blender-4.4%2B-orange">
+    <img src="https://img.shields.io/badge/Meddle-0.24%2B-blue">
     <img src="https://img.shields.io/github/license/MekuMaki/Mektools">
   </p>
   <p>🚀 The all-in-one Blender extension for importing, posing, and exporting FFXIV characters.</p>
@@ -11,14 +11,13 @@
 
 ---
 
-## ⚡ Features  
+## ⚡ Whats new ?
 
-✔ **FFXIV Character Import** – Supports **Meddle & TexTools**.  
-✔ **Mekrig System** – Advanced **FFXIV-compatible rigging**.  
-✔ **Pose Import & Export** – Save and load **pose files**.  
-✔ **GLTF Export** – Optimized **.glb** for **VFX editors**.  
-✔ **Actor Management** – Experimental **multi-character support**.  
-✔ **Customizable Interface** – Hide features **you don’t need**.  
+- ✔ **Pins** – [Experimental Feature](https://github.com/MekuMaki/Mektools/wiki/Pins-Panel)
+- ✔ **Minor import Adjustments**.  
+- ✔ **Bug Fixes**.  
+- ✔ **Recommended version updates, see below**. 
+  
 
 ---
 
@@ -38,8 +37,8 @@
 
 | **Software** | **Recommended Version** |
 |-------------|----------------------|
-| **Blender** | 4.3+ |
-| **Meddle**  | 0.21+ |
+| **Blender** | 4.4+ |
+| **Meddle**  | 0.24+ |
 
 > **You can use newer versions, but these are the tested ones.**  
 
