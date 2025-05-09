@@ -14,7 +14,7 @@
 ## ⚡ Whats new ?
 
 - ✔ **Pins** – [Pins can now be fully disabled if you run into issues (requires a blender restart)](https://github.com/MekuMaki/Mektools/wiki/Pins-Panel)
-- ✔ **Added Projection Plane to CTRL + A > Curve**.  
+- ✔ **Added Projection Plane to CTRL + A > Curve** -> [Wiki page](https://github.com/MekuMaki/Mektools/wiki/OPP).  
   
 
 ---
