@@ -7,9 +7,10 @@ from . import (
 from .panels import (
     info_panel, 
     mektools_import_panel,
-    pins_pt,
+    # pins_pt,
     pose_panel,
     glb_export_panel,
+    opp_pt,
         
 )
 from .operators import (
@@ -22,14 +23,19 @@ from .operators import (
     append_shaders,
     lizzer_auto_shaders, 
     fixer_operators,
-    pins_ot, 
+    # pins_ot, 
     pose_helper,
+    opp_ot,
+)
+
+from .handler import (
+    pins_handler,
 )
 
 bl_info = {
     "name": "MekTools",
     "author": "MekuMaki & Shino Mythmaker",
-    "version": (1,8,2),
+    "version": (1,8,4),
     "blender": (4,2,0),
     "description": "A collection of tools for working with FFXIV models in Blender.",
     "category": "Mektools",
@@ -43,6 +49,9 @@ def register():
     #Register all preferences
     addon_preferences.register()
     
+    # Register Handlers
+    pins_handler.register()
+    
     # Register all operators types
     import_meddle_gltf.register()
     import_textools_fbx.register()
@@ -54,23 +63,29 @@ def register():
     lizzer_auto_shaders.register()
     fixer_operators.register()
     pose_helper.register()
-    pins_ot.register()
+    #pins_ot.register() covered by pins handler
+    opp_ot.register()
    
     # Register all panel types
     info_panel.register()
     mektools_import_panel.register()
     pose_panel.register()
     glb_export_panel.register()
-    pins_pt.register()
+    #pins_pt.register() covered by pins handler
+    opp_pt.register()
     
 
 def unregister():
+    # Unregister Handlers
+    pins_handler.unregister()
+    
     # Unregister all panel types
     info_panel.unregister()
     mektools_import_panel.unregister()
     pose_panel.unregister()
     glb_export_panel.unregister()
-    pins_pt.unregister()
+    # pins_pt.unregister() covered by pins handler
+    opp_pt.unregister()
     
     # Unregister all operator types
     import_meddle_gltf.unregister()
@@ -83,7 +98,8 @@ def unregister():
     lizzer_auto_shaders.unregister()
     fixer_operators.unregister()
     pose_helper.unregister()
-    pins_ot.unregister()
+    # pins_ot.unregister() covered by pins handlers
+    opp_ot.unregister()
    
     #unregister all preferences
     addon_preferences.unregister() 

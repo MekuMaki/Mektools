@@ -556,7 +556,7 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
             split = col.split(factor=indent_nested)  
             split.label(text=" ")
             split.prop(self, "s_spline_gear")
-            
+           
         # 🔹 Pin Section 
         box = layout.box()
         row = box.row()
@@ -631,8 +631,9 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
         armature.name = self.s_obj_name if self.s_obj_name != "" else armature.name 
         
         if self.s_is_pinned:
-            new_pin = context.scene.pins.add()
-            new_pin.object = armature
+            if self.prefs.ex_pins == 'ON': 
+                new_pin = context.scene.pins.add()
+                new_pin.object = armature
              
         if not self.s_import_collection:
             unlink_from_collection(import_collection)

@@ -188,7 +188,7 @@ class MektoolsPreferences(AddonPreferences):
             
             box = layout.box()
             box.label(text="Pins")
-            draw_toggle("Pins", "ex_pins")
+            draw_toggle("Pins (Requires Restart)", "ex_pins")
 
         elif self.tabs == 'LEGACY':
             box = layout.box()
