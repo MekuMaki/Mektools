@@ -230,7 +230,6 @@ class MEKTOOLS_OT_CheckForUpdate(bpy.types.Operator):
         bpy.context.window.cursor_set('DEFAULT')
         return {'FINISHED'}
 
-
 class VIEW3D_PT_SupportCommunity(bpy.types.Panel):
     bl_idname = "VIEW3D_PT_support_community"
     bl_label = ""

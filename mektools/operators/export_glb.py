@@ -67,7 +67,7 @@ class EXPORT_ACTION_OT_glb(Operator, ExportHelper):
                 filepath=self.filepath,
                 export_format='GLB',
                 use_selection=True,
-                export_yup=True,
+                export_yup=False,
                 export_apply=True,
                 export_animations=True,
                 export_frame_range=True,
