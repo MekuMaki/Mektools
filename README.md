@@ -3,7 +3,7 @@
   <p>
     <img src="https://img.shields.io/github/v/release/MekuMaki/Mektools?label=Mektools&color=blue">
     <img src="https://img.shields.io/badge/Blender-4.4%2B-orange">
-    <img src="https://img.shields.io/badge/Meddle-0.24%2B-blue">
+    <img src="https://img.shields.io/badge/Meddle-0.29%2B-blue">
     <img src="https://img.shields.io/github/license/MekuMaki/Mektools">
   </p>
   <p>🚀 The all-in-one Blender extension for importing, posing, and exporting FFXIV characters.</p>
@@ -13,10 +13,8 @@
 
 ## ⚡ Whats new ?
 
-- ✔ **Pins** – [Experimental Feature](https://github.com/MekuMaki/Mektools/wiki/Pins-Panel)
-- ✔ **Minor import Adjustments**.  
-- ✔ **Bug Fixes**.  
-- ✔ **Recommended version updates, see below**. 
+- ✔ **Pins** – [Pins can now be fully disabled if you run into issues (requires a blender restart)](https://github.com/MekuMaki/Mektools/wiki/Pins-Panel)
+- ✔ **Added Projection Plane to CTRL + A > Curve** -> [Wiki page](https://github.com/MekuMaki/Mektools/wiki/OPP).  
   
 
 ---
@@ -38,7 +36,7 @@
 | **Software** | **Recommended Version** |
 |-------------|----------------------|
 | **Blender** | 4.4+ |
-| **Meddle**  | 0.24+ |
+| **Meddle**  | 0.29+ |
 
 > **You can use newer versions, but these are the tested ones.**  
 
