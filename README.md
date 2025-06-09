@@ -12,6 +12,7 @@
 ---
 
 ## ⚡ Whats new ?
+- ✔ **Bone Scales exported from meddle are now preserved**
 - ✔ **Anim Export Y-Up = False** - this is a temporary fix and will make it that you can export Mekrig anims with the button but not Vanilla armature anymore. 
 - ✔ **Pins** – [Pins can now be fully disabled if you run into issues (requires a blender restart)](https://github.com/MekuMaki/Mektools/wiki/Pins-Panel)
 - ✔ **Added Projection Plane to CTRL + A > Curve** -> [Wiki page](https://github.com/MekuMaki/Mektools/wiki/OPP).  
