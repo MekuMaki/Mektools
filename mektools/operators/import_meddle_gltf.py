@@ -53,8 +53,7 @@ def import_meddle_shader(self, imported_objects):
     meddle_cache_directory = os.path.join(character_directory, "cache","")
 
     try:
-        bpy.ops.meddle.use_shaders_selected_objects('EXEC_DEFAULT', directory=meddle_cache_directory)
-
+        bpy.ops.meddle.use_shaders_selected_objects('EXEC_DEFAULT', directory=meddle_cache_directory)  
     except AttributeError:
         self.report({'ERROR'}, "Meddle shaders couldn't be imported. Try restarting Blender and try again.")
 
@@ -598,6 +597,28 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
             object_set = merge_by_name(object_set, 'skin')
         
         
+        # remove animation track from the imported objects
+        # if animation data exists, apply the scaling directly to the bones and remove the pose afterwards
+        bone_scales = {}
+        if armature.pose and armature.pose.bones:
+            for bone in armature.pose.bones:
+                try:
+                    bone_scales[bone.name] = bone.scale.copy()  # Store the original scale of the bone
+                except ReferenceError:
+                    print(f"[Mektools] Skipping deleted bone: {bone}")
+        
+            for obj in object_set:
+                try:
+                    if obj.animation_data and obj.animation_data.action:
+                        # Apply scaling to bones if animation data exists
+                        obj.animation_data.action = None
+                        
+                    if obj.animation_data and obj.animation_data.nla_tracks:
+                        for nt in obj.animation_data.nla_tracks:
+                            obj.animation_data.nla_tracks.remove(nt)
+                except ReferenceError:
+                    print(f"[Mektools] Skipping deleted object: {obj}")
+        
         #checking for user options
         if self.s_import_with_shaders_setting:
             import_meddle_shader(self, object_set)
@@ -629,6 +650,15 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
             armature.data["mektools_armature_type"] = "mekrig"
             
         armature.name = self.s_obj_name if self.s_obj_name != "" else armature.name 
+
+        if armature.pose and armature.pose.bones:
+            # apply bone scales to the armature
+            for bone in armature.pose.bones:
+                try:
+                    if bone.name in bone_scales:
+                        bone.scale = bone_scales[bone.name]  # Apply the stored scale to the bone
+                except ReferenceError:
+                    print(f"[Mektools] Skipping deleted bone: {bone}")
         
         if self.s_is_pinned:
             if self.prefs.ex_pins == 'ON': 
