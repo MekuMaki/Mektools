@@ -48,8 +48,7 @@ class VIEW3D_PT_ImportPanel(Panel):
         if isMeddleInstalled and has_operators:
 
             row = layout.row(align=True)
-            row.operator("mektools.import_meddle_gltf", text="Meddle", icon = "IMPORT") #should only show if meddle is installed Subject for later refactor 
-            row.operator("mektools.import_textools_fbx", text="TexTools", icon = "IMPORT")
+            row.operator("mektools.import_meddle_gltf", text="Character Import", icon = "IMPORT") #should only show if meddle is installed Subject for later refactor 
             
             row = layout.row(align=True) # these should only show if meddle is installed 
 
