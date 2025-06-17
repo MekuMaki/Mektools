@@ -54,9 +54,6 @@ def import_meddle_shader(self, imported_objects):
 
     try:
         bpy.ops.meddle.use_shaders_selected_objects('EXEC_DEFAULT', directory=meddle_cache_directory)  
-    except AttributeError:
-        self.report({'ERROR'}, "Meddle shaders couldn't be imported. Try restarting Blender and try again.")
-
     except Exception as e:
         self.report({'ERROR'}, f"Failed to append Meddle shaders: {e}")
         
@@ -246,21 +243,33 @@ def link_objects_to_collection(objects, collection):
         except ReferenceError:
             print(f"[Mektools] Skipping deleted object: {obj}")
            
-def import_gltf(filepath: str, collection = None, pack_images = True, disable_bone_shape = False, merge_vertices = False):
-    """Imports GLTF. Returns List of imported objects"""
-    scene_obects = set(bpy.context.scene.objects)
-    bpy.ops.import_scene.gltf(filepath=filepath, import_pack_images=pack_images, disable_bone_shape=disable_bone_shape, merge_vertices=merge_vertices)  
-    
-    garbage_collection = bpy.data.collections.get("glTF_not_exported")
-    if garbage_collection:
-        bpy.data.collections.remove(garbage_collection)
-            
-    imported_gltf = [obj for obj in bpy.context.scene.objects if obj not in scene_obects]
-    
+def import_model(filepath: str, collection=None, pack_images=True, disable_bone_shape=False, merge_vertices=False):
+    """Imports GLTF or FBX. Returns list of imported objects."""
+    scene_objects = set(bpy.context.scene.objects)
+    ext = os.path.splitext(filepath)[1].lower()
+
+    if ext in [".gltf", ".glb"]:
+        bpy.ops.import_scene.gltf(
+            filepath=filepath,
+            import_pack_images=pack_images,
+            disable_bone_shape=disable_bone_shape,
+            merge_vertices=merge_vertices
+        )
+        # Remove glTF garbage collection if present
+        garbage_collection = bpy.data.collections.get("glTF_not_exported")
+        if garbage_collection:
+            bpy.data.collections.remove(garbage_collection)
+    elif ext == ".fbx":
+        bpy.ops.import_scene.fbx(filepath=filepath)
+    else:
+        raise ValueError(f"Unsupported file extension: {ext}")
+
+    imported_objs = [obj for obj in bpy.context.scene.objects if obj not in scene_objects]
+
     if collection:
-        link_objects_to_collection(imported_gltf, collection)
-        
-    return imported_gltf
+        link_objects_to_collection(imported_objs, collection)
+
+    return imported_objs
 
 def remove_custom_shapes(armature):
     """Removes custom shapes from all bones in the given armature."""
@@ -330,12 +339,25 @@ def attache_mekrig(armature, racial_code):
     
 def get_racial_code(objects, id):
     """Searches for an object containing specified ID in its name and extracts the racial code."""
+    # First, try to find the racial code in the object names
     for obj in objects:
         if id in obj.name:
             match = re.search(r"c\d{4}", obj.name)
             if match and match.group() in racial_code_to_operator:
-                return match.group() 
-    return None 
+                return match.group()
+
+    # If not found, try to find an object with a material containing the racial code
+    iri_object = next(
+        (obj for obj in bpy.data.objects if any("iri" in (mat.name if mat else "") for mat in obj.material_slots)),
+        None
+    )
+
+    if iri_object:
+        for code in racial_code_to_operator:
+            if any(code in (mat.name if mat else "") for mat in iri_object.material_slots):
+                return code
+
+    return None
 
 def parent_objects(objects, parent_obj, keep_transform=True):
     """Parents a list of objects to a given parent object."""
@@ -433,26 +455,26 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
     bl_label = "Meddle Import"
     bl_options = {'REGISTER', 'UNDO'}
     
-    filepath: StringProperty(subtype="FILE_PATH")
-    filter_glob: StringProperty(default='*.gltf', options={'HIDDEN'})
+    filepath: StringProperty(subtype="FILE_PATH")  # type: ignore
+    filter_glob: StringProperty(default='*.gltf;*.glb;*.fbx', options={'HIDDEN'})  # type: ignore
     
-    s_pack_images: BoolProperty(name="Pack-Images", description="Pack all Images into .blend file", default=True)  
-    s_merge_vertices: BoolProperty(name="Merge Vertices", description="The glTF format requires discontinuous normals, UVs, and other vertex attributes to be stored as separate vertices, as required for rendering on typical graphics hardware. This option attempts to combine co -located vertices where possible. Currently cannot combine verts with different normals.", default=False)# type: ignore  
-    s_import_collection: BoolProperty(name="Import-Collection", description="Stores all import in a seperatre Collection", default=False)
+    s_pack_images: BoolProperty(name="Pack-Images", description="Pack all Images into .blend file", default=True)  # type: ignore
+    s_merge_vertices: BoolProperty(name="Merge Vertices", description="The glTF format requires discontinuous normals, UVs, and other vertex attributes to be stored as separate vertices, as required for rendering on typical graphics hardware. This option attempts to combine co -located vertices where possible. Currently cannot combine verts with different normals.", default=False)  # type: ignore
+    s_import_collection: BoolProperty(name="Import-Collection", description="Stores all import in a seperatre Collection", default=False)  # type: ignore
     
-    s_merge_skin: BoolProperty(name="Merge Skin", description="Merges all skin objects", default=True)
-    s_merge_by_material: BoolProperty(name="Merge by Material", description="Merges all objects with the same material", default=True)
+    s_merge_skin: BoolProperty(name="Merge Skin", description="Merges all skin objects", default=True)  # type: ignore
+    s_merge_by_material: BoolProperty(name="Merge by Material", description="Merges all objects with the same material", default=True)  # type: ignore
     
-    s_import_with_shaders_setting: BoolProperty(name="Import with Meddle Shaders", description="Tries to also import all shaders from meddle shader cache", default=True)
+    s_import_with_shaders_setting: BoolProperty(name="Import with Meddle Shaders", description="Tries to also import all shaders from meddle shader cache", default=True)  # type: ignore
         
-    s_disable_bone_shape: BoolProperty(name="Disable Bone Shapes", description="Disables the generation of Bone Shapes on Import", default=True)
+    s_disable_bone_shape: BoolProperty(name="Disable Bone Shapes", description="Disables the generation of Bone Shapes on Import", default=True)  # type: ignore
     
-    s_remove_parent_on_poles: BoolProperty(name="Remove Parents from Pole-Targets", description="Removes the Parent from Pole-Targets", default=False)
-    s_spline_tail: BoolProperty(name="Generate spline Tail", description="Generates and replaces the tail with Spline IKs", default=False)
-    s_spline_gear: BoolProperty(name="Generate spline Gear", description="Generates and replaces the gear with Spline IKs", default=False) 
+    s_remove_parent_on_poles: BoolProperty(name="Remove Parents from Pole-Targets", description="Removes the Parent from Pole-Targets", default=False)  # type: ignore
+    s_spline_tail: BoolProperty(name="Generate spline Tail", description="Generates and replaces the tail with Spline IKs", default=False)  # type: ignore
+    s_spline_gear: BoolProperty(name="Generate spline Gear", description="Generates and replaces the gear with Spline IKs", default=False)  # type: ignore
     
-    s_is_pinned:  BoolProperty(name="Is Pinned", description="Pinns the imported object", default=True) 
-    s_obj_name: StringProperty(name="Object Name", description="Set a name for the imported object", default="") 
+    s_is_pinned:  BoolProperty(name="Is Pinned", description="Pinns the imported object", default=True)  # type: ignore
+    s_obj_name: StringProperty(name="Object Name", description="Set a name for the imported object", default="")  # type: ignore
     
     s_armature_type: bpy.props.EnumProperty(
         name="Armature Type",
@@ -576,14 +598,14 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
     def execute(self, context):  
         bpy.context.window.cursor_set('WAIT')   
         
-        if not self.filepath or not (self.filepath.lower().endswith(".gltf") or self.filepath.lower().endswith(".glb")): 
+        if not self.filepath or not (self.filepath.lower().endswith(".gltf") or self.filepath.lower().endswith(".glb") or self.filepath.lower().endswith(".fbx")): 
             self.report({'ERROR'}, "Please select a File")
             return {'CANCELLED'}   
 
         #base import function
-        import_collection = helper.create_collection("Meddle_Import")
+        import_collection = helper.create_collection("Model_Import")
         import_collection.color_tag = "COLOR_05"
-        object_set = import_gltf(self.filepath, import_collection, self.s_pack_images, self.s_disable_bone_shape, self.s_merge_vertices)
+        object_set = import_model(self.filepath, import_collection, self.s_pack_images, self.s_disable_bone_shape, self.s_merge_vertices)
         
         racial_code_identifier="iri"
         racial_code = get_racial_code(object_set, racial_code_identifier)
@@ -621,7 +643,12 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
         
         #checking for user options
         if self.s_import_with_shaders_setting:
-            import_meddle_shader(self, object_set)
+            try:
+                import_meddle_shader(self, object_set)
+            except Exception as e:
+                self.report({'ERROR'}, f"[Mektools] Failed to import Meddle shaders. Applying default shaders instead: {e}")
+                bpy.ops.mektools.append_shaders()
+                bpy.ops.material.material_fixer_auto()
         else:
             bpy.ops.mektools.append_shaders()
             bpy.ops.material.material_fixer_auto()
@@ -671,7 +698,7 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
         
         bpy.ops.object.select_all(action='DESELECT')
         
-        self.report({'INFO'}, "GLTF imported and processed successfully.")
+        self.report({'INFO'}, "Model imported and processed successfully.")
         bpy.context.window.cursor_set('DEFAULT')
         return {'FINISHED'}
 
