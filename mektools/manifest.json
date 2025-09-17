@@ -21,7 +21,7 @@
     "import-export"
   ],
   "path": "MekTools",
-  "feature_name": "dev",
+  "feature_name": "main",
   "feature_patch": 0,
   "location": "View3D > Mektools Tab"
 }
