@@ -34,7 +34,7 @@ class VIEW3D_PT_ImportPanel(Panel):
             # these will error out, so we need to catch that
             # once someone restarts blender these go through no problemo
             bpy.ops.meddle.import_shaders.poll()
-            bpy.ops.meddle.use_shaders_selected_objects.poll()
+            bpy.ops.meddle.apply_to_selected.poll()
 
             #we set the operators as true to display all the buttons and shenanigans
             has_operators = True
@@ -60,7 +60,7 @@ class VIEW3D_PT_ImportPanel(Panel):
                 if prefs.legacy_button_import_shaders == 'ON':
                     layout.operator('meddle.import_shaders', text="Import Shaders", icon="SHADING_TEXTURE")
                 if prefs.legacy_button_apply_shaders == 'ON':
-                    layout.operator('meddle.use_shaders_selected_objects', text="Apply Shaders", icon="SHADING_TEXTURE")
+                    layout.operator('meddle.apply_to_selected', text="Apply Shaders", icon="SHADING_TEXTURE")
 
             # If meddle is installed, but the operators are not available, that means that the user just installed the addon
             # And user needs to restart blender
