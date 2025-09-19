@@ -1,7 +1,7 @@
 schema_version = "0.0.1"
 
 id = "mektools"
-version = "1.8.9"
+version = "1.8.10"
 name = "MekTools"
 feature_patch = "0"
 feature_name = "main"
@@ -18,4 +18,4 @@ license = [
 blender_version_min = "4.2.0"
 [permissions]
 files = "Import files for most mektoosl functions"
-# clipboard = "Copy and paste bone transforms"
+network = "Version checks, can be disabled"

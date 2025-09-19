@@ -338,27 +338,28 @@ def attache_mekrig(armature, racial_code):
         return merged_armature
     return None
     
-def get_racial_code(objects, id):
+def get_racial_code(objects):
     """Searches for an object containing specified ID in its name and extracts the racial code."""
-    # First, try to find the racial code in the object names
+    # Primary check for meddle should be based on the object['raceCode']
     for obj in objects:
-        if id in obj.name:
-            match = re.search(r"c\d{4}", obj.name)
-            if match and match.group() in racial_code_to_operator:
-                return match.group()
-
-    # If not found, try to find an object with a material containing the racial code
-    iri_object = next(
-        (obj for obj in bpy.data.objects if any("iri" in (mat.name if mat else "") for mat in obj.material_slots)),
-        None
-    )
-
-    if iri_object:
-        for code in racial_code_to_operator:
-            if any(code in (mat.name if mat else "") for mat in iri_object.material_slots):
-                return code
-
-    return None
+        if 'raceCode' in obj.keys():
+            racial_code = f'c{obj["raceCode"]}'
+            if racial_code in racial_code_to_operator:
+                return racial_code
+            
+    # check for iris.shpk material on any object
+    for obj in objects:
+        if obj.type == "MESH" and obj.data.materials:
+            for mat in obj.data.materials:
+                if 'iris.shpk' in mat.name.lower():
+                    # parse cXXXX from the material name
+                    match = re.search(r'c(\d{4})', mat.name.lower())
+                    if match:
+                        racial_code = f'c{match.group(1)}'
+                        if racial_code in racial_code_to_operator:
+                            return racial_code
+                        
+    return 'c0101'  # default to midlander male if not found
 
 def parent_objects(objects, parent_obj, keep_transform=True):
     """Parents a list of objects to a given parent object."""
@@ -608,8 +609,8 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
         import_collection.color_tag = "COLOR_05"
         object_set = import_model(self.filepath, import_collection, self.s_pack_images, self.s_disable_bone_shape, self.s_merge_vertices)
         
-        racial_code_identifier="iri"
-        racial_code = get_racial_code(object_set, racial_code_identifier)
+    
+        racial_code = get_racial_code(object_set)
         
         armature = find_armature_in_objects(object_set)  
         
