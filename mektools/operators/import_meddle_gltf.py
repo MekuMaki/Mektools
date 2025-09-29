@@ -244,7 +244,7 @@ def link_objects_to_collection(objects, collection):
         except ReferenceError:
             print(f"[Mektools] Skipping deleted object: {obj}")
            
-def import_model(filepath: str, collection=None, pack_images=True, disable_bone_shape=False, merge_vertices=False):
+def import_model(filepath: str, collection=None, pack_images=True, disable_bone_shape=False, merge_vertices=False, bone_heuristic='TEMPERANCE'):
     """Imports GLTF or FBX. Returns list of imported objects."""
     scene_objects = set(bpy.context.scene.objects)
     ext = os.path.splitext(filepath)[1].lower()
@@ -254,7 +254,8 @@ def import_model(filepath: str, collection=None, pack_images=True, disable_bone_
             filepath=filepath,
             import_pack_images=pack_images,
             disable_bone_shape=disable_bone_shape,
-            merge_vertices=merge_vertices
+            merge_vertices=merge_vertices,
+            bone_heuristic=bone_heuristic
         )
         # Remove glTF garbage collection if present
         garbage_collection = bpy.data.collections.get("glTF_not_exported")
@@ -487,7 +488,19 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
         ],
         default="Mekrig"
     )# type: ignore
-    
+
+    s_armature_heuristic: bpy.props.EnumProperty(
+        name="Armature Heuristic",
+        description="Choose the armature heuristic for glTF import",
+        items=[
+            ("BLENDER", "BLENDER", "Best for Modding"),
+            ("TEMPERANCE", "TEMPERANCE", "Good all around for animating within Blender"),
+            ("FORTUNE", "FORTUNE", "Might look better then Temperance, but is less precise"),
+        ],
+        default="BLENDER"
+    )# type: ignore
+
+
     def invoke(self, context, event):
         self.prefs = get_addon_preferences()
         if self.prefs.default_meddle_import_path:
@@ -564,11 +577,20 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
         row = split.row(align=True)
         row.prop(self, "s_armature_type", expand=True)
         
-        col = box.column(align=True)
-        col.active = self.s_armature_type == 'Mekrig'
-        split = col.split(factor=indent_nested)  
-        split.label(text=" ")
-        split.prop(self, "s_remove_parent_on_poles")
+        if self.s_armature_type == 'Mekrig':
+            col = box.column(align=True)
+            col.active = self.s_armature_type == 'Mekrig'
+            split = col.split(factor=indent_nested)  
+            split.label(text=" ")
+            split.prop(self, "s_remove_parent_on_poles")
+
+        if self.s_armature_type == 'Vanilla':
+            col = box.row(align=True)
+            col.active = self.s_armature_type == 'Vanilla'
+            split = col.split(factor=indent_nested) 
+            split.label(text="Orientation :") 
+            split.prop(self, "s_armature_heuristic",text="")
+
 
         if self.prefs.ex_button_spline_tail == 'ON':
             split = col.split(factor=indent_nested)  
@@ -594,7 +616,7 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
         col = box.column(align=True)
         split = col.split(factor=indent)  
         split.label(text="Object Name")
-        split.prop(self, "s_obj_name", text=" ")
+        split.prop(self, "s_obj_name", text="")
 
 
     def execute(self, context):  
@@ -607,9 +629,10 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
         #base import function
         import_collection = helper.create_collection("Model_Import")
         import_collection.color_tag = "COLOR_05"
-        object_set = import_model(self.filepath, import_collection, self.s_pack_images, self.s_disable_bone_shape, self.s_merge_vertices)
+        heuristic = self.s_armature_heuristic if self.s_armature_type == 'Vanilla' else 'BLENDER'
+
+        object_set = import_model(self.filepath, import_collection, self.s_pack_images, self.s_disable_bone_shape, self.s_merge_vertices, heuristic)
         
-    
         racial_code = get_racial_code(object_set)
         
         armature = find_armature_in_objects(object_set)  
