@@ -11,6 +11,7 @@ from .panels import (
     pose_panel,
     glb_export_panel,
     opp_pt,
+    rig_panel
         
 )
 from .operators import (
@@ -35,7 +36,7 @@ from .handler import (
 bl_info = {
     "name": "MekTools",
     "author": "MekuMaki & Shino Mythmaker",
-    "version": (1,8,8),
+    "version": (1,9,0),
     "blender": (4,2,0),
     "description": "A collection of tools for working with FFXIV models in Blender.",
     "category": "Mektools",
@@ -73,7 +74,7 @@ def register():
     glb_export_panel.register()
     #pins_pt.register() covered by pins handler
     opp_pt.register()
-    
+    rig_panel.register()
 
 def unregister():
     # Unregister Handlers
@@ -86,6 +87,7 @@ def unregister():
     glb_export_panel.unregister()
     # pins_pt.unregister() covered by pins handler
     opp_pt.unregister()
+    rig_panel.unregister()
     
     # Unregister all operator types
     import_meddle_gltf.unregister()

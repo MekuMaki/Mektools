@@ -97,7 +97,7 @@ class VIEW3D_PT_PoseHelper(Panel):
             row = col.row()
             row.operator("pose.reset", text="Pose", icon="OUTLINER_OB_ARMATURE")
             row.operator("pose.reset_selection", text="Selection", icon="BONE_DATA")
-           
+
 
 def register():
     bpy.utils.register_class(VIEW3D_PT_PoseHelper)
