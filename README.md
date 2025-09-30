@@ -12,8 +12,8 @@
 ---
 
 ## ⚡ What's New?
-- ✔ **Compatibility with meddle tools 0.1.1**
-- ✔ **The Textools import button has been removed in favor of a universal Import button. Textools imports now use the same process as Meddle models.**
+- ✔ **Rig Layers**
+- ✔ **Bone Orientation setting for Vanilla Imports**
   
 ---
 
@@ -33,8 +33,8 @@
 
 | **Software** | **Recommended Version** |
 |-------------|----------------------|
-| **Blender** | 4.4+ |
-| **Meddle**  | 0.1.1+ |
+| **Blender** | 4.4.3 |
+| **Meddle**  | 0.1.1 |
 
 > **You can use newer versions, but these are the tested ones.**  
 
