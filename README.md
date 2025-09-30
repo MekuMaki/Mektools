@@ -3,7 +3,7 @@
   <p>
     <img src="https://img.shields.io/github/v/release/MekuMaki/Mektools?label=Mektools&color=blue">
     <img src="https://img.shields.io/badge/Blender-4.4%2B-orange">
-    <img src="https://img.shields.io/badge/Meddle-0.30%2B-blue">
+    <img src="https://img.shields.io/badge/Meddle-0.1.1%2B-blue">
     <img src="https://img.shields.io/github/license/MekuMaki/Mektools">
   </p>
   <p>🚀 The all-in-one Blender extension for importing, posing, and exporting FFXIV characters.</p>
@@ -12,7 +12,8 @@
 ---
 
 ## ⚡ What's New?
-- ✔ **The Textools import button has been removed in favor of a universal Import button. Textools imports now use the same process as Meddle models.**
+- ✔ **Rig Layers**
+- ✔ **Bone Orientation setting for Vanilla Imports**
   
 ---
 
@@ -32,8 +33,8 @@
 
 | **Software** | **Recommended Version** |
 |-------------|----------------------|
-| **Blender** | 4.4+ |
-| **Meddle**  | 0.30+ |
+| **Blender** | 4.4.3 |
+| **Meddle**  | 0.1.1 |
 
 > **You can use newer versions, but these are the tested ones.**  
 
