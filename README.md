@@ -4,7 +4,7 @@
     <img src="https://img.shields.io/github/v/release/MekuMaki/Mektools?label=Mektools&color=blue">
     <img src="https://img.shields.io/badge/Blender-4.4%2B-orange">
     <img src="https://img.shields.io/badge/Meddle-0.1.1%2B-blue">
-    <a href="https://www.paypal.com/donate/?hosted_button_id=VVSSL3GDRSBNC"><img alt="Sponsor Badge" src="https://img.shields.io/badge/Dev-Sponsor-pink?style=flat"></a>
+    <a href="https://www.paypal.com/donate/?hosted_button_id=VVSSL3GDRSBNC"><img alt="Sponsor Badge" src="https://img.shields.io/badge/Mythmaker-Sponsor-pink?style=flat"></a>
   </p>
   <p>🚀 The all-in-one Blender extension for importing, posing, and exporting FFXIV characters.</p>
 </div>
