@@ -20,14 +20,7 @@ class MektoolsPreferences(AddonPreferences):
         default='GENERAL'
     )
 
-    # General Settings
-    search_for_update: EnumProperty(
-        name="Update Check",
-        description="Checks for update on Startup. You still have to manually Install and Update.",
-        items=[('OFF', "Disable", ""), ('ON', "Enable", "")],
-        default='ON'
-    ) 
-    
+ 
     general_transform_tools: EnumProperty(
         name="Transform Tools",
         description="Enables/Disables Transform helper buttons for users that are unfamiliar with blender controls",
@@ -154,9 +147,7 @@ class MektoolsPreferences(AddonPreferences):
         if self.tabs == 'GENERAL':
             box = layout.box()
             box.label(text="General Settings")
-            
-            draw_toggle("Check for updates on startup", "search_for_update")
-            
+             
             box = layout.box()
             box.label(text="Pose Helper")
             draw_toggle("PoseMode Toggle", "general_pose_mode_toggle")
