@@ -33,16 +33,6 @@ from .handler import (
     pins_handler,
 )
 
-bl_info = {
-    "name": "MekTools",
-    "author": "MekuMaki & Shino Mythmaker",
-    "version": (1,9,1),
-    "blender": (4,2,0),
-    "description": "A collection of tools for working with FFXIV models in Blender.",
-    "category": "Mektools",
-    "location": "View3D > Mektools Tab",
-}
-
 def register():
     #Register Icons 
     register_custom_icons()
