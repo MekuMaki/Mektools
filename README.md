@@ -17,45 +17,34 @@
   
 ---
 
-## 📥 Installation  
+## Installation ( Master Repository )
 
-🔹 **Download Mektools**:  
-| **Version** | **Download Link** |
-|------------|----------------|
-| **Stable Release** | [Latest Version](https://github.com/MekuMaki/Mektools/archive/refs/heads/main.zip) |
-| **Development Version** | [DevBranch Version](https://github.com/MekuMaki/Mektools/archive/refs/heads/dev.zip) |
+You can install a curated list of FFXIV Blender PLugins using Blender's new Repository feature for easy updates.
 
-📖 *See the full [Installation Guide](../../wiki/installation-guide) for details.*  
+1. In Blender, go to **Edit > Preferences > Get Extensions**
+2. Select the **Repositories** Drop-down-menu (top right)
+3. Click "**Add Remote Repository**"
+4. Paste the following URL for the repo:
+   ```
+   https://raw.githubusercontent.com/ShinoMythmaker/FFXIV-Blender-Plugins/refs/heads/main/repo.json
+   ```
+6. Click **Check for Updates on Startup**.
+7. Click **Create**.
+8. Search for the plugin you need and install.
 
----
+Blender will now keep installed plugins up to date automatically!
 
-## 🏗️ Recommended Versions  
+<img width="705" height="299" alt="506148617-b4bb6db9-a31b-441f-9c28-601fc93b21fe" src="https://github.com/user-attachments/assets/5408ce06-e9b8-478f-9b39-70a6c2e855c8" />
 
-| **Software** | **Recommended Version** |
-|-------------|----------------------|
-| **Blender** | 4.4.3 |
-| **Meddle**  | 0.1.1 |
 
-> **You can use newer versions, but these are the tested ones.**  
-
----
-
-## 🎥 Video Guides  
-
-▶️ **[Watch the Mektools Installation Guide](https://youtu.be/r6b5W6WNh0Q)**  
-
----
-
-## 📖 Documentation  
-
-📚 **Need help?** Check out the **[Mektools Wiki](https://github.com/MekuMaki/Mektools/wiki)**  
-🔹 [Installation & Setup](../../wiki/installation-guide)  
-🔹 [Pose Panel](../../wiki/pose-panel)  
-🔹 [Meddle Import](../../wiki/meddle-import)  
-🔹 [GLTF Export](../../wiki/gltf-export)  
-🔹 [Preferences & Settings](../../wiki/preferences)  
+## Standalone Repository 
+Follow the steps above to keep automatic updates only for Mektools. 
+```
+https://raw.githubusercontent.com/MekuMaki/Mektools/refs/heads/main/repo.json
+```
 
 ---
+
 
 ## ❤️ Contribute & Support  
 
