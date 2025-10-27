@@ -24,7 +24,6 @@ class VIEW3D_PT_SupportCommunity(bpy.types.Panel):
         row = layout.row()
         row.operator("wm.url_open", text="Wiki", icon="HELP").url = "https://github.com/MekuMaki/MekTools/wiki"
         row.operator("wm.url_open", text="Issues", icon="BOOKMARKS").url = "https://github.com/MekuMaki/MekTools/issues"
-        row.operator("mektools.update_check", text="", icon="FILE_REFRESH")
         
         layout.separator()
     

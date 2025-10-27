@@ -1,5 +1,4 @@
 import bpy
-from bpy.types import Operator
 import os
 import importlib.util
 from bpy.props import BoolProperty, StringProperty
@@ -58,17 +57,18 @@ def import_meddle_shader(self, imported_objects):
     except Exception as e:
         self.report({'ERROR'}, f"Failed to append Meddle shaders: {e}")
         
-def remove_pole_parents(armature):
-    """Removes the parent from IK pole bones in the given armature."""
+def parent_poles_to_root(armature):
+    """Parents the pole bones to the root bone in the given armature."""
     if armature and armature.type == 'ARMATURE':
         bpy.ops.object.mode_set(mode='EDIT')
 
-        bones_to_unparent = ["IK_Arm_Pole.R", "IK_Arm_Pole.L", "IK_Leg_Pole.R", "IK_Leg_Pole.L"]
+        bones_to_parent = ["IK_Arm_Pole.R", "IK_Arm_Pole.L", "IK_Leg_Pole.R", "IK_Leg_Pole.L"]
+        root_bone = "root"
 
-        for bone_name in bones_to_unparent:
+        for bone_name in bones_to_parent:
             if bone_name in armature.data.edit_bones:
                 bone = armature.data.edit_bones[bone_name]
-                bone.parent = None  
+                bone.parent = armature.data.edit_bones[root_bone] if root_bone in armature.data.edit_bones else None
 
         bpy.ops.object.mode_set(mode='OBJECT')
 
@@ -452,7 +452,7 @@ def set_bone_display(armature, bones, cs_bone_name = None, theme = None):
     bpy.ops.object.mode_set(mode='OBJECT')
 
 
-class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
+class MEKTOOLS_OT_ImportGLTFFromMeddle(bpy.types.Operator):
     """Import GLTF from Meddle and perform cleanup tasks"""
     bl_idname = "mektools.import_meddle_gltf"
     bl_label = "Meddle Import"
@@ -472,13 +472,10 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
         
     s_disable_bone_shape: BoolProperty(name="Disable Bone Shapes", description="Disables the generation of Bone Shapes on Import", default=True)  # type: ignore
     
-    s_remove_parent_on_poles: BoolProperty(name="Remove Parents from Pole-Targets", description="Removes the Parent from Pole-Targets", default=False)  # type: ignore
+    s_pole_parent_to_root: BoolProperty(name="Parents pole targets to Root", description="Parents pole targets to Root", default=True)  # type: ignore
     s_spline_tail: BoolProperty(name="Generate spline Tail", description="Generates and replaces the tail with Spline IKs", default=False)  # type: ignore
     s_spline_gear: BoolProperty(name="Generate spline Gear", description="Generates and replaces the gear with Spline IKs", default=False)  # type: ignore
-    
-    s_is_pinned:  BoolProperty(name="Is Pinned", description="Pinns the imported object", default=True)  # type: ignore
-    s_obj_name: StringProperty(name="Object Name", description="Set a name for the imported object", default="")  # type: ignore
-    
+      
     s_armature_type: bpy.props.EnumProperty(
         name="Armature Type",
         description="Choose the armature type",
@@ -504,6 +501,7 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
     def invoke(self, context, event):
         self.prefs = get_addon_preferences()
         if self.prefs.default_meddle_import_path:
+            print("Setting default import path from preferences")
             self.filepath = self.prefs.default_meddle_import_path
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
@@ -582,7 +580,7 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
             col.active = self.s_armature_type == 'Mekrig'
             split = col.split(factor=indent_nested)  
             split.label(text=" ")
-            split.prop(self, "s_remove_parent_on_poles")
+            split.prop(self, "s_pole_parent_to_root")
 
         if self.s_armature_type == 'Vanilla':
             col = box.row(align=True)
@@ -602,23 +600,6 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
             split.label(text=" ")
             split.prop(self, "s_spline_gear")
            
-        # 🔹 Pin Section 
-        box = layout.box()
-        row = box.row()
-        row.label(text="Pin", icon="PINNED")
-        
-        col = box.column(align=True)
-        
-        split = col.split(factor=indent)  
-        split.label(text=" ")
-        split.prop(self, "s_is_pinned")
-        
-        col = box.column(align=True)
-        split = col.split(factor=indent)  
-        split.label(text="Object Name")
-        split.prop(self, "s_obj_name", text="")
-
-
     def execute(self, context):  
         bpy.context.window.cursor_set('WAIT')   
         
@@ -689,8 +670,8 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
             link_to_collection(object_set, mekrig_collection)
             parent_objects(object_set, armature)
             
-            if self.s_remove_parent_on_poles:
-                remove_pole_parents(armature)  
+            if self.s_pole_parent_to_root:
+                parent_poles_to_root(armature)  
                 
             if self.s_spline_tail:
                 reference_bones = ["n_sippo_a", "n_sippo_b", "n_sippo_c", "n_sippo_d", "n_sippo_e"]
@@ -701,7 +682,7 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
                 )
             armature.data["mektools_armature_type"] = "mekrig"
             
-        armature.name = self.s_obj_name if self.s_obj_name != "" else armature.name 
+        armature.name = armature.name 
 
         if armature.pose and armature.pose.bones:
             # apply bone scales to the armature
@@ -712,10 +693,6 @@ class MEKTOOLS_OT_ImportGLTFFromMeddle(Operator):
                 except ReferenceError:
                     print(f"[Mektools] Skipping deleted bone: {bone}")
         
-        if self.s_is_pinned:
-            if self.prefs.ex_pins == 'ON': 
-                new_pin = context.scene.pins.add()
-                new_pin.object = armature
              
         if not self.s_import_collection:
             unlink_from_collection(import_collection)

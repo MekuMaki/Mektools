@@ -7,7 +7,6 @@ from . import (
 from .panels import (
     info_panel, 
     mektools_import_panel,
-    # pins_pt,
     pose_panel,
     glb_export_panel,
     opp_pt,
@@ -24,14 +23,10 @@ from .operators import (
     append_shaders,
     lizzer_auto_shaders, 
     fixer_operators,
-    # pins_ot, 
     pose_helper,
     opp_ot,
 )
 
-from .handler import (
-    pins_handler,
-)
 
 def register():
     #Register Icons 
@@ -39,9 +34,6 @@ def register():
     
     #Register all preferences
     addon_preferences.register()
-    
-    # Register Handlers
-    pins_handler.register()
     
     # Register all operators types
     import_meddle_gltf.register()
@@ -54,7 +46,6 @@ def register():
     lizzer_auto_shaders.register()
     fixer_operators.register()
     pose_helper.register()
-    #pins_ot.register() covered by pins handler
     opp_ot.register()
    
     # Register all panel types
@@ -62,20 +53,15 @@ def register():
     mektools_import_panel.register()
     pose_panel.register()
     glb_export_panel.register()
-    #pins_pt.register() covered by pins handler
     opp_pt.register()
     rig_panel.register()
 
-def unregister():
-    # Unregister Handlers
-    pins_handler.unregister()
-    
+def unregister(): 
     # Unregister all panel types
     info_panel.unregister()
     mektools_import_panel.unregister()
     pose_panel.unregister()
     glb_export_panel.unregister()
-    # pins_pt.unregister() covered by pins handler
     opp_pt.unregister()
     rig_panel.unregister()
     
@@ -90,7 +76,6 @@ def unregister():
     lizzer_auto_shaders.unregister()
     fixer_operators.unregister()
     pose_helper.unregister()
-    # pins_ot.unregister() covered by pins handlers
     opp_ot.unregister()
    
     #unregister all preferences

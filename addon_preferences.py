@@ -60,14 +60,7 @@ class MektoolsPreferences(AddonPreferences):
         description="Select the default directory for importing pose files"
     ) 
 
-    # Experimental Buttons   
-    ex_pins: EnumProperty(
-        name="Pinns",
-        description="Enables/Disables Pins panel. Pins are supposed to be a better way fo switching between multiple armatures and objects that are important to the scene instead of browsing through an extensive outliner that includes everything.",
-        items=[('OFF', "Disable", ""), ('ON', "Enable", "")],
-        default='OFF'
-    ) 
-        
+    # Experimental Buttons          
     ex_button_import_pose: EnumProperty(
         name="Import Pose",
         description="Enables/Disables Pose Import function",
@@ -176,10 +169,6 @@ class MektoolsPreferences(AddonPreferences):
             box = layout.box()
             box.label(text="Pose Helper")
             draw_toggle("Import Pose", "ex_button_import_pose")
-            
-            box = layout.box()
-            box.label(text="Pins")
-            draw_toggle("Pins (Requires Restart)", "ex_pins")
 
         elif self.tabs == 'LEGACY':
             box = layout.box()
