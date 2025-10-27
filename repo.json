@@ -4,7 +4,7 @@
     "data": [
         {
             "schema_version": "1.0.0",
-            "id": "MekTools",
+            "id": "mektools",
             "name": "MekTools",
             "tagline": "This is another extension",
             "version": "1.9.3",
