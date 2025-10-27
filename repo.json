@@ -1,0 +1,33 @@
+{
+    "version": "v1",
+    "blocklist": [],
+    "data": [
+        {
+            "schema_version": "1.0.0",
+            "id": "MekTools",
+            "name": "MekTools",
+            "tagline": "This is another extension",
+            "version": "1.9.3",
+            "type": "add-on",
+            "maintainer": "Shino Mythmaker",
+            "license": [
+                "SPDX:GPL-3.0-or-later"
+            ],
+            "blender_version_min": "4.2.0",
+            "blender_version_max": "4.6.0",
+            "website": "https://github.com/MekuMaki/Mektools",
+            "permissions": {
+                "files": "Import files for most MekTools functions"
+            },
+            "tags": [
+                "Animation",
+                "Rigging",
+                "Import-Export",
+                "3D-View"
+            ],
+            "archive_url": "https://github.com/MekuMaki/Mektools/releases/download/v1.9.3/Mektools-main.zip",
+            "archive_size": 30256279,
+            "archive_hash": "sha256:c7fd972c93ab088d57e311ca5e09b96716c2d5f32e9acfe9ee776204599a21d6"
+        }
+    ]
+}
